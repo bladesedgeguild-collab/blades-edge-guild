@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\aking\\\\blades-edge-guild\\\\app\" -Recurse -File | ForEach-Object { $_.FullName })"
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\aking\\\\blades-edge-guild\\\\app\" -Recurse -File | ForEach-Object { $_.FullName })",
+      "Bash(npm run *)",
+      "Bash(git add *)"
     ]
   }
 }
