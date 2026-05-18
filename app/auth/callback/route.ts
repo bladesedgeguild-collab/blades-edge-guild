@@ -4,11 +4,11 @@ import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url)
+  const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
 
   if (!code) {
-    return NextResponse.redirect(`${origin}/login?error=auth_failed`)
+    return NextResponse.redirect(new URL('/login?error=auth_failed', request.url))
   }
 
   const cookieStore = await cookies()
@@ -33,13 +33,13 @@ export async function GET(request: NextRequest) {
   const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
 
   if (exchangeError) {
-    return NextResponse.redirect(`${origin}/login?error=auth_failed`)
+    return NextResponse.redirect(new URL('/login?error=auth_failed', request.url))
   }
 
   const { data: { user }, error: userError } = await supabase.auth.getUser()
 
   if (userError || !user) {
-    return NextResponse.redirect(`${origin}/login?error=auth_failed`)
+    return NextResponse.redirect(new URL('/login?error=auth_failed', request.url))
   }
 
   const meta = user.user_metadata ?? {}
@@ -68,5 +68,5 @@ export async function GET(request: NextRequest) {
     .eq('id', user.id)
     .is('role', null)
 
-  return NextResponse.redirect(`${origin}/dashboard`)
+  return NextResponse.redirect(new URL('/dashboard', request.url))
 }

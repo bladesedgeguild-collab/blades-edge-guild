@@ -1,5 +1,4 @@
 import { createClient } from '@/lib/supabase/server'
-import { redirect } from 'next/navigation'
 
 export default async function DashboardPage({
   searchParams,
@@ -11,14 +10,10 @@ export default async function DashboardPage({
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (!user) {
-    redirect('/login')
-  }
-
   const { data: profile } = await supabase
     .from('users')
     .select('display_name, discord_username, role')
-    .eq('id', user.id)
+    .eq('id', user?.id ?? '')
     .single()
 
   const params = await searchParams

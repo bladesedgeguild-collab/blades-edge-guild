@@ -1,36 +1,112 @@
-# Current Task: Fix /auth/callback 404
+# Current Task: Fix ERR_TOO_MANY_REDIRECTS
 
 ## Problem
-After Discord OAuth completes, the browser is redirected to:
-  bladesedgeguild.com/auth/callback?code=XXXX
+After Discord OAuth completes, the site shows "redirected you too many times" error.
+This is a redirect loop caused by the middleware not correctly reading the Supabase
+session cookie, so it keeps redirecting to /login even after auth succeeds.
 
-This returns a 404 — page not found.
+## Fix required
 
-## What needs to be fixed
-Open app/(auth)/callback/route.ts and fix it so it:
+### 1. Rewrite middleware.ts completely
 
-1. Exports a proper GET function (not default export)
-2. Uses createServerClient from @supabase/ssr to create a Supabase client inside the handler
-3. Calls supabase.auth.exchangeCodeForSession(code) using the code from the URL search params
-4. After successful session exchange, gets the user with supabase.auth.getUser()
-5. Upserts a row into public.users using the service role client with these fields from user.user_metadata:
-   - id = user.id
-   - discord_id = user.user_metadata.provider_id or user.user_metadata.sub
-   - discord_username = user.user_metadata.full_name or user.user_metadata.name
-   - discord_avatar = user.user_metadata.avatar_url
-   - display_name = user.user_metadata.global_name or user.user_metadata.full_name
-   - role = 'pending' (only on insert, do not overwrite on update)
-   - updated_at = now()
-6. Redirects to /dashboard on success
-7. Redirects to /login?error=auth_failed on any error
+Replace the contents of middleware.ts with this correct pattern for @supabase/ssr:
 
-## Important
-- Use the request URL's origin for redirect URLs (new URL(request.url).origin) not NEXT_PUBLIC_SITE_URL
-- The route must be at app/(auth)/callback/route.ts — confirm this file exists and is in the right place
-- Use NextResponse.redirect() for redirects
-- Handle the case where code is missing in search params
+import { createServerClient } from '@supabase/ssr'
+import { NextResponse, type NextRequest } from 'next/server'
+
+export async function middleware(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({ request })
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          )
+          supabaseResponse = NextResponse.next({ request })
+          cookiesToSet.forEach(({ name, value, options }) =>
+            supabaseResponse.cookies.set(name, value, options)
+          )
+        },
+      },
+    }
+  )
+
+  const { data: { user } } = await supabase.auth.getUser()
+  const { pathname } = request.nextUrl
+
+  // Auth routes must ALWAYS pass through - never redirect them
+  if (pathname.startsWith('/auth')) {
+    return supabaseResponse
+  }
+
+  // Public routes - always allow
+  if (pathname === '/' || pathname.startsWith('/login')) {
+    return supabaseResponse
+  }
+
+  // Protected member routes
+  if (
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/roster') ||
+    pathname.startsWith('/dungeons') ||
+    pathname.startsWith('/characters')
+  ) {
+    if (!user) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      return NextResponse.redirect(url)
+    }
+    return supabaseResponse
+  }
+
+  // Protected admin routes
+  if (pathname.startsWith('/admin') || pathname.startsWith('/approvals')) {
+    if (!user) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      return NextResponse.redirect(url)
+    }
+    return supabaseResponse
+  }
+
+  return supabaseResponse
+}
+
+export const config = {
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
+}
+
+### 2. Fix the redirect in app/auth/callback/route.ts
+
+Change the final success redirect to use:
+  return NextResponse.redirect(new URL('/dashboard', request.url))
+
+And the failure redirect to:
+  return NextResponse.redirect(new URL('/login?error=auth_failed', request.url))
+
+Do NOT use string interpolation with origin variable.
+
+### 3. Remove any redirect logic from layout files
+
+Check app/(member)/layout.tsx and app/(admin)/layout.tsx.
+If either file has session checks or redirects, remove them.
+Middleware handles all auth redirects - layout files must not duplicate this.
+
+### 4. Remove any redirect logic from page files
+
+Check app/(member)/dashboard/page.tsx.
+Remove any redirect or session check logic from it.
 
 ## After fixing
 1. Run npm run build
-2. Fix any errors
-3. git add -A && git commit -m "fix: auth callback 404 — correct GET handler and code exchange" && git push origin main
+2. Fix any TypeScript errors
+3. git add -A && git commit -m "fix: redirect loop — correct middleware cookie pattern and remove duplicate redirects" && git push origin main

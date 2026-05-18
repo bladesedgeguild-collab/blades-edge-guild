@@ -1,8 +1,8 @@
 import { createServerClient } from '@supabase/ssr'
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({ request })
+  let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -13,50 +13,61 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-          response = NextResponse.next({ request })
+          cookiesToSet.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          )
+          supabaseResponse = NextResponse.next({ request })
           cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, options)
           )
         },
       },
     }
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
+  const { data: { user } } = await supabase.auth.getUser()
   const { pathname } = request.nextUrl
 
-  const isMemberRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/roster')
-  const isAdminRoute = pathname.startsWith('/approvals')
-
-  if (isMemberRoute || isAdminRoute) {
-    if (!user) {
-      return NextResponse.redirect(new URL('/login', request.url))
-    }
-
-    const { data: profile } = await supabase
-      .from('users')
-      .select('role')
-      .eq('id', user.id)
-      .single()
-
-    const role = profile?.role ?? 'pending'
-
-    if (isAdminRoute && role !== 'admin' && role !== 'gm') {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    }
-
-    if (isMemberRoute && role === 'pending') {
-      return NextResponse.redirect(new URL('/dashboard?pending=true', request.url))
-    }
+  // Auth routes must ALWAYS pass through - never redirect them
+  if (pathname.startsWith('/auth')) {
+    return supabaseResponse
   }
 
-  return response
+  // Public routes - always allow
+  if (pathname === '/' || pathname.startsWith('/login')) {
+    return supabaseResponse
+  }
+
+  // Protected member routes
+  if (
+    pathname.startsWith('/dashboard') ||
+    pathname.startsWith('/roster') ||
+    pathname.startsWith('/dungeons') ||
+    pathname.startsWith('/characters')
+  ) {
+    if (!user) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      return NextResponse.redirect(url)
+    }
+    return supabaseResponse
+  }
+
+  // Protected admin routes
+  if (pathname.startsWith('/admin') || pathname.startsWith('/approvals')) {
+    if (!user) {
+      const url = request.nextUrl.clone()
+      url.pathname = '/login'
+      return NextResponse.redirect(url)
+    }
+    return supabaseResponse
+  }
+
+  return supabaseResponse
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/roster/:path*', '/approvals/:path*'],
+  matcher: [
+    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+  ],
 }
