@@ -1,4 +1,3 @@
-import { Badge } from '@/components/ui/badge'
 import { CLASS_COLORS, CharacterClass, CharacterStatus } from '@/types'
 
 interface MemberCardProps {
@@ -15,61 +14,77 @@ export function MemberCard({ name, class: charClass, level, rank, status }: Memb
 
   return (
     <div
-      className="relative rounded-md overflow-hidden transition-all duration-200 hover:scale-[1.02] hover:shadow-lg"
+      className="member-card relative rounded-md overflow-hidden"
       style={{
-        backgroundColor: '#0d1326',
+        backgroundColor: '#241a0e',
+        border: '1px solid #3d2e15',
         borderLeft: `3px solid ${classColor}`,
-        border: `1px solid #1e2a45`,
-        borderLeftColor: classColor,
-        borderLeftWidth: '3px',
       }}
     >
-      {!isReturned && (
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{ backgroundColor: 'rgba(60,80,120,0.18)' }}
-        />
-      )}
-
-      <div className="p-3 relative z-10">
+      <div className="p-3">
         <div className="flex items-center gap-2 mb-1">
           <span
             className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
             style={{ backgroundColor: classColor }}
           />
-          <span className="font-semibold text-sm text-white truncate">{name}</span>
+          <span
+            className="font-semibold text-sm truncate"
+            style={{ fontFamily: "'Cinzel', serif", color: '#f0e6c8' }}
+          >
+            {name}
+          </span>
         </div>
 
         <div className="flex items-center justify-between gap-1">
-          <span className="text-xs" style={{ color: classColor }}>
+          <span
+            className="text-xs"
+            style={{ fontFamily: "'Crimson Pro', serif", color: classColor }}
+          >
             {charClass}
           </span>
           <span
             className="text-xs px-1.5 py-0.5 rounded"
-            style={{ backgroundColor: '#1e2a45', color: '#8fa3c8' }}
+            style={{
+              fontFamily: "'Crimson Pro', serif",
+              backgroundColor: '#1a1208',
+              color: '#8a7a5a',
+            }}
           >
             Lvl {level}
           </span>
         </div>
 
         <div className="mt-1.5 flex items-center justify-between gap-1">
-          <span className="text-xs truncate" style={{ color: '#8fa3c8' }}>
+          <span
+            className="text-xs truncate"
+            style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
+          >
             {rank}
           </span>
           {isReturned ? (
-            <Badge
-              className="text-xs px-1.5 py-0 h-5"
-              style={{ backgroundColor: '#166534', color: '#4ade80', border: 'none' }}
+            <span
+              className="text-xs px-1.5 py-0.5 rounded flex-shrink-0"
+              style={{
+                fontFamily: "'Cinzel', serif",
+                backgroundColor: 'rgba(26,255,110,0.12)',
+                color: '#1aff6e',
+                border: '1px solid rgba(26,255,110,0.3)',
+              }}
             >
               Returned
-            </Badge>
+            </span>
           ) : (
-            <Badge
-              className="text-xs px-1.5 py-0 h-5"
-              style={{ backgroundColor: '#1e2a45', color: '#6b82a8', border: 'none' }}
+            <span
+              className="text-xs px-1.5 py-0.5 rounded flex-shrink-0"
+              style={{
+                fontFamily: "'Crimson Pro', serif",
+                backgroundColor: 'transparent',
+                color: '#8a7a5a',
+                border: '1px solid #3d2e15',
+              }}
             >
               MIA
-            </Badge>
+            </span>
           )}
         </div>
       </div>

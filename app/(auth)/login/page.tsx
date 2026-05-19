@@ -6,11 +6,11 @@ import { Suspense, useState } from 'react'
 
 const GuildCrest = () => (
   <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="Guild crest">
-    <path d="M32 4L8 16V36C8 48.15 18.4 59.45 32 62C45.6 59.45 56 48.15 56 36V16L32 4Z" fill="#0d1326" stroke="#c9a84c" strokeWidth="2" />
-    <path d="M32 12V52" stroke="#c9a84c" strokeWidth="2" strokeLinecap="round" />
-    <path d="M22 22H42" stroke="#c9a84c" strokeWidth="2" strokeLinecap="round" />
-    <path d="M26 32L32 20L38 32" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M24 42H40" stroke="#c9a84c" strokeWidth="1.5" strokeLinecap="round" />
+    <path d="M32 4L8 16V36C8 48.15 18.4 59.45 32 62C45.6 59.45 56 48.15 56 36V16L32 4Z" fill="#1a1208" stroke="#c9961a" strokeWidth="2" />
+    <path d="M32 12V52" stroke="#c9961a" strokeWidth="2" strokeLinecap="round" />
+    <path d="M22 22H42" stroke="#c9961a" strokeWidth="2" strokeLinecap="round" />
+    <path d="M26 32L32 20L38 32" stroke="#c9961a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M24 42H40" stroke="#c9961a" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
 )
 
@@ -70,7 +70,6 @@ function LoginCard() {
     setAuthError(null)
     setLoading(true)
     const supabase = createClient()
-    // Supabase project must have "Enable email confirmations" disabled for immediate login
     const { error } = await supabase.auth.signUp({ email, password })
     setLoading(false)
     if (error) { setAuthError(humanizeError(error.message)); return }
@@ -89,21 +88,36 @@ function LoginCard() {
     setResetSent(true)
   }
 
-  const inputClass = 'w-full px-3 py-2 rounded-md text-sm text-white outline-none focus:ring-1 focus:ring-[#c9a84c]'
-  const inputStyle = { backgroundColor: '#0a0f1e', border: '1px solid #1e2a45' }
+  const inputClass = 'w-full px-3 py-2 rounded-md text-sm outline-none focus:ring-1 focus:ring-[#c9961a]'
+  const inputStyle = {
+    backgroundColor: '#241a0e',
+    border: '1px solid #3d2e15',
+    color: '#f0e6c8',
+    fontFamily: "'Crimson Pro', serif",
+  }
 
   return (
     <div
       className="w-full max-w-sm rounded-xl border p-8 flex flex-col items-center gap-5"
-      style={{ backgroundColor: '#0d1326', borderColor: '#1e2a45' }}
+      style={{
+        backgroundColor: '#1a1208',
+        borderColor: '#3d2e15',
+        boxShadow: '0 0 40px rgba(201,150,26,0.12), 0 0 0 1px #3d2e15',
+      }}
     >
       <GuildCrest />
 
       <div className="text-center">
-        <h1 className="text-2xl font-bold mb-1" style={{ color: '#c9a84c' }}>
-          Welcome back to Blades Edge
+        <h1
+          className="text-2xl font-bold mb-1"
+          style={{ fontFamily: "'Cinzel Decorative', serif", color: '#c9961a' }}
+        >
+          Welcome back to Blådes Edge
         </h1>
-        <p className="text-sm" style={{ color: '#6b7a99' }}>
+        <p
+          className="text-sm italic"
+          style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
+        >
           Log in to register your return
         </p>
       </div>
@@ -118,7 +132,7 @@ function LoginCard() {
           <button
             onClick={handleDiscordLogin}
             className="w-full flex items-center justify-center gap-3 py-3 px-6 rounded-md font-semibold text-white transition-all duration-200 hover:opacity-90 hover:scale-[1.02]"
-            style={{ backgroundColor: '#5865F2' }}
+            style={{ backgroundColor: '#5865F2', fontFamily: "'Cinzel', serif" }}
           >
             <DiscordIcon />
             Continue with Discord
@@ -126,9 +140,9 @@ function LoginCard() {
 
           {/* Divider */}
           <div className="w-full flex items-center gap-3">
-            <div className="flex-1 h-px" style={{ backgroundColor: '#1e2a45' }} />
-            <span className="text-xs" style={{ color: '#3d4f6e' }}>or</span>
-            <div className="flex-1 h-px" style={{ backgroundColor: '#1e2a45' }} />
+            <div className="flex-1 h-px" style={{ backgroundColor: '#3d2e15' }} />
+            <span className="text-xs" style={{ color: '#8a7a5a' }}>or</span>
+            <div className="flex-1 h-px" style={{ backgroundColor: '#3d2e15' }} />
           </div>
 
           {/* Email/password */}
@@ -158,7 +172,7 @@ function LoginCard() {
                 onClick={handleSignIn}
                 disabled={loading}
                 className="flex-1 py-2 rounded-md text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-50"
-                style={{ backgroundColor: '#c9a84c', color: '#0a0f1e' }}
+                style={{ backgroundColor: '#c9961a', color: '#0d0b07', fontFamily: "'Cinzel', serif" }}
               >
                 Sign In
               </button>
@@ -166,7 +180,7 @@ function LoginCard() {
                 onClick={handleCreateAccount}
                 disabled={loading}
                 className="flex-1 py-2 rounded-md text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-50"
-                style={{ backgroundColor: '#1e2a45', color: '#8fa3c8' }}
+                style={{ backgroundColor: '#241a0e', color: '#8a7a5a', border: '1px solid #3d2e15', fontFamily: "'Cinzel', serif" }}
               >
                 Create Account
               </button>
@@ -174,7 +188,7 @@ function LoginCard() {
             <button
               onClick={() => { setMode('forgot'); setAuthError(null) }}
               className="text-xs text-center hover:text-white transition-colors"
-              style={{ color: '#3d4f6e' }}
+              style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
             >
               Forgot password?
             </button>
@@ -182,7 +196,10 @@ function LoginCard() {
         </>
       ) : (
         <div className="w-full flex flex-col gap-3">
-          <p className="text-sm text-center" style={{ color: '#8fa3c8' }}>
+          <p
+            className="text-sm text-center"
+            style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
+          >
             {resetSent
               ? 'Check your email for a reset link.'
               : 'Enter your email to receive a reset link.'}
@@ -202,7 +219,7 @@ function LoginCard() {
                 onClick={handleForgotPassword}
                 disabled={loading}
                 className="w-full py-2 rounded-md text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-50"
-                style={{ backgroundColor: '#c9a84c', color: '#0a0f1e' }}
+                style={{ backgroundColor: '#c9961a', color: '#0d0b07', fontFamily: "'Cinzel', serif" }}
               >
                 {loading ? 'Sending…' : 'Send reset link'}
               </button>
@@ -211,7 +228,7 @@ function LoginCard() {
           <button
             onClick={() => { setMode('main'); setResetSent(false); setAuthError(null) }}
             className="text-xs text-center hover:text-white transition-colors"
-            style={{ color: '#3d4f6e' }}
+            style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
           >
             Back to login
           </button>
@@ -225,7 +242,7 @@ export default function LoginPage() {
   return (
     <div
       className="min-h-screen flex items-center justify-center px-4"
-      style={{ backgroundColor: '#0a0f1e' }}
+      style={{ backgroundColor: '#0d0b07' }}
     >
       <Suspense>
         <LoginCard />

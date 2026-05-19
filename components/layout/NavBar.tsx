@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { CLASS_COLORS, CharacterClass } from '@/types'
+import { NavScrollGlow } from './NavScrollGlow'
 
 type ProfileData = {
   display_name: string | null
@@ -37,35 +38,49 @@ export async function NavBar() {
     }
   }
 
-  const charColor = claimedChar ? (CLASS_COLORS[claimedChar.class] ?? '#c9a84c') : '#c9a84c'
+  const charColor = claimedChar ? (CLASS_COLORS[claimedChar.class] ?? '#c9961a') : '#c9961a'
   const displayName = claimedChar?.name ?? profile?.display_name ?? profile?.discord_username ?? user?.email ?? null
 
   return (
     <nav
-      className="sticky top-0 z-50 w-full border-b"
-      style={{ backgroundColor: '#060b18', borderColor: '#1e2a45' }}
+      id="site-nav"
+      className="sticky top-0 z-50 w-full border-b transition-shadow duration-300"
+      style={{ backgroundColor: '#0d0b07', borderColor: '#3d2e15' }}
     >
+      <NavScrollGlow />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-        <Link href="/" className="font-bold text-lg tracking-wide" style={{ color: '#c9a84c' }}>
+        <Link
+          href="/"
+          className="font-bold text-xl tracking-wide"
+          style={{ fontFamily: "'Cinzel Decorative', serif", color: '#c9961a' }}
+        >
           Blådes Edge
         </Link>
 
         <div className="flex items-center gap-6">
-          <Link href="/" className="text-sm transition-colors hover:text-white" style={{ color: '#8fa3c8' }}>
+          <Link
+            href="/"
+            className="text-sm transition-colors hover:text-[#c9961a]"
+            style={{ fontFamily: "'Cinzel', serif", color: '#f0e6c8' }}
+          >
             Home
           </Link>
-          <Link href="/roster" className="text-sm transition-colors hover:text-white" style={{ color: '#8fa3c8' }}>
+          <Link
+            href="/roster"
+            className="text-sm transition-colors hover:text-[#c9961a]"
+            style={{ fontFamily: "'Cinzel', serif", color: '#f0e6c8' }}
+          >
             Roster
           </Link>
           <span
             className="text-sm cursor-not-allowed relative group"
-            style={{ color: '#3d4f6e' }}
+            style={{ fontFamily: "'Cinzel', serif", color: '#3d2e15' }}
             title="Coming soon"
           >
             Dungeons
             <span
               className="absolute -top-7 left-1/2 -translate-x-1/2 text-xs px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none"
-              style={{ backgroundColor: '#1e2a45', color: '#8fa3c8' }}
+              style={{ backgroundColor: '#241a0e', color: '#8a7a5a', fontFamily: "'Crimson Pro', serif" }}
             >
               Coming soon
             </span>
@@ -85,7 +100,10 @@ export async function NavBar() {
                   className="w-7 h-7 rounded-full"
                 />
               ) : null}
-              <span className="text-sm" style={{ color: charColor }}>
+              <span
+                className="text-sm"
+                style={{ fontFamily: "'Cinzel', serif", color: charColor }}
+              >
                 {displayName}
               </span>
             </div>
@@ -93,7 +111,7 @@ export async function NavBar() {
             <Link
               href="/login"
               className="text-sm font-medium transition-colors hover:text-white"
-              style={{ color: '#c9a84c' }}
+              style={{ fontFamily: "'Cinzel', serif", color: '#c9961a' }}
             >
               Login
             </Link>

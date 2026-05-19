@@ -57,36 +57,53 @@ export default async function DashboardPage() {
     <div>
       {mainChar && hasOnboarded ? (
         <>
-          <h1 className="text-3xl font-bold mb-2" style={{ color: '#c9a84c' }}>
+          <h1
+            className="text-3xl font-bold mb-2"
+            style={{ fontFamily: "'Cinzel Decorative', serif", color: '#c9961a' }}
+          >
             Welcome back to Blådes Edge, {mainChar.name}. Stoked to see you again!
           </h1>
 
           {/* Main character card */}
           <div
-            className="mt-6 rounded-lg border p-5"
+            className="mt-6 rounded-lg p-5"
             style={{
-              backgroundColor: '#0d1326',
-              borderColor: CLASS_COLORS[mainChar.class] ?? '#1e2a45',
-              borderLeftWidth: 4,
+              backgroundColor: '#241a0e',
+              border: '1px solid #3d2e15',
+              borderLeft: `4px solid ${CLASS_COLORS[mainChar.class] ?? '#c9961a'}`,
             }}
           >
             <div className="flex items-center gap-3 mb-3">
               <span
-                className="w-3 h-3 rounded-full"
+                className="w-3 h-3 rounded-full flex-shrink-0"
                 style={{ backgroundColor: CLASS_COLORS[mainChar.class] }}
               />
-              <span className="text-xl font-bold text-white">{mainChar.name}</span>
-              <span className="text-sm ml-auto" style={{ color: CLASS_COLORS[mainChar.class] }}>
+              <span
+                className="text-xl font-bold"
+                style={{ fontFamily: "'Cinzel', serif", color: '#f0e6c8' }}
+              >
+                {mainChar.name}
+              </span>
+              <span
+                className="text-sm ml-auto"
+                style={{ fontFamily: "'Crimson Pro', serif", color: CLASS_COLORS[mainChar.class] }}
+              >
                 {mainChar.class}
               </span>
             </div>
-            <div className="flex gap-4 text-sm mb-2" style={{ color: '#8fa3c8' }}>
+            <div
+              className="flex gap-4 text-sm mb-2"
+              style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
+            >
               <span>Level {mainChar.level}</span>
               {mainChar.rank_name && <span>Rank: {mainChar.rank_name}</span>}
               {mainChar.last_zone && <span>Last seen: {mainChar.last_zone}</span>}
             </div>
             {mainChar.professions.filter((p) => p.is_primary).length > 0 && (
-              <p className="text-sm" style={{ color: '#6b7a99' }}>
+              <p
+                className="text-sm italic"
+                style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
+              >
                 {mainChar.professions
                   .filter((p) => p.is_primary)
                   .map((p) => `${p.name} (${p.skill_level})`)
@@ -98,23 +115,41 @@ export default async function DashboardPage() {
           {/* Alts */}
           {alts.length > 0 && (
             <div className="mt-6">
-              <h2 className="text-sm font-semibold uppercase tracking-widest mb-3" style={{ color: '#6b7a99' }}>
+              <h2
+                className="text-sm font-semibold uppercase tracking-widest mb-3"
+                style={{ fontFamily: "'Cinzel', serif", color: '#8a7a5a' }}
+              >
                 Your Alts
               </h2>
               <div className="flex flex-wrap gap-3">
                 {alts.map((alt) => (
                   <div
                     key={alt.id}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg border"
-                    style={{ backgroundColor: '#0d1326', borderColor: '#1e2a45' }}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg"
+                    style={{ backgroundColor: '#241a0e', border: '1px solid #3d2e15' }}
                   >
                     <span
-                      className="w-2 h-2 rounded-full"
+                      className="w-2 h-2 rounded-full flex-shrink-0"
                       style={{ backgroundColor: CLASS_COLORS[alt.class] ?? '#888' }}
                     />
-                    <span className="text-sm text-white">{alt.name}</span>
-                    <span className="text-xs" style={{ color: CLASS_COLORS[alt.class] }}>{alt.class}</span>
-                    <span className="text-xs" style={{ color: '#6b7a99' }}>Lvl {alt.level}</span>
+                    <span
+                      className="text-sm"
+                      style={{ fontFamily: "'Cinzel', serif", color: '#f0e6c8' }}
+                    >
+                      {alt.name}
+                    </span>
+                    <span
+                      className="text-xs"
+                      style={{ fontFamily: "'Crimson Pro', serif", color: CLASS_COLORS[alt.class] }}
+                    >
+                      {alt.class}
+                    </span>
+                    <span
+                      className="text-xs"
+                      style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
+                    >
+                      Lvl {alt.level}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -123,24 +158,30 @@ export default async function DashboardPage() {
         </>
       ) : (
         <>
-          <h1 className="text-3xl font-bold mb-2" style={{ color: '#c9a84c' }}>
+          <h1
+            className="text-3xl font-bold mb-2"
+            style={{ fontFamily: "'Cinzel Decorative', serif", color: '#c9961a' }}
+          >
             Welcome, {displayName}
           </h1>
           <div
             className="mt-6 rounded-lg border p-6"
-            style={{ backgroundColor: '#0d1326', borderColor: '#1e2a45' }}
+            style={{ backgroundColor: '#241a0e', borderColor: '#3d2e15' }}
           >
             {profile?.role === 'pending' ? (
               <>
-                <h2 className="text-lg font-semibold mb-2" style={{ color: '#c9a84c' }}>
+                <h2
+                  className="text-lg font-semibold mb-2"
+                  style={{ fontFamily: "'Cinzel', serif", color: '#c9961a' }}
+                >
                   Awaiting Approval
                 </h2>
-                <p style={{ color: '#8fa3c8' }}>
+                <p style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}>
                   Your account is pending officer approval. You will be notified once access is granted.
                 </p>
               </>
             ) : (
-              <p style={{ color: '#8fa3c8' }}>
+              <p style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}>
                 You&apos;re logged in. More guild features coming soon.
               </p>
             )}

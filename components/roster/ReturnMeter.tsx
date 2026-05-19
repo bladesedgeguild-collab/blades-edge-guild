@@ -17,31 +17,40 @@ export function ReturnMeter({ total, returned }: ReturnMeterProps) {
   }, [pct])
 
   return (
-    <div className="w-full max-w-2xl mx-auto px-4">
-      <div className="mb-2 flex justify-between items-baseline">
-        <span className="text-sm font-semibold" style={{ color: '#c9a84c' }}>
+    <div
+      className="w-full rounded-xl px-6 py-5"
+      style={{ backgroundColor: '#241a0e' }}
+    >
+      <div className="mb-3 flex justify-between items-baseline">
+        <span
+          className="text-sm font-semibold"
+          style={{ fontFamily: "'Cinzel', serif", color: '#c9961a' }}
+        >
           {returned} of {total} members have answered the call
         </span>
-        <span className="text-xs" style={{ color: '#6b7a99' }}>
+        <span className="text-xs" style={{ color: '#8a7a5a' }}>
           {Math.round(pct)}%
         </span>
       </div>
 
       <div
         className="h-4 rounded-full overflow-hidden"
-        style={{ backgroundColor: '#111827' }}
+        style={{ backgroundColor: '#0d0b07' }}
       >
         <div
           className="h-full rounded-full transition-all duration-1000 ease-out"
           style={{
             width: `${width}%`,
-            background: 'linear-gradient(90deg, #a07830 0%, #c9a84c 50%, #e8c96e 100%)',
-            boxShadow: '0 0 8px rgba(201,168,76,0.6)',
+            background: 'linear-gradient(90deg, #c9961a 0%, #1aff6e 100%)',
+            boxShadow: '0 0 12px rgba(26,255,110,0.5)',
           }}
         />
       </div>
 
-      <p className="mt-2 text-xs text-center" style={{ color: '#6b7a99' }}>
+      <p
+        className="mt-2 text-xs text-center italic"
+        style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
+      >
         {total - returned} still MIA — will you be next?
       </p>
     </div>
