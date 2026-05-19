@@ -1,3 +1,4 @@
+// Run supabase/migrations/003_hide_from_roster.sql before deploying (adds hide_from_roster + note columns)
 import Link from 'next/link'
 import { MemberCard } from '@/components/roster/MemberCard'
 import { ReturnMeter } from '@/components/roster/ReturnMeter'
@@ -60,31 +61,50 @@ function SectionDivider() {
 export default async function LandingPage() {
   const supabase = await createClient()
 
-  const [
-    { data: returnedChars, count: returnedCount },
-    { data: miaChars, count: miaCount },
-  ] = await Promise.all([
+  // All four queries in parallel; hide_from_roster filter degrades gracefully if column missing
+  // (if column doesn't exist, Supabase returns error and data=null — nullish coalescing handles it)
+  const [returnedCharsResult, miaCharsResult, totalResult, returnedCountResult] = await Promise.all([
     supabase
       .from('characters')
-      .select('name, class', { count: 'exact' })
+      .select('name, class')
       .eq('status', 'returned')
-      .limit(30),
+      .eq('realm', 'Dreamscythe')
+      .eq('hide_from_roster', false)
+      .order('name'),
     supabase
       .from('characters')
-      .select('name, class', { count: 'exact' })
+      .select('name, class')
       .eq('status', 'mia')
-      .limit(30),
+      .eq('realm', 'Dreamscythe')
+      .eq('hide_from_roster', false)
+      .order('level', { ascending: false })
+      .limit(50),
+    supabase
+      .from('characters')
+      .select('*', { count: 'exact', head: true })
+      .eq('realm', 'Dreamscythe')
+      .eq('hide_from_roster', false),
+    supabase
+      .from('characters')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'returned')
+      .eq('realm', 'Dreamscythe')
+      .eq('hide_from_roster', false),
   ])
 
-  const returned = returnedCount ?? 0
-  const mia = miaCount ?? 0
+  const returned = returnedCountResult.count ?? 0
+  const total = totalResult.count ?? 187
+  const mia = miaCharsResult.count ?? 0
 
-  const returnedEntries: NameEntry[] = (returnedChars ?? []).map((c) => ({
+  const returnedChars = returnedCharsResult.data ?? []
+  const miaChars = miaCharsResult.data ?? []
+
+  const returnedEntries: NameEntry[] = returnedChars.map((c) => ({
     name: c.name,
     color: CLASS_COLORS[(c.class as CharacterClass)] ?? '#1aff6e',
   }))
 
-  const miaEntries: NameEntry[] = (miaChars ?? []).map((c) => ({
+  const miaEntries: NameEntry[] = miaChars.map((c) => ({
     name: c.name,
     color: '#8a7a5a',
   }))
@@ -124,7 +144,7 @@ export default async function LandingPage() {
           style={{ bottom: '10rem' }}
         >
           <div className="w-full max-w-xl">
-            <ReturnMeter total={187} returned={returned} />
+            <ReturnMeter total={total} returned={returned} />
           </div>
         </div>
 
@@ -204,7 +224,7 @@ export default async function LandingPage() {
               className="text-lg italic"
               style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
             >
-              187 adventurers. One guild. The call has gone out.
+              {total} adventurers. One guild. The call has gone out.
             </p>
           </div>
 
@@ -341,7 +361,6 @@ export default async function LandingPage() {
           <CtaLoginPanel />
 
           <p
-            className="text-sm"
             style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a', fontSize: '0.85rem' }}
           >
             New to Blådes Edge? Create an account and introduce yourself to the guild.
