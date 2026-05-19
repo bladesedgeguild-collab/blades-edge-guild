@@ -1,6 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
 import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(request: NextRequest) {
@@ -8,65 +7,67 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get('code')
 
   if (!code) {
-    return NextResponse.redirect(new URL('/login?error=auth_failed', request.url))
+    return NextResponse.redirect(new URL('/login?error=no_code', request.url))
   }
 
-  const cookieStore = await cookies()
+  // Create the redirect response FIRST so cookies can be written onto it
+  const response = NextResponse.redirect(new URL('/dashboard', request.url))
 
+  // Supabase client whose setAll writes session cookies directly onto the response
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
-          return cookieStore.getAll()
+          return request.cookies.getAll()
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options)
-          )
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options)
+          })
         },
       },
     }
   )
 
-  const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+  const { error } = await supabase.auth.exchangeCodeForSession(code)
 
-  if (exchangeError) {
+  if (error) {
+    console.error('Auth callback error:', error.message)
     return NextResponse.redirect(new URL('/login?error=auth_failed', request.url))
   }
 
-  const { data: { user }, error: userError } = await supabase.auth.getUser()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (userError || !user) {
-    return NextResponse.redirect(new URL('/login?error=auth_failed', request.url))
+  if (user) {
+    const adminClient = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+
+    const meta = user.user_metadata ?? {}
+
+    await adminClient.from('users').upsert(
+      {
+        id: user.id,
+        discord_id: meta.provider_id ?? meta.sub ?? null,
+        discord_username: meta.full_name ?? meta.name ?? null,
+        discord_avatar: meta.avatar_url ?? null,
+        display_name: meta.global_name ?? meta.full_name ?? null,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'id' }
+    )
+
+    // Set role to 'pending' only for new users — never overwrite an existing role
+    await adminClient
+      .from('users')
+      .update({ role: 'pending' })
+      .eq('id', user.id)
+      .is('role', null)
   }
 
-  const meta = user.user_metadata ?? {}
-
-  const supabaseAdmin = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-
-  await supabaseAdmin.from('users').upsert(
-    {
-      id: user.id,
-      discord_id: meta.provider_id ?? meta.sub ?? null,
-      discord_username: meta.full_name ?? meta.name ?? null,
-      discord_avatar: meta.avatar_url ?? null,
-      display_name: meta.global_name ?? meta.full_name ?? null,
-      updated_at: new Date().toISOString(),
-    },
-    { onConflict: 'id' }
-  )
-
-  // Set role to 'pending' only for new users — never overwrite an existing role
-  await supabaseAdmin
-    .from('users')
-    .update({ role: 'pending' })
-    .eq('id', user.id)
-    .is('role', null)
-
-  return NextResponse.redirect(new URL('/dashboard', request.url))
+  // Return the response WITH the session cookies already set on it
+  return response
 }
