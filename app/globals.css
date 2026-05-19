@@ -49,6 +49,28 @@
 }
 
 :root {
+  --be-bg-0: oklch(0.16 0.012 60);
+  --be-bg-1: oklch(0.20 0.018 60);
+  --be-bg-2: oklch(0.24 0.020 60);
+  --be-bg-3: oklch(0.28 0.022 65);
+  --be-ink:  oklch(0.92 0.022 75);
+  --be-ink-2: oklch(0.78 0.020 75);
+  --be-ink-3: oklch(0.62 0.018 70);
+  --be-ink-4: oklch(0.46 0.014 70);
+  --be-banner: oklch(0.40 0.14 258);
+  --be-gold:   oklch(0.78 0.13 80);
+  --be-gold-2: oklch(0.65 0.12 78);
+  --be-gold-3: oklch(0.50 0.09 75);
+  --be-portal: oklch(0.78 0.18 145);
+  --be-portal-2: oklch(0.62 0.18 145);
+  --be-iron:   oklch(0.72 0.012 80);
+  --be-iron-2: oklch(0.55 0.010 80);
+  --be-iron-3: oklch(0.38 0.010 80);
+  --be-blood:  oklch(0.58 0.20 28);
+  --be-radius: 4px;
+  --be-font-display: 'Cinzel', 'Cinzel Decorative', Georgia, serif;
+  --be-font-body: 'Spectral', Georgia, serif;
+  --be-font-ui: 'Inter', system-ui, sans-serif;
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -164,4 +186,24 @@
 @keyframes scroll-names {
   0% { transform: translateY(0); }
   100% { transform: translateY(-50%); }
+}
+
+@keyframes be-aura-pulse {
+  0%, 100% { opacity: 0.55; transform: scale(0.96); }
+  50%      { opacity: 0.95; transform: scale(1.06); }
+}
+@keyframes be-sigil-rise {
+  0%   { opacity: 0; transform: scale(0.6) rotate(-6deg); filter: brightness(2) blur(6px); }
+  60%  { opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); filter: brightness(1) blur(0); }
+}
+@keyframes be-ember-rise {
+  0%   { opacity: 0; transform: translateY(0) translateX(0); }
+  10%  { opacity: 0.9; }
+  90%  { opacity: 0.4; }
+  100% { opacity: 0; transform: translateY(-120vh) translateX(var(--ember-x, 0px)); }
+}
+@keyframes be-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
