@@ -1,193 +1,157 @@
-# Current Task: Email Auth + Character Claiming Onboarding Flow
+# Current Task: Landing Page Refinements
 
 ## Overview
-Add email/password login as a second auth option alongside Discord OAuth.
-Build a first-login onboarding wizard where users claim their character from the
-existing guild roster. After claiming, their character name becomes their site identity.
+Refine the landing page layout based on visual feedback. Three main areas of change:
+hero section, brotherhood section, and CTA section.
 
 ---
 
-## Part 1 - Update the login page (app/(auth)/login/page.tsx)
+## Change 1 — Hero Section: Remove headline, move identity to bottom-right
 
-Replace the current login page with a new design that has TWO auth options.
+### Remove:
+- The large "BLÅDES EDGE" text that overlaps the center of the hero painting
+- The tagline "EST. 2023 · BURNING CRUSADE CLASSIC · DREAMSCYTHE ALLIANCE" from center
 
-Layout:
-- Same dark theme (#0a0f1e background, #c9a84c gold accents)
-- Guild crest SVG at top (keep existing)
-- Heading: "Welcome back to Blades Edge"
-- Subtext: "Log in to register your return"
+### Add instead — bottom-right corner overlay:
+Position a small identity block in the BOTTOM-RIGHT corner of the hero image.
+It should sit below where the portal green glow is in the painting.
+Style it as a semi-transparent dark panel with gold border, like a guild nameplate.
 
-Discord button (keep existing):
-- "Continue with Discord" button in Discord blurple #5865F2
-- Full width
+Content of the nameplate:
+- Guild crest SVG (small, 48px) — same sword/shield SVG from login page
+- "Blådes Edge" in Cinzel Decorative, #c9961a, ~1.8rem
+- "Burning Crusade Classic · Dreamscythe" in Cinzel, #f0e6c8, ~0.75rem, letter-spaced
+- "Est. 2023" in Crimson Pro italic, #8a7a5a, ~0.7rem
 
-Divider:
-- Horizontal rule with "or" in the middle
+Position: absolute, bottom: 2rem, right: 2rem
+Background: rgba(13, 11, 7, 0.75)
+Border: 1px solid #3d2e15
+Padding: 1rem 1.25rem
+Border-radius: 4px
+Backdrop-filter: blur(4px)
 
-Email/password form (new):
-- Email input field
+### Keep in hero:
+- Return meter (move it to center-bottom of hero, above the gradient fade)
+- The gradient overlay fading to dark at bottom
+
+### Add — login prompt below nameplate or just above it:
+A small "Register your return →" link button in the bottom-right area
+just above or part of the nameplate block.
+Style: subtle, gold text, underline on hover, Cinzel font
+Links to /login
+
+---
+
+## Change 2 — Brotherhood Section: Flanking columns beside guild image
+
+Replace the current layout (image then cards below) with a three-column layout:
+
+### Layout structure:
+[LEFT COLUMN] [CENTER: GUILD IMAGE] [RIGHT COLUMN]
+
+Center column: guild-photo.png, same styling as before, takes ~60% of width
+Left column: ~20% width, overlaps the left edge of the image slightly (negative margin)
+Right column: ~20% width, overlaps the right edge of the image slightly
+
+On mobile: stack vertically, image first, then left content, then right content
+
+### Left column — "Answered the Call":
+Heading: "Answered the Call" in Cinzel, portal green #1aff6e, small caps, ~0.85rem
+Subtext: "{returned} have returned" in Crimson Pro, #8a7a5a
+
+Then a scrolling/animated name display:
+- A vertical list of character names that have status = 'returned'
+- Since currently 0 are returned, show placeholder names from the roster with a note
+- Actually: fetch characters where status = 'returned', if empty show empty state:
+  "Be the first to answer." in Crimson Pro italic, #8a7a5a
+- When there ARE returned members: show their names in a slow CSS scroll animation
+  (marquee-style but vertical, using CSS animation keyframes)
+- Each name in Cinzel font, colored by their class color
+- Names repeat/loop if fewer than 10
+
+Left column background: linear-gradient from transparent to rgba(26,18,8,0.9)
+Border-right: 1px solid #3d2e15
+
+### Right column — "Still MIA":
+Heading: "Still MIA" in Cinzel, #c9961a, small caps, ~0.85rem  
+Subtext: "{mia_count} awaiting the call" in Crimson Pro, #8a7a5a
+
+Then a scrolling vertical name display of MIA characters:
+- Fetch characters where status = 'mia', limit to names only
+- Same vertical scroll animation as left column but slower
+- Names in muted #8a7a5a color (greyed out to represent MIA)
+- Names cycle through continuously
+
+Right column background: linear-gradient from transparent to rgba(26,18,8,0.9)
+Border-left: 1px solid #3d2e15
+
+### Roster cards below the three-column layout:
+Keep the 10-character preview cards but restyle them:
+
+New card design — more name-forward:
+- Character NAME much larger: Cinzel font, 1.1rem, #f0e6c8, full width top of card
+- Below name: class color dot + class name in class color, bold
+- Right side of name row: level badge "Lvl 60" in small Cinzel
+- Bottom row: rank name on left, MIA/Returned badge on right
+- MIA: text only "#8a7a5a · MIA" no background badge
+- Returned: small green dot + "Returned" in #1aff6e
+- Card left border: 3px solid [class color]
+- Card background: #1a1208
+- Hover: translateY(-3px) + gold glow shadow
+- No card border radius change on hover
+
+Heading above cards: "Roster Preview" in Cinzel, gold, centered
+Subtext: "Log in to see the full roster and claim your character." in Crimson Pro italic
+
+---
+
+## Change 3 — CTA Section: One-line headline + dual login
+
+### Headline fix:
+"YOUR GUILD NEEDS YOU." must fit on ONE LINE.
+Reduce font size until it fits: try clamp(2rem, 5vw, 4rem)
+Do not let it wrap to two lines on any screen wider than 480px.
+
+### Returning member copy (not newbie register language):
+Replace current copy with:
+
+Primary text (large, Cinzel): "YOUR GUILD NEEDS YOU."
+Secondary text (Crimson Pro, #8a7a5a, italic):
+"We've been holding your spot. Log in to reclaim your place in the roster."
+
+Small note below both login options in Crimson Pro, #8a7a5a, ~0.8rem:
+"New to Blådes Edge? Create an account and introduce yourself to the guild."
+
+### Dual login layout:
+Show both login options side by side (stack on mobile):
+
+Left option:
+- "Continue with Discord" button — keep existing Discord OAuth, same blurple color
+- Subtext: "Fastest way back" in tiny Crimson Pro
+
+Right option — email quick-login:
+- Email input field (dark styled, gold border on focus)
 - Password input field
-- Two buttons side by side: "Sign In" and "Create Account"
-- "Forgot password?" link below
-- Use supabase.auth.signInWithPassword for sign in
-- Use supabase.auth.signUp for create account with no email confirmation needed
-- On success: redirect to /onboarding if no claimed character, or /dashboard if they do
-- Show inline error messages for wrong password, user not found etc
+- "Sign In" button in gold (#c9961a) with dark text
+- "New here? Create account" small link below
+- "Forgot password?" small link below that
 
-Forgot password:
-- Clicking "Forgot password?" shows email input and "Send reset link" button
-- Calls supabase.auth.resetPasswordForEmail(email, { redirectTo: siteUrl + '/auth/reset' })
-- Shows "Check your email for a reset link" confirmation
-- Create app/auth/reset/page.tsx for the new password form
+Both options separated by a vertical divider with "or" 
+
+All of this in a dark panel: background #1a1208, border #3d2e15, padding 2rem, max-width 600px centered
 
 ---
 
-## Part 2 - Add onboarding columns via migration
+## What NOT to change:
+- All auth logic and functionality
+- Database queries
+- Middleware and route protection
+- The onboarding wizard
+- The navbar
+- The login page at /login (separate from this landing page CTA)
+- Mobile responsiveness should be maintained
 
-Create supabase/migrations/002_onboarding.sql with:
-
-alter table public.users add column if not exists has_completed_onboarding boolean default false;
-alter table public.users add column if not exists claimed_character_id uuid references public.characters(id);
-alter table public.characters add column if not exists claimed_by uuid references public.users(id);
-alter table public.characters add column if not exists claimed_at timestamptz;
-
-Add a comment in code: "Run supabase/migrations/002_onboarding.sql in Supabase SQL editor before deploying"
-
----
-
-## Part 3 - Create onboarding wizard (app/(member)/onboarding/page.tsx)
-
-This is a multi-step wizard for any logged-in user who has not completed onboarding.
-Make this a client component since it has interactive search and multi-step state.
-
-Step 1 - Claim your main character:
-
-Heading: "A guildie has returned!"
-Subtext: "Find your character in the Blades Edge roster to claim your identity on the site."
-
-Character search:
-- Text input that queries public.characters where LOWER(name) LIKE '%input%' AND claimed_by IS NULL
-- Minimum 2 characters typed before searching
-- Debounce 300ms
-- Show dropdown results with: name, class in WoW class color dot, level, rank_name
-- If user logged in via Discord and has a Discord nickname in user_metadata, show hint:
-  "Your Discord nickname is '[nickname]' - is this your character?" with quick-claim button
-
-On selecting a character:
-- Show confirmation card:
-  "Is this you?"
-  [Character Name] - [Class] - Level [X]
-  Rank: [rank_name]
-  Professions: [list from professions table]
-  Last seen in: [last_zone]
-  Buttons: "Yes, this is me!" and "Search again"
-
-On confirming:
-- Call API route to update: characters set claimed_by = user.id, claimed_at = now(), status = 'returned'
-- Update users set claimed_character_id = character.id
-- Proceed to Step 2
-
-If not in roster (new member):
-- Show option: "I'm a new member - create my character"
-- Form: character name input, class dropdown, level number input
-- Creates new characters row with status = 'new', claimed_by = user.id
-- Proceed to Step 2
-
-Step 2 - Add alts (optional):
-
-Heading: "Any alts to add?"
-Subtext: "Add alt characters now or skip and come back later. Admins can also assign alts to your profile."
-
-Same search as Step 1 but for alts. Allow multiple. Show as removable chips/tags.
-For each claimed alt: update characters set claimed_by = user.id, status = 'returned'
-
-Buttons: "Add alts later" (skip) and "Done, take me in!"
-
-Step 3 - Complete:
-- Update users set has_completed_onboarding = true
-- Redirect to /dashboard
-
----
-
-## Part 4 - Create API routes for character claiming
-
-Create app/api/characters/claim/route.ts:
-- POST handler
-- Body: { character_id: string, user_id: string, is_alt: boolean }
-- Use service role client to bypass RLS
-- Check character is not already claimed
-- Update characters and users tables
-- Return success or error
-
-Create app/api/characters/release/route.ts:
-- POST handler (admin only)
-- Body: { character_id: string }
-- Check requesting user is admin or gm
-- Set claimed_by = null, claimed_at = null, status = 'mia'
-- Clear claimed_character_id from users table if it was their main
-
-Create app/api/characters/search/route.ts:
-- GET handler with query param: ?q=searchterm
-- Query characters where LOWER(name) LIKE '%term%' AND claimed_by IS NULL
-- Include professions in response via join
-- Return array of character objects
-- No auth required (public roster search is fine)
-
----
-
-## Part 5 - Update middleware.ts
-
-Add /onboarding to allowed member routes.
-After confirming user is authenticated, check has_completed_onboarding from public.users.
-If false and pathname is not /onboarding, redirect to /onboarding.
-If true, allow through normally.
-
-Fetch the user profile efficiently - use a single query.
-
----
-
-## Part 6 - Update dashboard (app/(member)/dashboard/page.tsx)
-
-Fetch current user from public.users with their claimed character and professions.
-
-If has_completed_onboarding true and claimed_character_id exists:
-  Heading: "Welcome back to Blades Edge, [character_name]. Stoked to see you again!"
-  Show character card with class color accent, level, rank, professions
-  Show list of alt characters if any claimed
-
-Navbar update in components/layout/NavBar.tsx:
-  Once character is claimed, show character name instead of email/discord username
-  Add a colored dot in their class color next to their name
-
----
-
-## Part 7 - Update landing page return meter (app/(public)/page.tsx)
-
-Change the hardcoded "0 of 187" to fetch real count:
-  const { count } = await supabase.from('characters').select('*', { count: 'exact', head: true }).eq('status', 'returned')
-This is a server component. Total stays hardcoded at 187.
-
----
-
-## Part 8 - Admin character management (app/(admin)/approvals/page.tsx)
-
-Add a "Character Claims" section below the existing user approvals:
-
-Show a table of claimed characters:
-- Columns: Character name, Class, Level, Claimed by (show discord_username or email), Claimed at date, Release button
-- Release button calls /api/characters/release
-
-Show count of unclaimed characters: "X of 187 characters still unclaimed"
-
----
-
-## After all changes:
-1. Run npm run build
-2. Fix all TypeScript errors - do not leave any type errors
-3. git add -A && git commit -m "feat: email auth + character claiming onboarding flow" && git push origin main
-
-## Important:
-- Do NOT break existing Discord OAuth flow
-- Handle missing columns gracefully until migration is run
-- Use server components for data fetching, client components only for interactivity
-- WoW class colors: MAGE=#3fc7eb, PALADIN=#f48cba, WARRIOR=#c69b3a, PRIEST=#ffffff, DRUID=#ff7c0a, HUNTER=#aad372, ROGUE=#fff468, WARLOCK=#8788ee, SHAMAN=#0070dd
+## After changes:
+1. npm run build
+2. Fix any TypeScript errors
+3. git add -A && git commit -m "feat: landing page refinements — nameplate hero, flanking columns, dual login CTA" && git push origin main

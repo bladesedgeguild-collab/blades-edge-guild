@@ -156,6 +156,12 @@
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 .member-card:hover {
-  box-shadow: 0 0 20px rgba(201, 150, 26, 0.2);
-  transform: translateY(-2px);
+  box-shadow: 0 4px 24px rgba(201, 150, 26, 0.25);
+  transform: translateY(-3px);
+}
+
+/* Vertical scrolling name marquee */
+@keyframes scroll-names {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-50%); }
 }

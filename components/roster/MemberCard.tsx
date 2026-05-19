@@ -16,45 +16,44 @@ export function MemberCard({ name, class: charClass, level, rank, status }: Memb
     <div
       className="member-card relative rounded-md overflow-hidden"
       style={{
-        backgroundColor: '#241a0e',
+        backgroundColor: '#1a1208',
         border: '1px solid #3d2e15',
         borderLeft: `3px solid ${classColor}`,
       }}
     >
-      <div className="p-3">
-        <div className="flex items-center gap-2 mb-1">
+      <div className="p-3 flex flex-col gap-1.5">
+        {/* Name + Level */}
+        <div className="flex items-baseline justify-between gap-2">
           <span
-            className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
-            style={{ backgroundColor: classColor }}
-          />
-          <span
-            className="font-semibold text-sm truncate"
-            style={{ fontFamily: "'Cinzel', serif", color: '#f0e6c8' }}
+            className="font-semibold truncate"
+            style={{ fontFamily: "'Cinzel', serif", fontSize: '1.05rem', color: '#f0e6c8' }}
           >
             {name}
           </span>
-        </div>
-
-        <div className="flex items-center justify-between gap-1">
           <span
-            className="text-xs"
-            style={{ fontFamily: "'Crimson Pro', serif", color: classColor }}
-          >
-            {charClass}
-          </span>
-          <span
-            className="text-xs px-1.5 py-0.5 rounded"
-            style={{
-              fontFamily: "'Crimson Pro', serif",
-              backgroundColor: '#1a1208',
-              color: '#8a7a5a',
-            }}
+            className="flex-shrink-0 text-xs"
+            style={{ fontFamily: "'Cinzel', serif", color: '#c9961a' }}
           >
             Lvl {level}
           </span>
         </div>
 
-        <div className="mt-1.5 flex items-center justify-between gap-1">
+        {/* Class */}
+        <div className="flex items-center gap-1.5">
+          <span
+            className="inline-block w-2 h-2 rounded-full flex-shrink-0"
+            style={{ backgroundColor: classColor }}
+          />
+          <span
+            className="text-sm font-semibold"
+            style={{ fontFamily: "'Crimson Pro', serif", color: classColor }}
+          >
+            {charClass}
+          </span>
+        </div>
+
+        {/* Rank + Status */}
+        <div className="flex items-center justify-between gap-2">
           <span
             className="text-xs truncate"
             style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
@@ -62,28 +61,24 @@ export function MemberCard({ name, class: charClass, level, rank, status }: Memb
             {rank}
           </span>
           {isReturned ? (
-            <span
-              className="text-xs px-1.5 py-0.5 rounded flex-shrink-0"
-              style={{
-                fontFamily: "'Cinzel', serif",
-                backgroundColor: 'rgba(26,255,110,0.12)',
-                color: '#1aff6e',
-                border: '1px solid rgba(26,255,110,0.3)',
-              }}
-            >
-              Returned
+            <span className="flex items-center gap-1 flex-shrink-0">
+              <span
+                className="inline-block w-1.5 h-1.5 rounded-full"
+                style={{ backgroundColor: '#1aff6e' }}
+              />
+              <span
+                className="text-xs"
+                style={{ fontFamily: "'Cinzel', serif", color: '#1aff6e' }}
+              >
+                Returned
+              </span>
             </span>
           ) : (
             <span
-              className="text-xs px-1.5 py-0.5 rounded flex-shrink-0"
-              style={{
-                fontFamily: "'Crimson Pro', serif",
-                backgroundColor: 'transparent',
-                color: '#8a7a5a',
-                border: '1px solid #3d2e15',
-              }}
+              className="text-xs flex-shrink-0"
+              style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
             >
-              MIA
+              · MIA
             </span>
           )}
         </div>
