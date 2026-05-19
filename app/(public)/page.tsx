@@ -7,25 +7,6 @@ import { CtaLoginPanel } from '@/components/landing/CtaLoginPanel'
 import { CLASS_COLORS, CharacterClass, CharacterStatus } from '@/types'
 import { createClient } from '@/lib/supabase/server'
 
-const PREVIEW_MEMBERS: {
-  name: string
-  class: CharacterClass
-  level: number
-  rank: string
-  status: CharacterStatus
-}[] = [
-  { name: 'Åvatarødys', class: 'MAGE', level: 60, rank: 'Guild Master', status: 'mia' },
-  { name: 'Sozinn', class: 'DRUID', level: 60, rank: 'Grand Marshal', status: 'mia' },
-  { name: 'Cradh', class: 'HUNTER', level: 60, rank: 'Grand Marshal', status: 'mia' },
-  { name: 'Themrdiddley', class: 'PRIEST', level: 60, rank: 'Ally Emissary', status: 'mia' },
-  { name: 'Vranx', class: 'DRUID', level: 60, rank: 'Ally Emissary', status: 'mia' },
-  { name: 'Burbun', class: 'PALADIN', level: 41, rank: 'Ally Emissary', status: 'mia' },
-  { name: 'Zarlon', class: 'MAGE', level: 56, rank: 'Vanguard Elite', status: 'mia' },
-  { name: 'Barragninn', class: 'ROGUE', level: 49, rank: 'Exalted Hero', status: 'mia' },
-  { name: 'Kælin', class: 'PALADIN', level: 36, rank: 'Honored Veteran', status: 'mia' },
-  { name: 'Tralest', class: 'PRIEST', level: 29, rank: 'Exalted Hero', status: 'mia' },
-]
-
 const GuildCrest = ({ size = 48 }: { size?: number }) => (
   <svg
     width={size}
@@ -63,7 +44,7 @@ export default async function LandingPage() {
 
   // All four queries in parallel; hide_from_roster filter degrades gracefully if column missing
   // (if column doesn't exist, Supabase returns error and data=null — nullish coalescing handles it)
-  const [returnedCharsResult, miaCharsResult, totalResult, returnedCountResult] = await Promise.all([
+  const [returnedCharsResult, miaCharsResult, totalResult, returnedCountResult, previewResult] = await Promise.all([
     supabase
       .from('characters')
       .select('name, class')
@@ -90,11 +71,27 @@ export default async function LandingPage() {
       .eq('status', 'returned')
       .eq('realm', 'Dreamscythe')
       .eq('hide_from_roster', false),
+    supabase
+      .from('characters')
+      .select('name, class, level, rank_name, status')
+      .eq('realm', 'Dreamscythe')
+      .eq('hide_from_roster', false)
+      .order('rank_index', { ascending: true })
+      .order('level', { ascending: false })
+      .limit(10),
   ])
 
   const returned = returnedCountResult.count ?? 0
   const total = totalResult.count ?? 187
   const mia = miaCharsResult.count ?? 0
+
+  const previewMembers = (previewResult.data ?? []).map((c) => ({
+    name: c.name as string,
+    class: c.class as CharacterClass,
+    level: c.level as number,
+    rank: (c.rank_name as string | null) ?? '',
+    status: c.status as CharacterStatus,
+  }))
 
   const returnedChars = returnedCharsResult.data ?? []
   const miaChars = miaCharsResult.data ?? []
@@ -323,7 +320,7 @@ export default async function LandingPage() {
               </p>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-              {PREVIEW_MEMBERS.map((m) => (
+              {previewMembers.map((m) => (
                 <MemberCard key={m.name} {...m} />
               ))}
             </div>
