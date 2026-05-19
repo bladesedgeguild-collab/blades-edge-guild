@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { CLASS_COLORS, CharacterClass } from '@/types'
 import { NavScrollGlow } from './NavScrollGlow'
+import { NavUserMenu } from './NavUserMenu'
 
 type ProfileData = {
   display_name: string | null
@@ -87,26 +88,15 @@ export async function NavBar() {
           </span>
 
           {user ? (
-            <div className="flex items-center gap-2">
-              {claimedChar ? (
-                <span
-                  className="inline-block w-2.5 h-2.5 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: charColor }}
-                />
-              ) : profile?.discord_avatar ? (
-                <img
-                  src={`https://cdn.discordapp.com/avatars/${user.user_metadata?.provider_id}/${profile.discord_avatar}.png?size=32`}
-                  alt={displayName ?? ''}
-                  className="w-7 h-7 rounded-full"
-                />
-              ) : null}
-              <span
-                className="text-sm"
-                style={{ fontFamily: "'Cinzel', serif", color: charColor }}
-              >
-                {displayName}
-              </span>
-            </div>
+            <NavUserMenu
+              displayName={displayName ?? ''}
+              charColor={charColor}
+              avatarUrl={
+                !claimedChar && profile?.discord_avatar
+                  ? `https://cdn.discordapp.com/avatars/${user.user_metadata?.provider_id}/${profile.discord_avatar}.png?size=32`
+                  : null
+              }
+            />
           ) : (
             <Link
               href="/login"

@@ -5,7 +5,7 @@ import { ReturnMeter } from '@/components/roster/ReturnMeter'
 import { ScrollingNames, type NameEntry } from '@/components/landing/ScrollingNames'
 import { CtaLoginPanel } from '@/components/landing/CtaLoginPanel'
 import { CLASS_COLORS, CharacterClass, CharacterStatus } from '@/types'
-import { createClient } from '@/lib/supabase/server'
+import { createClient } from '@supabase/supabase-js'
 
 const GuildCrest = ({ size = 48 }: { size?: number }) => (
   <svg
@@ -40,11 +40,12 @@ function SectionDivider() {
 }
 
 export default async function LandingPage() {
-  const supabase = await createClient()
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
 
-  // All four queries in parallel; hide_from_roster filter degrades gracefully if column missing
-  // (if column doesn't exist, Supabase returns error and data=null — nullish coalescing handles it)
-  const [returnedCharsResult, miaCharsResult, totalResult, returnedCountResult, previewResult] = await Promise.all([
+  const [returnedCharsResult, miaCharsResult, totalResult, returnedOriginalResult, newCountResult, previewResult] = await Promise.all([
     supabase
       .from('characters')
       .select('name, class')
@@ -69,6 +70,13 @@ export default async function LandingPage() {
       .from('characters')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'returned')
+      .eq('imported_from_grm', true)
+      .eq('realm', 'Dreamscythe')
+      .eq('hide_from_roster', false),
+    supabase
+      .from('characters')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'new')
       .eq('realm', 'Dreamscythe')
       .eq('hide_from_roster', false),
     supabase
@@ -81,8 +89,11 @@ export default async function LandingPage() {
       .limit(10),
   ])
 
-  const returned = returnedCountResult.count ?? 0
-  const total = totalResult.count ?? 187
+  const totalRoster = totalResult.count ?? 0
+  const total = totalRoster
+  const returnedOriginal = returnedOriginalResult.count ?? 0
+  const newCount = newCountResult.count ?? 0
+  const returned = returnedOriginal
   const mia = miaCharsResult.count ?? 0
 
   const previewMembers = (previewResult.data ?? []).map((c) => ({
@@ -141,7 +152,7 @@ export default async function LandingPage() {
           style={{ bottom: '10rem' }}
         >
           <div className="w-full max-w-xl">
-            <ReturnMeter total={total} returned={returned} />
+            <ReturnMeter totalRoster={totalRoster} returnedOriginal={returnedOriginal} newCount={newCount} />
           </div>
         </div>
 
