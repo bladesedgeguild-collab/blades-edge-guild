@@ -1,112 +1,193 @@
-# Current Task: Fix ERR_TOO_MANY_REDIRECTS
+# Current Task: Email Auth + Character Claiming Onboarding Flow
 
-## Problem
-After Discord OAuth completes, the site shows "redirected you too many times" error.
-This is a redirect loop caused by the middleware not correctly reading the Supabase
-session cookie, so it keeps redirecting to /login even after auth succeeds.
+## Overview
+Add email/password login as a second auth option alongside Discord OAuth.
+Build a first-login onboarding wizard where users claim their character from the
+existing guild roster. After claiming, their character name becomes their site identity.
 
-## Fix required
+---
 
-### 1. Rewrite middleware.ts completely
+## Part 1 - Update the login page (app/(auth)/login/page.tsx)
 
-Replace the contents of middleware.ts with this correct pattern for @supabase/ssr:
+Replace the current login page with a new design that has TWO auth options.
 
-import { createServerClient } from '@supabase/ssr'
-import { NextResponse, type NextRequest } from 'next/server'
+Layout:
+- Same dark theme (#0a0f1e background, #c9a84c gold accents)
+- Guild crest SVG at top (keep existing)
+- Heading: "Welcome back to Blades Edge"
+- Subtext: "Log in to register your return"
 
-export async function middleware(request: NextRequest) {
-  let supabaseResponse = NextResponse.next({ request })
+Discord button (keep existing):
+- "Continue with Discord" button in Discord blurple #5865F2
+- Full width
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          )
-          supabaseResponse = NextResponse.next({ request })
-          cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
-          )
-        },
-      },
-    }
-  )
+Divider:
+- Horizontal rule with "or" in the middle
 
-  const { data: { user } } = await supabase.auth.getUser()
-  const { pathname } = request.nextUrl
+Email/password form (new):
+- Email input field
+- Password input field
+- Two buttons side by side: "Sign In" and "Create Account"
+- "Forgot password?" link below
+- Use supabase.auth.signInWithPassword for sign in
+- Use supabase.auth.signUp for create account with no email confirmation needed
+- On success: redirect to /onboarding if no claimed character, or /dashboard if they do
+- Show inline error messages for wrong password, user not found etc
 
-  // Auth routes must ALWAYS pass through - never redirect them
-  if (pathname.startsWith('/auth')) {
-    return supabaseResponse
-  }
+Forgot password:
+- Clicking "Forgot password?" shows email input and "Send reset link" button
+- Calls supabase.auth.resetPasswordForEmail(email, { redirectTo: siteUrl + '/auth/reset' })
+- Shows "Check your email for a reset link" confirmation
+- Create app/auth/reset/page.tsx for the new password form
 
-  // Public routes - always allow
-  if (pathname === '/' || pathname.startsWith('/login')) {
-    return supabaseResponse
-  }
+---
 
-  // Protected member routes
-  if (
-    pathname.startsWith('/dashboard') ||
-    pathname.startsWith('/roster') ||
-    pathname.startsWith('/dungeons') ||
-    pathname.startsWith('/characters')
-  ) {
-    if (!user) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/login'
-      return NextResponse.redirect(url)
-    }
-    return supabaseResponse
-  }
+## Part 2 - Add onboarding columns via migration
 
-  // Protected admin routes
-  if (pathname.startsWith('/admin') || pathname.startsWith('/approvals')) {
-    if (!user) {
-      const url = request.nextUrl.clone()
-      url.pathname = '/login'
-      return NextResponse.redirect(url)
-    }
-    return supabaseResponse
-  }
+Create supabase/migrations/002_onboarding.sql with:
 
-  return supabaseResponse
-}
+alter table public.users add column if not exists has_completed_onboarding boolean default false;
+alter table public.users add column if not exists claimed_character_id uuid references public.characters(id);
+alter table public.characters add column if not exists claimed_by uuid references public.users(id);
+alter table public.characters add column if not exists claimed_at timestamptz;
 
-export const config = {
-  matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
-  ],
-}
+Add a comment in code: "Run supabase/migrations/002_onboarding.sql in Supabase SQL editor before deploying"
 
-### 2. Fix the redirect in app/auth/callback/route.ts
+---
 
-Change the final success redirect to use:
-  return NextResponse.redirect(new URL('/dashboard', request.url))
+## Part 3 - Create onboarding wizard (app/(member)/onboarding/page.tsx)
 
-And the failure redirect to:
-  return NextResponse.redirect(new URL('/login?error=auth_failed', request.url))
+This is a multi-step wizard for any logged-in user who has not completed onboarding.
+Make this a client component since it has interactive search and multi-step state.
 
-Do NOT use string interpolation with origin variable.
+Step 1 - Claim your main character:
 
-### 3. Remove any redirect logic from layout files
+Heading: "A guildie has returned!"
+Subtext: "Find your character in the Blades Edge roster to claim your identity on the site."
 
-Check app/(member)/layout.tsx and app/(admin)/layout.tsx.
-If either file has session checks or redirects, remove them.
-Middleware handles all auth redirects - layout files must not duplicate this.
+Character search:
+- Text input that queries public.characters where LOWER(name) LIKE '%input%' AND claimed_by IS NULL
+- Minimum 2 characters typed before searching
+- Debounce 300ms
+- Show dropdown results with: name, class in WoW class color dot, level, rank_name
+- If user logged in via Discord and has a Discord nickname in user_metadata, show hint:
+  "Your Discord nickname is '[nickname]' - is this your character?" with quick-claim button
 
-### 4. Remove any redirect logic from page files
+On selecting a character:
+- Show confirmation card:
+  "Is this you?"
+  [Character Name] - [Class] - Level [X]
+  Rank: [rank_name]
+  Professions: [list from professions table]
+  Last seen in: [last_zone]
+  Buttons: "Yes, this is me!" and "Search again"
 
-Check app/(member)/dashboard/page.tsx.
-Remove any redirect or session check logic from it.
+On confirming:
+- Call API route to update: characters set claimed_by = user.id, claimed_at = now(), status = 'returned'
+- Update users set claimed_character_id = character.id
+- Proceed to Step 2
 
-## After fixing
+If not in roster (new member):
+- Show option: "I'm a new member - create my character"
+- Form: character name input, class dropdown, level number input
+- Creates new characters row with status = 'new', claimed_by = user.id
+- Proceed to Step 2
+
+Step 2 - Add alts (optional):
+
+Heading: "Any alts to add?"
+Subtext: "Add alt characters now or skip and come back later. Admins can also assign alts to your profile."
+
+Same search as Step 1 but for alts. Allow multiple. Show as removable chips/tags.
+For each claimed alt: update characters set claimed_by = user.id, status = 'returned'
+
+Buttons: "Add alts later" (skip) and "Done, take me in!"
+
+Step 3 - Complete:
+- Update users set has_completed_onboarding = true
+- Redirect to /dashboard
+
+---
+
+## Part 4 - Create API routes for character claiming
+
+Create app/api/characters/claim/route.ts:
+- POST handler
+- Body: { character_id: string, user_id: string, is_alt: boolean }
+- Use service role client to bypass RLS
+- Check character is not already claimed
+- Update characters and users tables
+- Return success or error
+
+Create app/api/characters/release/route.ts:
+- POST handler (admin only)
+- Body: { character_id: string }
+- Check requesting user is admin or gm
+- Set claimed_by = null, claimed_at = null, status = 'mia'
+- Clear claimed_character_id from users table if it was their main
+
+Create app/api/characters/search/route.ts:
+- GET handler with query param: ?q=searchterm
+- Query characters where LOWER(name) LIKE '%term%' AND claimed_by IS NULL
+- Include professions in response via join
+- Return array of character objects
+- No auth required (public roster search is fine)
+
+---
+
+## Part 5 - Update middleware.ts
+
+Add /onboarding to allowed member routes.
+After confirming user is authenticated, check has_completed_onboarding from public.users.
+If false and pathname is not /onboarding, redirect to /onboarding.
+If true, allow through normally.
+
+Fetch the user profile efficiently - use a single query.
+
+---
+
+## Part 6 - Update dashboard (app/(member)/dashboard/page.tsx)
+
+Fetch current user from public.users with their claimed character and professions.
+
+If has_completed_onboarding true and claimed_character_id exists:
+  Heading: "Welcome back to Blades Edge, [character_name]. Stoked to see you again!"
+  Show character card with class color accent, level, rank, professions
+  Show list of alt characters if any claimed
+
+Navbar update in components/layout/NavBar.tsx:
+  Once character is claimed, show character name instead of email/discord username
+  Add a colored dot in their class color next to their name
+
+---
+
+## Part 7 - Update landing page return meter (app/(public)/page.tsx)
+
+Change the hardcoded "0 of 187" to fetch real count:
+  const { count } = await supabase.from('characters').select('*', { count: 'exact', head: true }).eq('status', 'returned')
+This is a server component. Total stays hardcoded at 187.
+
+---
+
+## Part 8 - Admin character management (app/(admin)/approvals/page.tsx)
+
+Add a "Character Claims" section below the existing user approvals:
+
+Show a table of claimed characters:
+- Columns: Character name, Class, Level, Claimed by (show discord_username or email), Claimed at date, Release button
+- Release button calls /api/characters/release
+
+Show count of unclaimed characters: "X of 187 characters still unclaimed"
+
+---
+
+## After all changes:
 1. Run npm run build
-2. Fix any TypeScript errors
-3. git add -A && git commit -m "fix: redirect loop — correct middleware cookie pattern and remove duplicate redirects" && git push origin main
+2. Fix all TypeScript errors - do not leave any type errors
+3. git add -A && git commit -m "feat: email auth + character claiming onboarding flow" && git push origin main
+
+## Important:
+- Do NOT break existing Discord OAuth flow
+- Handle missing columns gracefully until migration is run
+- Use server components for data fetching, client components only for interactivity
+- WoW class colors: MAGE=#3fc7eb, PALADIN=#f48cba, WARRIOR=#c69b3a, PRIEST=#ffffff, DRUID=#ff7c0a, HUNTER=#aad372, ROGUE=#fff468, WARLOCK=#8788ee, SHAMAN=#0070dd

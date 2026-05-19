@@ -17,9 +17,12 @@ export interface User {
   discord_username: string | null
   discord_avatar: string | null
   display_name: string | null
+  email: string | null
   role: UserRole
   approved_at: string | null
   approved_by: string | null
+  has_completed_onboarding: boolean
+  claimed_character_id: string | null
   created_at: string
   updated_at: string
 }
@@ -43,6 +46,8 @@ export interface Character {
   hair_style: string | null
   status: CharacterStatus
   imported_from_grm: boolean
+  claimed_by: string | null
+  claimed_at: string | null
   created_at: string
   updated_at: string
 }

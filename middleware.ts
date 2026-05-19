@@ -38,18 +38,35 @@ export async function middleware(request: NextRequest) {
     return supabaseResponse
   }
 
-  // Protected member routes
+  // Protected member routes (including onboarding)
   if (
     pathname.startsWith('/dashboard') ||
     pathname.startsWith('/roster') ||
     pathname.startsWith('/dungeons') ||
-    pathname.startsWith('/characters')
+    pathname.startsWith('/characters') ||
+    pathname.startsWith('/onboarding')
   ) {
     if (!user) {
       const url = request.nextUrl.clone()
       url.pathname = '/login'
       return NextResponse.redirect(url)
     }
+
+    // Check if user has completed onboarding (column may not exist yet — handle gracefully)
+    if (!pathname.startsWith('/onboarding')) {
+      const { data: profile, error: profileError } = await supabase
+        .from('users')
+        .select('has_completed_onboarding')
+        .eq('id', user.id)
+        .single()
+
+      if (!profileError && profile?.has_completed_onboarding === false) {
+        const url = request.nextUrl.clone()
+        url.pathname = '/onboarding'
+        return NextResponse.redirect(url)
+      }
+    }
+
     return supabaseResponse
   }
 

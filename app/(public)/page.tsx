@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { MemberCard } from '@/components/roster/MemberCard'
 import { ReturnMeter } from '@/components/roster/ReturnMeter'
 import { CharacterClass, CharacterStatus } from '@/types'
+import { createClient } from '@/lib/supabase/server'
 
 const PREVIEW_MEMBERS: {
   name: string
@@ -22,7 +23,15 @@ const PREVIEW_MEMBERS: {
   { name: 'Tralest', class: 'PRIEST', level: 29, rank: 'Exalted Hero', status: 'mia' },
 ]
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const supabase = await createClient()
+  const { count: returnedCount } = await supabase
+    .from('characters')
+    .select('*', { count: 'exact', head: true })
+    .eq('status', 'returned')
+
+  const returned = returnedCount ?? 0
+
   return (
     <div className="min-h-screen flex flex-col" style={{ backgroundColor: '#0a0f1e' }}>
       {/* Hero */}
@@ -42,7 +51,7 @@ export default function LandingPage() {
 
         {/* Return Meter */}
         <div className="w-full max-w-2xl mb-16">
-          <ReturnMeter total={187} returned={0} />
+          <ReturnMeter total={187} returned={returned} />
         </div>
 
         {/* Roster Preview */}
