@@ -33,6 +33,7 @@ export default async function LandingPage() {
     miaCountResult,
     allCharsResult,
     previewResult,
+    returnedCharsResult,
   ] = await Promise.all([
     supabase
       .from('characters')
@@ -72,6 +73,13 @@ export default async function LandingPage() {
       .order('rank_index', { ascending: true })
       .order('level', { ascending: false })
       .limit(10),
+    supabase
+      .from('characters')
+      .select('name, class')
+      .eq('realm', 'Dreamscythe')
+      .eq('status', 'returned')
+      .neq('hide_from_roster', true)
+      .order('name'),
   ])
 
   const totalRoster = totalResult.count ?? 0
@@ -83,9 +91,10 @@ export default async function LandingPage() {
 
   const rawChars = allCharsResult.data ?? []
 
-  // Derive scrolling name entries from the full roster
-  const returnedEntries: NameEntry[] = rawChars
-    .filter((c) => c.status === 'returned')
+  // Returned characters from dedicated status-filtered query, deduplicated by name
+  const seenReturnedNames = new Set<string>()
+  const returnedEntries: NameEntry[] = (returnedCharsResult.data ?? [])
+    .filter((c) => { if (seenReturnedNames.has(c.name)) return false; seenReturnedNames.add(c.name); return true })
     .map((c) => ({ name: c.name, color: CLASS_COLORS[(c.class as CharacterClass)] ?? '#1aff6e' }))
 
   const miaEntries: NameEntry[] = rawChars

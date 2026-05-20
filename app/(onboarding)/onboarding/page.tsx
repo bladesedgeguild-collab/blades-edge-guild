@@ -241,14 +241,9 @@ export default function OnboardingPage() {
     await completeOnboarding()
   }
 
-  async function completeOnboarding() {
-    setLoading(true)
-    try {
-      await fetch('/api/users/complete-onboarding', { method: 'PATCH' })
-      router.push('/dashboard')
-    } finally {
-      setLoading(false)
-    }
+  function completeOnboarding() {
+    fetch('/api/users/complete-onboarding', { method: 'PATCH' }).catch(() => {})
+    router.push('/dashboard')
   }
 
   function toggleAlt(id: string) {

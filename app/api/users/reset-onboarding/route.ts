@@ -28,12 +28,16 @@ export async function POST() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
+  console.log('[reset-onboarding] user.id:', user.id)
+
   // Get the user's current claimed character
   const { data: userData } = await admin
     .from('users')
     .select('claimed_character_id')
     .eq('id', user.id)
     .single()
+
+  console.log('[reset-onboarding] claimed_character_id:', userData?.claimed_character_id ?? null)
 
   // Reset the main character claim if one exists
   if (userData?.claimed_character_id) {
@@ -43,11 +47,14 @@ export async function POST() {
       .eq('id', userData.claimed_character_id)
   }
 
-  // Release all alt characters claimed by this user
-  await admin
+  // Release all alt characters claimed by this user (service role bypasses RLS)
+  const { data: releasedAlts, error: altReleaseError } = await admin
     .from('characters')
     .update({ claimed_by: null, claimed_at: null, status: 'mia' })
     .eq('claimed_by', user.id)
+    .select('id, name')
+
+  console.log('[reset-onboarding] alts released:', releasedAlts?.length ?? 0, 'error:', altReleaseError?.message ?? null)
 
   // Reset the user's onboarding state
   await admin
