@@ -237,13 +237,13 @@ export default function OnboardingPage() {
         body: JSON.stringify({ character_id: id, is_alt: true }),
       })
     }
-    setLoading(false)
-    await completeOnboarding()
+    fetch('/api/users/complete-onboarding', { method: 'PATCH' })
+    window.location.href = '/dashboard'
   }
 
-  function completeOnboarding() {
-    fetch('/api/users/complete-onboarding', { method: 'PATCH' }).catch(() => {})
-    router.push('/dashboard')
+  const handleSkip = () => {
+    fetch('/api/users/complete-onboarding', { method: 'PATCH' })
+    window.location.href = '/dashboard'
   }
 
   function toggleAlt(id: string) {
@@ -694,14 +694,14 @@ export default function OnboardingPage() {
 
               <div style={{ display: 'flex', gap: 12 }}>
                 <button
-                  onClick={completeOnboarding}
+                  onClick={handleSkip}
                   disabled={loading}
                   style={{ flex: 1, padding: '12px 0', backgroundColor: 'transparent', border: '1px solid var(--be-iron-3)', borderRadius: 'var(--be-radius)', color: 'var(--be-iron-2)', fontFamily: 'var(--be-font-display)', fontSize: 13, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.5 : 1 }}
                 >
                   Skip for now
                 </button>
                 <button
-                  onClick={selectedAlts.length > 0 ? handleClaimAlts : completeOnboarding}
+                  onClick={selectedAlts.length > 0 ? handleClaimAlts : handleSkip}
                   disabled={loading}
                   style={{ flex: 2, padding: '12px 0', backgroundColor: 'var(--be-gold)', color: '#0d0b07', border: 'none', borderRadius: 'var(--be-radius)', fontFamily: 'var(--be-font-display)', fontSize: 13, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.5 : 1 }}
                 >
