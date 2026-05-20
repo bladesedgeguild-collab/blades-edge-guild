@@ -1,7 +1,7 @@
 // Run supabase/migrations/003_hide_from_roster.sql before deploying (adds hide_from_roster + note columns)
 import { ReturnMeter } from '@/components/roster/ReturnMeter'
-import { ScrollingNames, type NameEntry } from '@/components/landing/ScrollingNames'
 import { CtaLoginPanel } from '@/components/landing/CtaLoginPanel'
+import { CinematicRoster, type RosterChar } from '@/components/landing/CinematicRoster'
 import { CLASS_COLORS, CharacterClass, CharacterStatus } from '@/types'
 import { createClient } from '@supabase/supabase-js'
 
@@ -25,22 +25,14 @@ export default async function LandingPage() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const [returnedCharsResult, miaCharsResult, totalResult, returnedOriginalResult, newCountResult, previewResult] = await Promise.all([
-    supabase
-      .from('characters')
-      .select('name, class')
-      .eq('status', 'returned')
-      .eq('realm', 'Dreamscythe')
-      .eq('hide_from_roster', false)
-      .order('name'),
-    supabase
-      .from('characters')
-      .select('name, class')
-      .eq('status', 'mia')
-      .eq('realm', 'Dreamscythe')
-      .eq('hide_from_roster', false)
-      .order('level', { ascending: false })
-      .limit(50),
+  const [
+    totalResult,
+    returnedOriginalResult,
+    newCountResult,
+    miaCountResult,
+    allCharsResult,
+    previewResult,
+  ] = await Promise.all([
     supabase
       .from('characters')
       .select('*', { count: 'exact', head: true })
@@ -61,6 +53,18 @@ export default async function LandingPage() {
       .eq('hide_from_roster', false),
     supabase
       .from('characters')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'mia')
+      .eq('realm', 'Dreamscythe')
+      .eq('hide_from_roster', false),
+    supabase
+      .from('characters')
+      .select('name, class, level, rank_name, status')
+      .eq('realm', 'Dreamscythe')
+      .neq('hide_from_roster', true)
+      .order('name'),
+    supabase
+      .from('characters')
       .select('name, class, level, rank_name, rank_index, status, professions(name, is_primary)')
       .eq('realm', 'Dreamscythe')
       .eq('hide_from_roster', false)
@@ -73,8 +77,15 @@ export default async function LandingPage() {
   const total = totalRoster
   const returnedOriginal = returnedOriginalResult.count ?? 0
   const newCount = newCountResult.count ?? 0
-  const returned = returnedOriginal
-  const mia = miaCharsResult.count ?? 0
+  const miaCount = miaCountResult.count ?? 0
+
+  const allChars: RosterChar[] = (allCharsResult.data ?? []).map((c) => ({
+    name: c.name as string,
+    class: c.class as string,
+    level: c.level as number,
+    rank_name: (c.rank_name as string | null) ?? null,
+    status: c.status as string,
+  }))
 
   type PreviewMember = {
     name: string
@@ -94,19 +105,6 @@ export default async function LandingPage() {
     professions: ((c.professions as { name: string; is_primary: boolean }[] | null) ?? [])
       .filter((p) => p.is_primary)
       .map((p) => p.name),
-  }))
-
-  const returnedChars = returnedCharsResult.data ?? []
-  const miaChars = miaCharsResult.data ?? []
-
-  const returnedEntries: NameEntry[] = returnedChars.map((c) => ({
-    name: c.name,
-    color: CLASS_COLORS[(c.class as CharacterClass)] ?? '#1aff6e',
-  }))
-
-  const miaEntries: NameEntry[] = miaChars.map((c) => ({
-    name: c.name,
-    color: '#8a7a5a',
   }))
 
   return (
@@ -138,36 +136,36 @@ export default async function LandingPage() {
           }}
         />
 
-        {/* Stats panel — flush to bottom center of hero */}
+        {/* Stats panel — overlaps bottom edge of hero */}
         <div
           className="absolute z-10 w-full"
           style={{
-            bottom: 0,
+            bottom: -80,
             left: '50%',
             transform: 'translateX(-50%)',
             maxWidth: 680,
             backgroundColor: 'rgba(13,11,7,0.82)',
             backdropFilter: 'blur(6px)',
             borderTop: '1px solid rgba(201,150,26,0.3)',
-            borderRadius: '0',
+            borderRadius: 0,
             padding: '20px 32px 24px',
           }}
         >
           <ReturnMeter totalRoster={totalRoster} returnedOriginal={returnedOriginal} newCount={newCount} />
         </div>
 
-        {/* Floating guild title — bottom right, no card */}
+        {/* Floating guild title — lower-right quadrant, no card */}
         <div
           className="absolute z-20 text-right hidden sm:block"
-          style={{ bottom: 140, right: 40 }}
+          style={{ bottom: 180, right: 0, paddingRight: 32 }}
         >
           <p
             style={{
               fontFamily: "'Cinzel Decorative', serif",
-              fontSize: '2.2rem',
+              fontSize: '3.5rem',
               color: '#c9961a',
-              textShadow: '0 2px 20px rgba(0,0,0,0.8)',
-              lineHeight: 1.2,
+              textShadow: '0 2px 24px rgba(0,0,0,0.9)',
+              lineHeight: 1.15,
             }}
           >
             Blådes Edge
@@ -175,10 +173,11 @@ export default async function LandingPage() {
           <p
             style={{
               fontFamily: "'Cinzel', serif",
-              fontSize: '0.7rem',
-              letterSpacing: '0.18em',
+              fontSize: '0.95rem',
+              letterSpacing: '0.22em',
               color: 'rgba(240,230,200,0.75)',
-              marginTop: 6,
+              textShadow: '0 2px 24px rgba(0,0,0,0.9)',
+              marginTop: 8,
             }}
           >
             Est. 2023 · Burning Crusade Classic · Dreamscythe Alliance
@@ -186,8 +185,8 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      {/* ── Brotherhood ── */}
-      <section className="pt-16 pb-20 px-4" style={{ backgroundColor: '#1a1208' }}>
+      {/* ── Guildies ── */}
+      <section className="pb-20 px-4" style={{ backgroundColor: '#1a1208', paddingTop: 120 }}>
         <div className="max-w-6xl mx-auto">
 
           <div className="text-center mb-10">
@@ -205,82 +204,9 @@ export default async function LandingPage() {
             </p>
           </div>
 
-          {/* Three-column layout: left | image | right */}
-          <div className="flex flex-wrap md:flex-nowrap items-stretch">
-
-            {/* Left column — Answered the Call */}
-            <div
-              className="w-full md:w-1/5 order-2 md:order-1 flex flex-col py-4 px-3"
-              style={{
-                background: 'linear-gradient(to right, rgba(26,18,8,0.95) 50%, rgba(26,18,8,0.4) 100%)',
-                borderRight: '1px solid #3d2e15',
-                zIndex: 10,
-                position: 'relative',
-              }}
-            >
-              <p
-                className="text-xs font-semibold uppercase tracking-wider mb-1"
-                style={{ fontFamily: "'Cinzel', serif", color: '#1aff6e', fontVariant: 'small-caps' }}
-              >
-                Answered the Call
-              </p>
-              <p
-                className="text-xs mb-3"
-                style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
-              >
-                {returned} {returned === 1 ? 'has' : 'have'} returned
-              </p>
-              <ScrollingNames
-                entries={returnedEntries}
-                speed={20}
-                emptyMessage="Be the first to answer."
-              />
-            </div>
-
-            {/* Center — Guild photo */}
-            <div className="w-full md:flex-1 order-1 md:order-2" style={{ zIndex: 1 }}>
-              <div
-                style={{
-                  boxShadow: '0 0 0 2px #3d2e15, 0 0 40px rgba(201,150,26,0.25)',
-                  lineHeight: 0,
-                }}
-              >
-                <img
-                  src="/images/guild-photo.png"
-                  alt="Blådes Edge guild portrait — EST. 2023"
-                  className="w-full block"
-                />
-              </div>
-            </div>
-
-            {/* Right column — Still MIA */}
-            <div
-              className="w-full md:w-1/5 order-3 flex flex-col py-4 px-3"
-              style={{
-                background: 'linear-gradient(to left, rgba(26,18,8,0.95) 50%, rgba(26,18,8,0.4) 100%)',
-                borderLeft: '1px solid #3d2e15',
-                zIndex: 10,
-                position: 'relative',
-              }}
-            >
-              <p
-                className="text-xs font-semibold uppercase tracking-wider mb-1"
-                style={{ fontFamily: "'Cinzel', serif", color: '#c9961a', fontVariant: 'small-caps' }}
-              >
-                Still MIA
-              </p>
-              <p
-                className="text-xs mb-3"
-                style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
-              >
-                {mia} awaiting the call
-              </p>
-              <ScrollingNames
-                entries={miaEntries}
-                speed={35}
-                emptyMessage="The roster awaits."
-              />
-            </div>
+          {/* Cinematic scrolling roster rows */}
+          <div className="mb-12">
+            <CinematicRoster chars={allChars} />
           </div>
 
           {/* Roster preview — two-tier layout */}
@@ -312,7 +238,6 @@ export default async function LandingPage() {
                       className="member-card relative overflow-hidden flex flex-col justify-between"
                       style={{
                         minHeight: 120,
-                        backgroundColor: '#1a1208',
                         border: '1px solid #3d2e15',
                         borderLeft: `4px solid ${classColor}`,
                         background: `linear-gradient(135deg, ${classColor}14 0%, #1a1208 60%)`,
@@ -363,12 +288,12 @@ export default async function LandingPage() {
                               {m.professions.join(' / ')}
                             </span>
                           )}
-                          {isReturned ? (
+                          {isReturned && (
                             <span className="flex items-center gap-1 flex-shrink-0 ml-auto">
                               <span className="inline-block w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#1aff6e' }} />
                               <span className="text-xs" style={{ fontFamily: "'Cinzel', serif", color: '#1aff6e' }}>Returned</span>
                             </span>
-                          ) : null}
+                          )}
                         </div>
                       </div>
                     </div>
@@ -485,3 +410,4 @@ export default async function LandingPage() {
     </div>
   )
 }
+
