@@ -243,10 +243,12 @@ export default function OnboardingPage() {
 
   async function completeOnboarding() {
     setLoading(true)
-    await fetch('/api/users/complete-onboarding', { method: 'PATCH' })
-    setLoading(false)
-    router.push('/dashboard')
-    router.refresh()
+    try {
+      await fetch('/api/users/complete-onboarding', { method: 'PATCH' })
+      router.push('/dashboard')
+    } finally {
+      setLoading(false)
+    }
   }
 
   function toggleAlt(id: string) {
@@ -360,7 +362,10 @@ export default function OnboardingPage() {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'flex-start',
-        padding: '48px 16px 64px',
+        paddingTop: 56,
+        paddingBottom: 64,
+        paddingLeft: 16,
+        paddingRight: 16,
         background: "url('/images/hero-portal.png') center/cover no-repeat fixed",
       }}
     >
