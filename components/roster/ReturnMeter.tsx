@@ -22,10 +22,7 @@ export function ReturnMeter({ totalRoster, returnedOriginal, newCount }: ReturnM
   const mia = ORIGINAL_TOTAL - returnedOriginal
 
   return (
-    <div
-      className="w-full rounded-xl px-6 py-5"
-      style={{ backgroundColor: '#241a0e' }}
-    >
+    <div className="w-full">
       {/* Three stats row */}
       <div className="flex justify-between items-center mb-4 gap-2 text-center">
         <div className="flex-1">
