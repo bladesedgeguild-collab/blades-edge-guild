@@ -278,7 +278,10 @@ export default function OnboardingPage() {
       <div
         style={{
           position: 'fixed', inset: 0,
-          background: 'radial-gradient(ellipse 60% 50% at 50% 60%, oklch(0.18 0.10 145 / 0.35) 0%, #000 70%)',
+          background: `
+            radial-gradient(ellipse 60% 40% at 50% 30%, rgba(120, 70, 10, 0.15) 0%, transparent 70%),
+            radial-gradient(ellipse at center, rgba(60, 35, 5, 0.95) 0%, rgba(30, 18, 3, 0.98) 45%, rgba(10, 7, 2, 1) 100%)
+          `,
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           overflow: 'hidden',
         }}
@@ -352,12 +355,13 @@ export default function OnboardingPage() {
     <div
       style={{
         minHeight: '100vh',
+        width: '100%',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'flex-start',
         padding: '48px 16px 64px',
-        background: "url('/images/hero-portal.png') center/cover fixed",
+        background: "url('/images/hero-portal.png') center/cover no-repeat fixed",
       }}
     >
       <div style={{ width: '100%', maxWidth: 560 }}>

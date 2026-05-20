@@ -105,7 +105,7 @@ export async function POST(request: NextRequest) {
         note: char.note ?? null,
         race: char.race ?? null,
         sex: normaliseSex(char.sex),
-        hide_from_roster: char.hide_from_roster ?? false,
+        hide_from_roster: false,
         imported_from_grm: true,
         updated_at: new Date().toISOString(),
       }

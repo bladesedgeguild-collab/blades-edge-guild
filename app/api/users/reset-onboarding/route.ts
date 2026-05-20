@@ -35,13 +35,19 @@ export async function POST() {
     .eq('id', user.id)
     .single()
 
-  // Reset the character claim if one exists
+  // Reset the main character claim if one exists
   if (userData?.claimed_character_id) {
     await admin
       .from('characters')
       .update({ claimed_by: null, claimed_at: null, status: 'mia' })
       .eq('id', userData.claimed_character_id)
   }
+
+  // Release all alt characters claimed by this user
+  await admin
+    .from('characters')
+    .update({ claimed_by: null, claimed_at: null, status: 'mia' })
+    .eq('claimed_by', user.id)
 
   // Reset the user's onboarding state
   await admin
