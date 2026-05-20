@@ -230,6 +230,7 @@ export default async function LandingPage() {
                 borderRight: '1px solid #3d2e15',
                 zIndex: 10,
                 position: 'relative',
+                textAlign: 'right',
               }}
             >
               <p
