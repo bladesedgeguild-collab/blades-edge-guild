@@ -237,13 +237,24 @@ export default function OnboardingPage() {
         body: JSON.stringify({ character_id: id, is_alt: true }),
       })
     }
-    fetch('/api/users/complete-onboarding', { method: 'PATCH' })
-    window.location.href = '/dashboard'
+    try {
+      await fetch('/api/users/complete-onboarding', { method: 'PATCH' })
+    } catch (e) {
+      console.error(e)
+    } finally {
+      window.location.href = '/dashboard'
+    }
   }
 
-  const handleSkip = () => {
-    fetch('/api/users/complete-onboarding', { method: 'PATCH' })
-    window.location.href = '/dashboard'
+  const handleSkip = async () => {
+    setLoading(true)
+    try {
+      await fetch('/api/users/complete-onboarding', { method: 'PATCH' })
+    } catch (e) {
+      console.error(e)
+    } finally {
+      window.location.href = '/dashboard'
+    }
   }
 
   function toggleAlt(id: string) {
