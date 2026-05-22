@@ -33,8 +33,7 @@ const eyebrow: CSSProperties = {
   fontSize: '0.7rem',
   letterSpacing: '0.18em',
   textTransform: 'uppercase',
-  color: 'rgba(138,122,90,0.8)',
-  marginBottom: 12,
+  color: 'rgba(201,150,26,0.85)',
   margin: '0 0 12px',
 }
 
@@ -114,26 +113,26 @@ export default async function DashboardPage() {
   const displayName = mainChar?.name ?? profile?.display_name ?? profile?.discord_username ?? 'Adventurer'
 
   return (
-    <div style={{ maxWidth: 1100, margin: '0 auto', padding: '28px 16px', display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div className="be-hall-page" style={{ maxWidth: 'clamp(900px, 90vw, 1600px)', margin: '0 auto', padding: '28px 16px', display: 'flex', flexDirection: 'column', gap: 20 }}>
 
       {/* ── Header ── */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
-        <div>
-          <p style={{ fontFamily: 'var(--be-font-display)', fontSize: '0.65rem', letterSpacing: '0.2em', color: 'var(--be-gold)', textTransform: 'uppercase', margin: '0 0 6px' }}>
-            Welcome Back
-          </p>
-          <h1 style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: '3rem', color: '#f0e6c8', lineHeight: 1, margin: '0 0 8px' }}>
-            {displayName}
-          </h1>
-          {mainChar && (
+      <div>
+        <p style={{ fontFamily: 'var(--be-font-display)', fontSize: '0.65rem', letterSpacing: '0.2em', color: 'var(--be-gold)', textTransform: 'uppercase', margin: '0 0 6px' }}>
+          Welcome Back
+        </p>
+        <h1 style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: '3rem', color: '#f0e6c8', lineHeight: 1, margin: '0 0 8px' }}>
+          {displayName}
+        </h1>
+        {mainChar && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
             <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'rgba(138,122,90,0.8)', fontSize: '1rem', margin: 0 }}>
               {[mainChar.race, mainChar.class, `Level ${mainChar.level}`].filter(Boolean).join(' · ')}
             </p>
-          )}
-        </div>
-        {mainChar?.rank_name && (
-          <div className="be-rank-pill" style={{ marginTop: 8, whiteSpace: 'nowrap' }}>
-            {mainChar.rank_name}
+            {mainChar.rank_name && (
+              <div className="be-rank-pill" style={{ whiteSpace: 'nowrap', marginLeft: 16 }}>
+                {mainChar.rank_name}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -147,10 +146,7 @@ export default async function DashboardPage() {
           minHeight: 260,
           position: 'relative',
           overflow: 'hidden',
-          backgroundImage: `
-            linear-gradient(95deg, rgba(10,8,5,0.95) 0%, rgba(10,8,5,0.78) 38%, rgba(10,8,5,0.35) 70%, rgba(10,8,5,0.15) 100%),
-            url('/images/guild-photo.png')
-          `,
+          backgroundImage: `linear-gradient(95deg, rgba(10,8,5,0.95) 0%, rgba(10,8,5,0.82) 38%, rgba(10,8,5,0.4) 70%, rgba(10,8,5,0.15) 100%), url('/images/BladesEdge_DiscordServerBanner.jpg')`,
           backgroundSize: 'cover',
           backgroundPosition: 'center',
         }}>

@@ -256,8 +256,15 @@
 
 /* Dashboard utility classes */
 .be-tile { background: rgba(26,18,8,0.6); border: 1px solid rgba(61,46,21,0.5); border-radius: 4px; }
-.be-tile-eyebrow { font-family: var(--be-font-display); font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(138,122,90,0.8); margin-bottom: 12px; }
+.be-tile-eyebrow { font-family: var(--be-font-display); font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(201,150,26,0.85); margin-bottom: 12px; }
 .be-stat { font-family: 'Cinzel Decorative', serif; font-size: 3rem; color: #f0e6c8; line-height: 1; }
 .be-stat-label { font-family: 'Spectral', serif; font-size: 0.85rem; color: rgba(138,122,90,0.8); margin-top: 4px; }
 .be-mini-avatar { width: 36px; height: 36px; border-radius: 50%; background: rgba(40,28,10,0.9); border: 1px solid rgba(201,150,26,0.4); display: flex; align-items: center; justify-content: center; font-family: var(--be-font-display); font-size: 11px; color: #c9961a; flex-shrink: 0; }
 .be-rank-pill { display: inline-flex; align-items: center; padding: 4px 12px; border: 1px solid rgba(201,150,26,0.4); background: rgba(201,150,26,0.1); font-family: var(--be-font-display); font-size: 0.7rem; letter-spacing: 0.14em; text-transform: uppercase; color: #c9961a; border-radius: 2px; }
+
+@media (min-width: 1920px) {
+  .be-hall-page h1 { font-size: 4rem; }
+  .be-hall-page .be-stat { font-size: 4rem; }
+  .be-tile-eyebrow { font-size: 0.85rem; }
+  .be-hall-page { padding: 56px 60px 100px; }
+}
