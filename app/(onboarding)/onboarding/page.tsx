@@ -311,45 +311,52 @@ export default function OnboardingPage() {
             } as React.CSSProperties}
           />
         ))}
-        <div style={{ textAlign: 'center', animation: 'be-sigil-rise 1.4s ease-out both', position: 'relative', zIndex: 1 }}>
-          <div style={{ position: 'relative', width: 220, height: 220, margin: '0 auto 24px' }}>
+        <div style={{
+          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+          minHeight: 'calc(100vh - 56px)', gap: '24px', padding: '40px 20px',
+          animation: 'be-sigil-rise 1.4s ease-out both', position: 'relative', zIndex: 1,
+        }}>
+          <div style={{ position: 'relative', width: 280, height: 280 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/images/guild-crest.png"
               alt="Guild Crest"
               style={{
-                width: '220px',
-                height: '220px',
-                objectFit: 'contain',
+                width: '280px',
+                height: '280px',
+                borderRadius: '50%',
+                objectFit: 'cover',
+                border: '3px solid rgba(201,150,26,0.6)',
+                boxShadow: '0 0 0 6px rgba(201,150,26,0.15), 0 0 40px rgba(26,255,110,0.4), 0 0 80px rgba(26,255,110,0.2)',
                 opacity: 0,
-                animation: 'be-stamp 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards',
+                animation: 'be-stamp 1.4s cubic-bezier(0.22, 1, 0.36, 1) 0.4s both',
               }}
             />
             <div style={{
               position: 'absolute',
               top: 0,
               left: 0,
-              width: '220px',
-              height: '220px',
+              width: '280px',
+              height: '280px',
               borderRadius: '50%',
               border: '2px solid rgba(201,150,26,0.8)',
               opacity: 0,
-              animation: 'be-stamp-ring 0.6s ease-out 0.65s forwards',
+              animation: 'be-stamp-ring 0.8s ease-out 1.4s both',
               pointerEvents: 'none',
             }} />
           </div>
-          <p style={{ fontFamily: 'var(--be-font-display)', fontSize: 12, letterSpacing: '0.25em', color: 'var(--be-portal)', textTransform: 'uppercase', marginBottom: 12, opacity: 0, animation: 'be-fade-in 0.6s ease-out 0.9s both' }}>
+          <p style={{ fontFamily: 'var(--be-font-display)', fontSize: '1.4rem', letterSpacing: '0.25em', color: 'var(--be-portal)', textTransform: 'uppercase', margin: 0, opacity: 0, animation: 'be-fade-in 0.8s ease-out 1.8s both' }}>
             The Oath is Sealed
           </p>
-          <p style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: 72, color: 'var(--be-ink)', lineHeight: 1, marginBottom: 16, opacity: 0, animation: 'be-fade-in 0.6s ease-out 1.1s both' }}>
+          <p style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: '7rem', color: 'var(--be-ink)', lineHeight: 1, margin: 0, opacity: 0, animation: 'be-fade-in 0.8s ease-out 2.1s both' }}>
             {selectedChar?.name}
           </p>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: 0, animation: 'be-fade-in 0.6s ease-out 2.4s both' }}>
             <span style={{
-              display: 'inline-block', width: 10, height: 10, borderRadius: '50%',
+              display: 'inline-block', width: 16, height: 16, borderRadius: '50%',
               backgroundColor: CLASS_COLORS[selectedChar?.class ?? ''] ?? '#888',
             }} />
-            <span style={{ fontFamily: 'var(--be-font-display)', fontSize: 13, color: 'var(--be-ink-2)', letterSpacing: '0.12em' }}>
+            <span style={{ fontFamily: 'var(--be-font-display)', fontSize: '1.2rem', color: 'var(--be-ink-2)', letterSpacing: '0.12em' }}>
               {selectedChar?.class} · OF BLÅDES EDGE
             </span>
           </div>
@@ -357,14 +364,13 @@ export default function OnboardingPage() {
             <button
               onClick={() => setStep('alts')}
               style={{
-                marginTop: 40,
-                padding: '12px 32px',
+                padding: '18px 48px',
                 backgroundColor: 'var(--be-gold)',
                 color: '#0d0b07',
                 border: 'none',
                 borderRadius: 'var(--be-radius)',
                 fontFamily: 'var(--be-font-display)',
-                fontSize: 14,
+                fontSize: '1.1rem',
                 letterSpacing: '0.1em',
                 cursor: 'pointer',
                 animation: 'be-fade-in 0.6s ease-out both',
