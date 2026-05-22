@@ -312,16 +312,36 @@ export default function OnboardingPage() {
           />
         ))}
         <div style={{ textAlign: 'center', animation: 'be-sigil-rise 1.4s ease-out both', position: 'relative', zIndex: 1 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/images/guild-crest.png"
-            alt="Guild Crest"
-            style={{ width: 220, margin: '0 auto 24px', display: 'block', animation: 'be-aura-pulse 4.5s ease-in-out infinite' }}
-          />
-          <p style={{ fontFamily: 'var(--be-font-display)', fontSize: 12, letterSpacing: '0.25em', color: 'var(--be-portal)', textTransform: 'uppercase', marginBottom: 12 }}>
+          <div style={{ position: 'relative', width: 220, height: 220, margin: '0 auto 24px' }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/images/guild-crest.png"
+              alt="Guild Crest"
+              style={{
+                width: '220px',
+                height: '220px',
+                objectFit: 'contain',
+                opacity: 0,
+                animation: 'be-stamp 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.3s forwards',
+              }}
+            />
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              width: '220px',
+              height: '220px',
+              borderRadius: '50%',
+              border: '2px solid rgba(201,150,26,0.8)',
+              opacity: 0,
+              animation: 'be-stamp-ring 0.6s ease-out 0.65s forwards',
+              pointerEvents: 'none',
+            }} />
+          </div>
+          <p style={{ fontFamily: 'var(--be-font-display)', fontSize: 12, letterSpacing: '0.25em', color: 'var(--be-portal)', textTransform: 'uppercase', marginBottom: 12, opacity: 0, animation: 'be-fade-in 0.6s ease-out 0.9s both' }}>
             The Oath is Sealed
           </p>
-          <p style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: 72, color: 'var(--be-ink)', lineHeight: 1, marginBottom: 16 }}>
+          <p style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: 72, color: 'var(--be-ink)', lineHeight: 1, marginBottom: 16, opacity: 0, animation: 'be-fade-in 0.6s ease-out 1.1s both' }}>
             {selectedChar?.name}
           </p>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
