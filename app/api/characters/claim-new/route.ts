@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
   const { data: newChar, error: insertError } = await admin
     .from('characters')
     .insert({
+      user_id: user.id,
       name: body.name.trim(),
       realm: 'Dreamscythe',
       class: body.class.toUpperCase(),

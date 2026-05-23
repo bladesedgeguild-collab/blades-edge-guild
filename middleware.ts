@@ -60,7 +60,7 @@ export async function middleware(request: NextRequest) {
         .eq('id', user.id)
         .single()
 
-      if (!profileError && profile?.has_completed_onboarding === false) {
+      if (!profileError && profile?.has_completed_onboarding !== true) {
         const url = request.nextUrl.clone()
         url.pathname = '/onboarding'
         return NextResponse.redirect(url)
