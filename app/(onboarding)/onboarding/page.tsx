@@ -12,12 +12,18 @@ const CLASS_COLORS: Record<string, string> = {
   DEATH_KNIGHT: '#c41e3a', MONK: '#00ff98', DEMON_HUNTER: '#a330c9',
 }
 
-const CLASSES = [
-  'WARRIOR', 'PALADIN', 'HUNTER', 'ROGUE', 'PRIEST',
-  'SHAMAN', 'MAGE', 'WARLOCK', 'DRUID',
-]
+const RACE_CLASSES: Record<string, string[]> = {
+  'Human':     ['Warrior', 'Paladin', 'Rogue', 'Priest', 'Mage', 'Warlock'],
+  'Dwarf':     ['Warrior', 'Paladin', 'Hunter', 'Rogue', 'Priest'],
+  'Night Elf': ['Warrior', 'Hunter', 'Rogue', 'Priest', 'Druid'],
+  'Gnome':     ['Warrior', 'Rogue', 'Mage', 'Warlock'],
+  'Draenei':   ['Warrior', 'Paladin', 'Hunter', 'Priest', 'Shaman', 'Mage'],
+}
 
-type Step = 'search' | 'confirm' | 'cinematic' | 'alts' | 'done'
+type Step = 'search' | 'confirm' | 'newConfirm' | 'cinematic' | 'alts' | 'done'
+
+type NewMemberForm = { name: string; race: string; cls: string; level: number }
+type NewMemberErrors = { name?: string; race?: string; cls?: string; level?: string }
 
 type SearchChar = {
   id: string
@@ -30,6 +36,36 @@ type SearchChar = {
   claimed_by: string | null
   joined_guild_at: string | null
   professions: { name: string; skill_level: number; is_primary: boolean }[]
+}
+
+const selectStyle: React.CSSProperties = {
+  background: 'rgba(20,14,4,0.9)',
+  border: '1px solid rgba(61,46,21,0.6)',
+  color: '#f0e6c8',
+  fontFamily: 'var(--be-font-body)',
+  fontSize: '1rem',
+  padding: '12px 16px',
+  borderRadius: 4,
+  width: '100%',
+  cursor: 'pointer',
+  outline: 'none',
+}
+
+const labelStyle: React.CSSProperties = {
+  fontFamily: 'var(--be-font-display)',
+  fontSize: '0.72rem',
+  letterSpacing: '0.16em',
+  textTransform: 'uppercase',
+  color: 'rgba(201,150,26,0.8)',
+  marginBottom: 6,
+  display: 'block',
+}
+
+const errorStyle: React.CSSProperties = {
+  fontSize: '0.8rem',
+  color: '#ff6b6b',
+  marginTop: 4,
+  fontFamily: 'var(--be-font-body)',
 }
 
 function StepHeader({ current, total, label }: { current: number; total: number; label: string }) {
@@ -128,10 +164,9 @@ export default function OnboardingPage() {
   const [searchFocused, setSearchFocused] = useState(false)
   const [rosterStats, setRosterStats] = useState<{ total: number; unclaimed: number } | null>(null)
 
-  const [showNewMember, setShowNewMember] = useState(false)
-  const [newName, setNewName] = useState('')
-  const [newClass, setNewClass] = useState('WARRIOR')
-  const [newLevel, setNewLevel] = useState(60)
+  const [isNewMember, setIsNewMember] = useState(false)
+  const [newMemberForm, setNewMemberForm] = useState<NewMemberForm>({ name: '', race: '', cls: '', level: 1 })
+  const [newMemberErrors, setNewMemberErrors] = useState<NewMemberErrors>({})
 
   const [allUnclaimed, setAllUnclaimed] = useState<SearchChar[]>([])
   const [altFilter, setAltFilter] = useState('')
@@ -142,7 +177,6 @@ export default function OnboardingPage() {
 
   const cinematicTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Fetch roster stats and default browse list on mount
   useEffect(() => {
     fetch('/api/characters/search?count=true')
       .then((r) => r.json())
@@ -154,7 +188,6 @@ export default function OnboardingPage() {
       .catch(() => {})
   }, [])
 
-  // Debounced search — fires on 1+ chars
   useEffect(() => {
     if (searchQuery.length < 1) { setSearchResults([]); return }
     const t = setTimeout(async () => {
@@ -165,7 +198,6 @@ export default function OnboardingPage() {
     return () => clearTimeout(t)
   }, [searchQuery])
 
-  // Fetch all unclaimed for alts step
   useEffect(() => {
     if (step !== 'alts') return
     fetch(`/api/characters/search?q=${encodeURIComponent(altFilter.length >= 1 ? altFilter : 'a')}`)
@@ -177,7 +209,6 @@ export default function OnboardingPage() {
       .catch(() => {})
   }, [step, altFilter, selectedChar])
 
-  // Cinematic timer
   useEffect(() => {
     if (step !== 'cinematic') return
     setShowContinue(false)
@@ -200,25 +231,45 @@ export default function OnboardingPage() {
     setStep('cinematic')
   }
 
-  async function handleCreateNew() {
-    if (!newName.trim()) { setError('Enter a character name.'); return }
+  function handleNewMemberFormSubmit() {
+    const errs: NewMemberErrors = {}
+    const name = newMemberForm.name.trim()
+    if (!name) errs.name = 'Character name is required.'
+    else if (name.length < 2) errs.name = 'Name must be at least 2 characters.'
+    else if (name.length > 24) errs.name = 'Name must be 24 characters or fewer.'
+    if (!newMemberForm.race) errs.race = 'Please select a race.'
+    if (!newMemberForm.cls) errs.cls = 'Please select a class.'
+    const lvl = newMemberForm.level
+    if (!lvl || lvl < 1 || lvl > 70) errs.level = 'Level must be between 1 and 70.'
+    setNewMemberErrors(errs)
+    if (Object.keys(errs).length > 0) return
+    setStep('newConfirm')
+  }
+
+  async function handleNewMemberClaim() {
     setLoading(true)
     setError(null)
-    const res = await fetch('/api/characters/create', {
+    const res = await fetch('/api/characters/claim-new', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: newName.trim(), class: newClass, level: newLevel, is_alt: false }),
+      body: JSON.stringify({
+        name: newMemberForm.name.trim(),
+        race: newMemberForm.race,
+        class: newMemberForm.cls.toUpperCase(),
+        level: newMemberForm.level,
+        is_new_member: true,
+      }),
     })
     const data = await res.json()
     setLoading(false)
     if (!res.ok) { setError(data.error ?? 'Failed to create character'); return }
     setSelectedChar({
       id: data.character.id,
-      name: newName.trim(),
-      class: newClass,
-      level: newLevel,
-      rank_name: null,
-      rank_index: null,
+      name: data.character.name,
+      class: data.character.class,
+      level: data.character.level,
+      rank_name: 'Fresh Recruit',
+      rank_index: 9,
       last_zone: null,
       claimed_by: null,
       joined_guild_at: null,
@@ -268,9 +319,9 @@ export default function OnboardingPage() {
     : allUnclaimed
 
   const primaryProfs = selectedChar?.professions.filter((p) => p.is_primary) ?? []
-
-  // Dropdown list: typed results if query, default list when focused with no query
   const dropdownChars = searchQuery.length > 0 ? searchResults : (searchFocused ? defaultResults : [])
+  const availableClasses = newMemberForm.race ? (RACE_CLASSES[newMemberForm.race] ?? []) : []
+  const newMemberClassColor = CLASS_COLORS[newMemberForm.cls.toUpperCase()] ?? '#888'
 
   // ── CINEMATIC ──
   if (step === 'cinematic') {
@@ -357,12 +408,12 @@ export default function OnboardingPage() {
               backgroundColor: CLASS_COLORS[selectedChar?.class ?? ''] ?? '#888',
             }} />
             <span style={{ fontFamily: 'var(--be-font-display)', fontSize: '1.2rem', color: 'var(--be-ink-2)', letterSpacing: '0.12em' }}>
-              {selectedChar?.class} · OF BLÅDES EDGE
+              {selectedChar?.class} · {isNewMember ? 'NEW RECRUIT' : 'OF BLÅDES EDGE'}
             </span>
           </div>
           {showContinue && (
             <button
-              onClick={() => setStep('alts')}
+              onClick={isNewMember ? handleSkip : () => setStep('alts')}
               style={{
                 padding: '18px 48px',
                 backgroundColor: 'var(--be-gold)',
@@ -403,7 +454,7 @@ export default function OnboardingPage() {
     >
       <div style={{ width: '100%', maxWidth: 560 }}>
 
-        {/* Guild crest — circular, floats above panel */}
+        {/* Guild crest */}
         <div style={{ textAlign: 'center', marginBottom: -60, position: 'relative', zIndex: 2 }}>
           <div style={{
             display: 'inline-block',
@@ -434,166 +485,244 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* ── SEARCH STEP ── */}
-          {step === 'search' && (
+          {/* ── SEARCH STEP — roster search ── */}
+          {step === 'search' && !isNewMember && (
             <div>
               <StepHeader current={1} total={3} label="Claim your character" />
               <p style={{ fontFamily: 'var(--be-font-body)', fontStyle: 'italic', color: 'var(--be-ink-3)', fontSize: 15, marginBottom: 20, textAlign: 'center' }}>
                 Find yourself in the roster. Start typing your character&apos;s name.
               </p>
 
-              {!showNewMember && (
-                <>
-                  <div style={{ position: 'relative', marginBottom: 8 }}>
-                    <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--be-iron-2)', pointerEvents: 'none', fontSize: 16, zIndex: 1 }}>
-                      ⌕
-                    </span>
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      placeholder="e.g. Darliouse, Skålbogg, Raghop…"
-                      style={{
-                        width: '100%',
-                        padding: '12px 12px 12px 36px',
-                        backgroundColor: 'var(--be-bg-1)',
-                        border: '1px solid var(--be-iron-3)',
-                        borderRadius: dropdownChars.length > 0 ? 'var(--be-radius) var(--be-radius) 0 0' : 'var(--be-radius)',
-                        color: 'var(--be-ink)',
-                        fontFamily: 'var(--be-font-body)',
-                        fontSize: 17,
-                        outline: 'none',
-                        boxSizing: 'border-box',
-                      }}
-                      onFocus={(e) => {
-                        setSearchFocused(true)
-                        ;(e.target as HTMLInputElement).style.borderColor = 'var(--be-gold)'
-                      }}
-                      onBlur={(e) => {
-                        setSearchFocused(false)
-                        ;(e.target as HTMLInputElement).style.borderColor = 'var(--be-iron-3)'
-                      }}
-                    />
-                    {dropdownChars.length > 0 && (
-                      <div
-                        onMouseDown={(e) => e.preventDefault()}
-                        style={{
-                          position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20,
-                          backgroundColor: 'var(--be-bg-0)',
-                          border: '1px solid var(--be-gold)',
-                          borderTop: 'none',
-                          borderRadius: '0 0 var(--be-radius) var(--be-radius)',
-                          overflow: 'hidden',
-                          maxHeight: 360,
-                          overflowY: 'auto',
-                        }}
-                      >
-                        {dropdownChars.map((char) => (
-                          <CharRow
-                            key={char.id}
-                            char={char}
-                            onClick={() => {
-                              if (!char.claimed_by) {
-                                setSelectedChar(char)
-                                setStep('confirm')
-                                setSearchQuery('')
-                                setSearchResults([])
-                                setSearchFocused(false)
-                              }
-                            }}
-                          />
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {rosterStats && (
-                    <p style={{ fontSize: 12, color: 'var(--be-ink-4)', fontFamily: 'var(--be-font-ui)', textAlign: 'center', marginBottom: 8 }}>
-                      {rosterStats.total} characters in roster · {rosterStats.unclaimed} unclaimed
-                    </p>
-                  )}
-
-                  <button
-                    onClick={() => setShowNewMember(true)}
+              <div style={{ position: 'relative', marginBottom: 8 }}>
+                <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--be-iron-2)', pointerEvents: 'none', fontSize: 16, zIndex: 1 }}>
+                  ⌕
+                </span>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="e.g. Darliouse, Skålbogg, Raghop…"
+                  style={{
+                    width: '100%',
+                    padding: '12px 12px 12px 36px',
+                    backgroundColor: 'var(--be-bg-1)',
+                    border: '1px solid var(--be-iron-3)',
+                    borderRadius: dropdownChars.length > 0 ? 'var(--be-radius) var(--be-radius) 0 0' : 'var(--be-radius)',
+                    color: 'var(--be-ink)',
+                    fontFamily: 'var(--be-font-body)',
+                    fontSize: 17,
+                    outline: 'none',
+                    boxSizing: 'border-box',
+                  }}
+                  onFocus={(e) => {
+                    setSearchFocused(true)
+                    ;(e.target as HTMLInputElement).style.borderColor = 'var(--be-gold)'
+                  }}
+                  onBlur={(e) => {
+                    setSearchFocused(false)
+                    ;(e.target as HTMLInputElement).style.borderColor = 'var(--be-iron-3)'
+                  }}
+                />
+                {dropdownChars.length > 0 && (
+                  <div
+                    onMouseDown={(e) => e.preventDefault()}
                     style={{
-                      width: '100%',
-                      marginTop: 16,
-                      padding: '12px 24px',
-                      background: 'transparent',
-                      border: '1px solid rgba(201,150,26,0.4)',
-                      borderRadius: 6,
-                      color: 'var(--be-gold)',
-                      fontFamily: 'var(--be-font-display)',
-                      fontSize: '0.85rem',
-                      letterSpacing: '0.05em',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 8,
-                    }}
-                    onMouseEnter={(e) => {
-                      ;(e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(201,150,26,0.08)'
-                      ;(e.currentTarget as HTMLElement).style.borderColor = 'rgba(201,150,26,0.7)'
-                    }}
-                    onMouseLeave={(e) => {
-                      ;(e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'
-                      ;(e.currentTarget as HTMLElement).style.borderColor = 'rgba(201,150,26,0.4)'
+                      position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20,
+                      backgroundColor: 'var(--be-bg-0)',
+                      border: '1px solid var(--be-gold)',
+                      borderTop: 'none',
+                      borderRadius: '0 0 var(--be-radius) var(--be-radius)',
+                      overflow: 'hidden',
+                      maxHeight: 360,
+                      overflowY: 'auto',
                     }}
                   >
-                    ✦ I&apos;m a new member — create my character
-                  </button>
-                </>
+                    {dropdownChars.map((char) => (
+                      <CharRow
+                        key={char.id}
+                        char={char}
+                        onClick={() => {
+                          if (!char.claimed_by) {
+                            setSelectedChar(char)
+                            setStep('confirm')
+                            setSearchQuery('')
+                            setSearchResults([])
+                            setSearchFocused(false)
+                          }
+                        }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {rosterStats && (
+                <p style={{ fontSize: 12, color: 'var(--be-ink-4)', fontFamily: 'var(--be-font-ui)', textAlign: 'center', marginBottom: 8 }}>
+                  {rosterStats.total} characters in roster · {rosterStats.unclaimed} unclaimed
+                </p>
               )}
 
-              {showNewMember && (
-                <div style={{ backgroundColor: 'var(--be-bg-1)', border: '1px solid var(--be-iron-3)', borderRadius: 4, padding: 20, display: 'flex', flexDirection: 'column', gap: 12 }}>
-                  <input
-                    type="text"
-                    placeholder="Character name"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    style={{ padding: '10px 12px', backgroundColor: 'var(--be-bg-2)', border: '1px solid var(--be-iron-3)', borderRadius: 'var(--be-radius)', color: 'var(--be-ink)', fontFamily: 'var(--be-font-body)', fontSize: 15, outline: 'none' }}
-                  />
-                  <select
-                    value={newClass}
-                    onChange={(e) => setNewClass(e.target.value)}
-                    style={{ padding: '10px 12px', backgroundColor: 'var(--be-bg-2)', border: '1px solid var(--be-iron-3)', borderRadius: 'var(--be-radius)', color: 'var(--be-ink)', fontFamily: 'var(--be-font-body)', fontSize: 15, outline: 'none' }}
-                  >
-                    {CLASSES.map((c) => (
-                      <option key={c} value={c}>{c.charAt(0) + c.slice(1).toLowerCase()}</option>
-                    ))}
-                  </select>
-                  <input
-                    type="number"
-                    placeholder="Level"
-                    value={newLevel}
-                    min={1}
-                    max={70}
-                    onChange={(e) => setNewLevel(parseInt(e.target.value) || 1)}
-                    style={{ padding: '10px 12px', backgroundColor: 'var(--be-bg-2)', border: '1px solid var(--be-iron-3)', borderRadius: 'var(--be-radius)', color: 'var(--be-ink)', fontFamily: 'var(--be-font-body)', fontSize: 15, outline: 'none' }}
-                  />
-                  <div style={{ display: 'flex', gap: 10 }}>
-                    <button
-                      onClick={handleCreateNew}
-                      disabled={loading}
-                      style={{ flex: 1, padding: '11px 0', backgroundColor: 'var(--be-gold)', color: '#0d0b07', border: 'none', borderRadius: 'var(--be-radius)', fontFamily: 'var(--be-font-display)', fontSize: 13, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.5 : 1 }}
-                    >
-                      {loading ? 'Creating…' : 'Create & Claim'}
-                    </button>
-                    <button
-                      onClick={() => setShowNewMember(false)}
-                      style={{ flex: 1, padding: '11px 0', backgroundColor: 'transparent', color: 'var(--be-iron-2)', border: '1px solid var(--be-iron-3)', borderRadius: 'var(--be-radius)', fontFamily: 'var(--be-font-display)', fontSize: 13, cursor: 'pointer' }}
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-              )}
+              <button
+                onClick={() => setIsNewMember(true)}
+                style={{
+                  width: '100%',
+                  marginTop: 16,
+                  padding: '12px 24px',
+                  background: 'transparent',
+                  border: '1px solid rgba(201,150,26,0.4)',
+                  borderRadius: 6,
+                  color: 'var(--be-gold)',
+                  fontFamily: 'var(--be-font-display)',
+                  fontSize: '0.85rem',
+                  letterSpacing: '0.05em',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 8,
+                }}
+                onMouseEnter={(e) => {
+                  ;(e.currentTarget as HTMLElement).style.backgroundColor = 'rgba(201,150,26,0.08)'
+                  ;(e.currentTarget as HTMLElement).style.borderColor = 'rgba(201,150,26,0.7)'
+                }}
+                onMouseLeave={(e) => {
+                  ;(e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'
+                  ;(e.currentTarget as HTMLElement).style.borderColor = 'rgba(201,150,26,0.4)'
+                }}
+              >
+                ✦ I&apos;m a new member — create my character
+              </button>
             </div>
           )}
 
-          {/* ── CONFIRM STEP ── */}
+          {/* ── SEARCH STEP — new member form ── */}
+          {step === 'search' && isNewMember && (
+            <div>
+              <StepHeader current={1} total={3} label="Declare your character" />
+
+              <button
+                onClick={() => { setIsNewMember(false); setNewMemberErrors({}) }}
+                style={{ background: 'none', border: 'none', color: 'var(--be-gold-2)', fontFamily: 'var(--be-font-display)', fontSize: '0.75rem', letterSpacing: '0.1em', cursor: 'pointer', padding: '0 0 20px', display: 'block' }}
+              >
+                ← Search the roster instead
+              </button>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+                {/* Character Name */}
+                <div>
+                  <label style={labelStyle}>Character Name</label>
+                  <input
+                    type="text"
+                    autoComplete="off"
+                    placeholder="Exactly as it appears in game"
+                    value={newMemberForm.name}
+                    onChange={(e) => setNewMemberForm((f) => ({ ...f, name: e.target.value }))}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      background: 'rgba(20,14,4,0.9)',
+                      border: `1px solid ${newMemberErrors.name ? 'rgba(255,107,107,0.6)' : 'rgba(61,46,21,0.6)'}`,
+                      color: '#f0e6c8',
+                      fontFamily: 'var(--be-font-body)',
+                      fontSize: '1rem',
+                      borderRadius: 4,
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                    onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = 'rgba(201,150,26,0.7)' }}
+                    onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = newMemberErrors.name ? 'rgba(255,107,107,0.6)' : 'rgba(61,46,21,0.6)' }}
+                  />
+                  {newMemberErrors.name && <p style={errorStyle}>{newMemberErrors.name}</p>}
+                </div>
+
+                {/* Race */}
+                <div>
+                  <label style={labelStyle}>Race</label>
+                  <select
+                    value={newMemberForm.race}
+                    onChange={(e) => setNewMemberForm((f) => ({ ...f, race: e.target.value, cls: '' }))}
+                    style={{ ...selectStyle, borderColor: newMemberErrors.race ? 'rgba(255,107,107,0.6)' : 'rgba(61,46,21,0.6)' }}
+                    onFocus={(e) => { (e.target as HTMLSelectElement).style.borderColor = 'rgba(201,150,26,0.7)' }}
+                    onBlur={(e) => { (e.target as HTMLSelectElement).style.borderColor = newMemberErrors.race ? 'rgba(255,107,107,0.6)' : 'rgba(61,46,21,0.6)' }}
+                  >
+                    <option value="">— Select your race —</option>
+                    {Object.keys(RACE_CLASSES).map((race) => (
+                      <option key={race} value={race}>{race}</option>
+                    ))}
+                  </select>
+                  {newMemberErrors.race && <p style={errorStyle}>{newMemberErrors.race}</p>}
+                </div>
+
+                {/* Class */}
+                <div>
+                  <label style={labelStyle}>Class</label>
+                  <select
+                    value={newMemberForm.cls}
+                    disabled={!newMemberForm.race}
+                    onChange={(e) => setNewMemberForm((f) => ({ ...f, cls: e.target.value }))}
+                    style={{ ...selectStyle, borderColor: newMemberErrors.cls ? 'rgba(255,107,107,0.6)' : 'rgba(61,46,21,0.6)', opacity: newMemberForm.race ? 1 : 0.5 }}
+                    onFocus={(e) => { (e.target as HTMLSelectElement).style.borderColor = 'rgba(201,150,26,0.7)' }}
+                    onBlur={(e) => { (e.target as HTMLSelectElement).style.borderColor = newMemberErrors.cls ? 'rgba(255,107,107,0.6)' : 'rgba(61,46,21,0.6)' }}
+                  >
+                    <option value="">{newMemberForm.race ? '— Select your class —' : '— Select race first —'}</option>
+                    {availableClasses.map((cls) => (
+                      <option key={cls} value={cls}>{cls}</option>
+                    ))}
+                  </select>
+                  {newMemberErrors.cls && <p style={errorStyle}>{newMemberErrors.cls}</p>}
+                </div>
+
+                {/* Level */}
+                <div>
+                  <label style={labelStyle}>Current Level</label>
+                  <input
+                    type="number"
+                    min={1}
+                    max={70}
+                    placeholder="1–70"
+                    value={newMemberForm.level}
+                    onChange={(e) => setNewMemberForm((f) => ({ ...f, level: parseInt(e.target.value) || 1 }))}
+                    style={{
+                      width: '100%',
+                      padding: '12px 16px',
+                      background: 'rgba(20,14,4,0.9)',
+                      border: `1px solid ${newMemberErrors.level ? 'rgba(255,107,107,0.6)' : 'rgba(61,46,21,0.6)'}`,
+                      color: '#f0e6c8',
+                      fontFamily: 'var(--be-font-body)',
+                      fontSize: '1rem',
+                      borderRadius: 4,
+                      outline: 'none',
+                      boxSizing: 'border-box',
+                    }}
+                    onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = 'rgba(201,150,26,0.7)' }}
+                    onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = newMemberErrors.level ? 'rgba(255,107,107,0.6)' : 'rgba(61,46,21,0.6)' }}
+                  />
+                  {newMemberErrors.level && <p style={errorStyle}>{newMemberErrors.level}</p>}
+                </div>
+
+                <button
+                  onClick={handleNewMemberFormSubmit}
+                  style={{
+                    width: '100%',
+                    padding: '14px 0',
+                    backgroundColor: 'var(--be-gold)',
+                    color: '#0d0b07',
+                    border: 'none',
+                    borderRadius: 'var(--be-radius)',
+                    fontFamily: 'var(--be-font-display)',
+                    fontSize: '0.9rem',
+                    letterSpacing: '0.08em',
+                    cursor: 'pointer',
+                    marginTop: 4,
+                  }}
+                >
+                  Continue →
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ── CONFIRM STEP (returning member) ── */}
           {step === 'confirm' && selectedChar && (
             <div>
               <StepHeader current={2} total={3} label="Is this you?" />
@@ -657,6 +786,60 @@ export default function OnboardingPage() {
               </div>
               <p style={{ fontSize: 12, color: 'var(--be-ink-4)', fontFamily: 'var(--be-font-body)', fontStyle: 'italic', textAlign: 'center' }}>
                 Claiming binds {selectedChar.name} to this account. Made a mistake? You can release the character from your profile settings.
+              </p>
+            </div>
+          )}
+
+          {/* ── NEW CONFIRM STEP ── */}
+          {step === 'newConfirm' && (
+            <div>
+              <StepHeader current={2} total={3} label="Is this correct?" />
+              <div style={{
+                background: 'linear-gradient(135deg, var(--be-bg-1) 0%, var(--be-bg-2) 100%)',
+                border: '1px solid var(--be-iron-3)',
+                borderLeft: `4px solid ${newMemberClassColor}`,
+                borderRadius: 'var(--be-radius)',
+                padding: 24,
+                marginBottom: 20,
+              }}>
+                <p style={{ fontFamily: 'var(--be-font-display)', fontSize: 11, letterSpacing: '0.15em', color: newMemberClassColor, marginBottom: 6 }}>
+                  {newMemberForm.cls.toUpperCase()}
+                </p>
+                <h1 style={{ fontFamily: 'var(--be-font-display)', fontSize: 48, color: 'var(--be-ink)', margin: '0 0 6px', lineHeight: 1 }}>
+                  {newMemberForm.name}
+                </h1>
+                <p style={{ fontFamily: 'var(--be-font-body)', fontStyle: 'italic', color: 'var(--be-ink-3)', fontSize: 15, marginBottom: 16 }}>
+                  Level {newMemberForm.level}
+                </p>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 20px' }}>
+                  <div>
+                    <p style={{ fontSize: 10, letterSpacing: '0.12em', color: 'var(--be-ink-4)', fontFamily: 'var(--be-font-display)', marginBottom: 2 }}>GUILD RANK</p>
+                    <span style={{ display: 'inline-block', padding: '2px 8px', border: '1px solid var(--be-gold-3)', borderRadius: 2, fontSize: 13, color: 'var(--be-gold)', fontFamily: 'var(--be-font-display)' }}>Fresh Recruit</span>
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 10, letterSpacing: '0.12em', color: 'var(--be-ink-4)', fontFamily: 'var(--be-font-display)', marginBottom: 2 }}>PROFESSIONS</p>
+                    <p style={{ fontSize: 13, color: 'var(--be-ink-3)', fontFamily: 'var(--be-font-body)', fontStyle: 'italic' }}>To Be Determined</p>
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
+                <button
+                  onClick={() => setStep('search')}
+                  style={{ flex: 1, padding: '12px 0', backgroundColor: 'transparent', border: '1px solid var(--be-iron-3)', borderRadius: 'var(--be-radius)', color: 'var(--be-iron-2)', fontFamily: 'var(--be-font-display)', fontSize: 13, cursor: 'pointer' }}
+                >
+                  ← Make Edits
+                </button>
+                <button
+                  onClick={handleNewMemberClaim}
+                  disabled={loading}
+                  style={{ flex: 2, padding: '12px 0', backgroundColor: 'var(--be-gold)', color: '#0d0b07', border: 'none', borderRadius: 'var(--be-radius)', fontFamily: 'var(--be-font-display)', fontSize: 13, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.5 : 1 }}
+                >
+                  {loading ? 'Claiming…' : `Yes, claim ${newMemberForm.name}`}
+                </button>
+              </div>
+              <p style={{ fontSize: 12, color: 'var(--be-ink-4)', fontFamily: 'var(--be-font-body)', fontStyle: 'italic', textAlign: 'center' }}>
+                You&apos;ll be added to the guild roster as a new recruit.
               </p>
             </div>
           )}
