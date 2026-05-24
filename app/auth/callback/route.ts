@@ -48,26 +48,41 @@ export async function GET(request: NextRequest) {
 
     const meta = user.user_metadata ?? {}
 
-    // Update Discord-sourced fields on every login.
-    // display_name is intentionally absent — onboarding owns it exclusively.
-    // Writing it here would reset the character name on every login.
-    await adminClient.from('users').upsert(
-      {
-        id: user.id,
-        discord_id: meta.provider_id ?? meta.sub ?? null,
-        discord_username: meta.full_name ?? meta.name ?? null,
-        discord_avatar: meta.avatar_url ?? null,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'id' }
-    )
-
-    // Set role + onboarding flag only for brand-new users (role IS NULL = first login)
-    await adminClient
+    // Explicit branch: never use upsert — it can silently merge/overwrite display_name.
+    // display_name is NEVER written here; onboarding owns it exclusively.
+    const { data: existingUser } = await adminClient
       .from('users')
-      .update({ role: 'member', has_completed_onboarding: false })
+      .select('id')
       .eq('id', user.id)
-      .is('role', null)
+      .single()
+
+    if (existingUser) {
+      // Existing user — only refresh Discord metadata
+      await adminClient
+        .from('users')
+        .update({
+          discord_id: meta.provider_id ?? meta.sub ?? null,
+          discord_username: meta.global_name ?? meta.full_name ?? meta.name ?? null,
+          discord_avatar: meta.avatar_url ?? null,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id)
+    } else {
+      // Brand-new user — insert bare row; onboarding will set display_name
+      await adminClient
+        .from('users')
+        .insert({
+          id: user.id,
+          discord_id: meta.provider_id ?? meta.sub ?? null,
+          discord_username: meta.global_name ?? meta.full_name ?? meta.name ?? null,
+          discord_avatar: meta.avatar_url ?? null,
+          role: 'member',
+          has_completed_onboarding: false,
+          display_name: null,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        })
+    }
   }
 
   // Return the response WITH the session cookies already set on it

@@ -41,7 +41,7 @@ export async function NavBar() {
   }
 
   const charColor = claimedChar ? (CLASS_COLORS[claimedChar.class] ?? '#c9961a') : '#c9961a'
-  const displayName = claimedChar?.name ?? profile?.display_name ?? profile?.discord_username ?? user?.email ?? null
+  const displayName = profile?.display_name ?? 'Adventurer'
 
   return (
     <nav

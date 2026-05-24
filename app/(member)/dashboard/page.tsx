@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { CharacterClass } from '@/types'
 
 type MainChar = {
@@ -102,7 +103,12 @@ export default async function DashboardPage() {
     .select('*', { count: 'exact', head: true })
     .eq('claimed_by', user?.id ?? '')
 
-  const { count: guildieCount } = await supabase
+  // Use service-role client to bypass RLS for the cross-user count
+  const adminDb = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+  const { count: guildieCount } = await adminDb
     .from('users')
     .select('*', { count: 'exact', head: true })
     .eq('has_completed_onboarding', true)
@@ -115,7 +121,7 @@ export default async function DashboardPage() {
 
   const notifications: NotifRow[] = (notifData ?? []) as NotifRow[]
   const charCount = yourCharCount ?? 0
-  const displayName = mainChar?.name ?? profile?.display_name ?? profile?.discord_username ?? 'Adventurer'
+  const displayName = profile?.display_name ?? 'Adventurer'
 
   return (
     <div className="be-hall-page" style={{ maxWidth: 'clamp(900px, 90vw, 1600px)', margin: '0 auto', padding: '28px 16px', display: 'flex', flexDirection: 'column', gap: 20 }}>
