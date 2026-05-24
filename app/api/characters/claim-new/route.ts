@@ -75,10 +75,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to create character' }, { status: 500 })
   }
 
-  // Link character to user
+  // Link character to user and write display_name
   const { error: userError } = await admin
     .from('users')
-    .update({ claimed_character_id: newChar.id })
+    .update({ claimed_character_id: newChar.id, display_name: body.name.trim() })
     .eq('id', user.id)
 
   if (userError) {

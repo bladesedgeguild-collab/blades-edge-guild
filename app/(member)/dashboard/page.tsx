@@ -97,10 +97,15 @@ export default async function DashboardPage() {
     alts = (altData ?? []) as unknown as AltChar[]
   }
 
-  const { count: claimedCount } = await supabase
+  const { count: yourCharCount } = await supabase
     .from('characters')
-    .select('id', { count: 'exact', head: true })
-    .not('claimed_by', 'is', null)
+    .select('*', { count: 'exact', head: true })
+    .eq('claimed_by', user?.id ?? '')
+
+  const { count: guildieCount } = await supabase
+    .from('users')
+    .select('*', { count: 'exact', head: true })
+    .eq('has_completed_onboarding', true)
 
   const { data: notifData } = await supabase
     .from('notifications')
@@ -109,7 +114,7 @@ export default async function DashboardPage() {
     .limit(8)
 
   const notifications: NotifRow[] = (notifData ?? []) as NotifRow[]
-  const charCount = mainChar ? 1 + alts.length : 0
+  const charCount = yourCharCount ?? 0
   const displayName = mainChar?.name ?? profile?.display_name ?? profile?.discord_username ?? 'Adventurer'
 
   return (
@@ -214,7 +219,7 @@ export default async function DashboardPage() {
           </div>
           <div style={{ ...tile, padding: 22 }}>
             <p style={eyebrow}>Guildies on the Site</p>
-            <p className="be-stat" style={{ margin: 0 }}>{claimedCount ?? 0}</p>
+            <p className="be-stat" style={{ margin: 0 }}>{guildieCount ?? 0}</p>
             <p className="be-stat-label">members registered</p>
           </div>
         </div>
