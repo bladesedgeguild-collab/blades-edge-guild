@@ -29,24 +29,20 @@ export async function POST() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const displayName = user.email?.split('@')[0] ?? null
-
+  // Only update the timestamp — display_name is owned by onboarding exclusively,
+  // and discord fields are not relevant for email users (don't null them out).
   await admin.from('users').upsert(
     {
       id: user.id,
-      discord_id: null,
-      discord_username: null,
-      discord_avatar: null,
-      display_name: displayName,
       updated_at: new Date().toISOString(),
     },
     { onConflict: 'id' }
   )
 
-  // Set role to 'pending' only for brand-new users
+  // Set role + onboarding flag only for brand-new users (role IS NULL = first login)
   await admin
     .from('users')
-    .update({ role: 'pending' })
+    .update({ role: 'member', has_completed_onboarding: false })
     .eq('id', user.id)
     .is('role', null)
 
