@@ -48,17 +48,28 @@ export async function GET(request: NextRequest) {
 
     const meta = user.user_metadata ?? {}
 
+    // Upsert core Discord fields — display_name is intentionally excluded so onboarding
+    // character name is never overwritten on subsequent logins.
     await adminClient.from('users').upsert(
       {
         id: user.id,
         discord_id: meta.provider_id ?? meta.sub ?? null,
         discord_username: meta.full_name ?? meta.name ?? null,
         discord_avatar: meta.avatar_url ?? null,
-        display_name: meta.global_name ?? meta.full_name ?? null,
         updated_at: new Date().toISOString(),
       },
       { onConflict: 'id' }
     )
+
+    // Seed display_name from Discord only for brand-new users (when still null).
+    // Once a character name is written during onboarding we must never overwrite it.
+    const seedName = meta.global_name ?? meta.full_name ?? null
+    if (seedName) {
+      await adminClient.from('users')
+        .update({ display_name: seedName })
+        .eq('id', user.id)
+        .is('display_name', null)
+    }
 
     // Set role + onboarding flag only for new users — never overwrite existing values
     await adminClient

@@ -38,7 +38,7 @@ export async function POST(request: NextRequest) {
   // Verify character is not already claimed
   const { data: existing } = await admin
     .from('characters')
-    .select('id, claimed_by')
+    .select('id, name, claimed_by')
     .eq('id', character_id)
     .single()
 
@@ -59,11 +59,11 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Failed to claim character' }, { status: 500 })
   }
 
-  // If this is the main character, set it on the user record
+  // If this is the main character, set it on the user record and write display_name
   if (!is_alt) {
     await admin
       .from('users')
-      .update({ claimed_character_id: character_id })
+      .update({ claimed_character_id: character_id, display_name: existing.name })
       .eq('id', user.id)
   }
 
