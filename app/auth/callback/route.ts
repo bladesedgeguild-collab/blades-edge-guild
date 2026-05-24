@@ -60,10 +60,10 @@ export async function GET(request: NextRequest) {
       { onConflict: 'id' }
     )
 
-    // Set role to 'pending' only for new users — never overwrite an existing role
+    // Set role + onboarding flag only for new users — never overwrite existing values
     await adminClient
       .from('users')
-      .update({ role: 'pending' })
+      .update({ role: 'member', has_completed_onboarding: false })
       .eq('id', user.id)
       .is('role', null)
   }
