@@ -125,7 +125,7 @@ export default async function DashboardPage() {
         <p style={{ fontFamily: 'var(--be-font-display)', fontSize: '0.65rem', letterSpacing: '0.2em', color: 'var(--be-gold)', textTransform: 'uppercase', margin: '0 0 6px' }}>
           Welcome Back
         </p>
-        <h1 style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: '3rem', color: '#f0e6c8', lineHeight: 1, margin: '0 0 8px' }}>
+        <h1 className="character-name" style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: '3rem', color: '#f0e6c8', lineHeight: 1, margin: '0 0 8px' }}>
           {displayName}
         </h1>
         {mainChar && (
@@ -236,7 +236,7 @@ export default async function DashboardPage() {
           {notifications.length > 0
             ? notifications.map((n) => (
                 <div key={n.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 22px', borderTop: '1px solid rgba(61,46,21,0.4)' }}>
-                  <div className="be-mini-avatar">{n.title.slice(0, 2).toUpperCase()}</div>
+                  <div className="be-mini-avatar">{n.title.slice(0, 1)}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ margin: 0, fontFamily: "'Spectral', serif", fontSize: '0.9rem', color: '#f0e6c8', lineHeight: 1.3 }}>
                       <span style={{ fontFamily: 'var(--be-font-display)' }}>{n.title}</span>
@@ -250,7 +250,7 @@ export default async function DashboardPage() {
               ))
             : PLACEHOLDER_FEED.map((item, i) => (
                 <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 22px', borderTop: '1px solid rgba(61,46,21,0.4)' }}>
-                  <div className="be-mini-avatar">{item.who.slice(0, 2).toUpperCase()}</div>
+                  <div className="be-mini-avatar">{item.who.slice(0, 1)}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ margin: 0, fontFamily: "'Spectral', serif", fontSize: '0.9rem', color: '#f0e6c8', lineHeight: 1.3 }}>
                       <span style={{ fontFamily: 'var(--be-font-display)' }}>{item.who}</span>

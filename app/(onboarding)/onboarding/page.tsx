@@ -399,7 +399,7 @@ export default function OnboardingPage() {
           <p style={{ fontFamily: 'var(--be-font-display)', fontSize: '1.4rem', letterSpacing: '0.25em', color: 'var(--be-portal)', textTransform: 'uppercase', margin: 0, opacity: 0, animation: 'be-fade-in 0.8s ease-out 1.8s both' }}>
             The Oath is Sealed
           </p>
-          <p style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: '7rem', color: 'var(--be-ink)', lineHeight: 1, margin: 0, opacity: 0, animation: 'be-fade-in 0.8s ease-out 2.1s both' }}>
+          <p className="character-name" style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: '7rem', color: 'var(--be-ink)', lineHeight: 1, margin: 0, opacity: 0, animation: 'be-fade-in 0.8s ease-out 2.1s both' }}>
             {selectedChar?.name}
           </p>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: 0, animation: 'be-fade-in 0.6s ease-out 2.4s both' }}>

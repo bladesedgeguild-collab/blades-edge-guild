@@ -254,6 +254,16 @@
   to   { transform: translateX(0); }
 }
 
+/* Preserve decorative WoW special characters (ß Å Ð æ etc) in name display.
+   Never apply text-transform to these elements — ß becomes "SS" under uppercase. */
+.character-name,
+.guild-name,
+[data-character-name] {
+  font-variant-ligatures: none;
+  font-variant: normal;
+  text-transform: none;
+}
+
 /* Dashboard utility classes */
 .be-tile { background: rgba(26,18,8,0.6); border: 1px solid rgba(61,46,21,0.5); border-radius: 4px; }
 .be-tile-eyebrow { font-family: var(--be-font-display); font-size: 0.7rem; letter-spacing: 0.18em; text-transform: uppercase; color: rgba(201,150,26,0.85); margin-bottom: 12px; }
