@@ -46,8 +46,6 @@ export async function GET(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    const meta = user.user_metadata ?? {}
-
     // Explicit branch: never use upsert — it can silently merge/overwrite display_name.
     // display_name is NEVER written here; onboarding owns it exclusively.
     const { data: existingUser } = await adminClient
@@ -57,28 +55,19 @@ export async function GET(request: NextRequest) {
       .single()
 
     if (existingUser) {
-      // Existing user — only refresh Discord metadata
+      // Existing user — touch only updated_at; never overwrite display_name or any profile field
       await adminClient
         .from('users')
-        .update({
-          discord_id: meta.provider_id ?? meta.sub ?? null,
-          discord_username: meta.global_name ?? meta.full_name ?? meta.name ?? null,
-          discord_avatar: meta.avatar_url ?? null,
-          updated_at: new Date().toISOString(),
-        })
+        .update({ updated_at: new Date().toISOString() })
         .eq('id', user.id)
     } else {
-      // Brand-new user — insert bare row; onboarding will set display_name
+      // Brand-new user — bare row only; onboarding owns display_name exclusively
       await adminClient
         .from('users')
         .insert({
           id: user.id,
-          discord_id: meta.provider_id ?? meta.sub ?? null,
-          discord_username: meta.global_name ?? meta.full_name ?? meta.name ?? null,
-          discord_avatar: meta.avatar_url ?? null,
           role: 'member',
           has_completed_onboarding: false,
-          display_name: null,
           created_at: new Date().toISOString(),
           updated_at: new Date().toISOString(),
         })
