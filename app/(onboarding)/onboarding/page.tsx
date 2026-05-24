@@ -262,7 +262,11 @@ export default function OnboardingPage() {
     })
     const data = await res.json()
     setLoading(false)
-    if (!res.ok) { setError(data.error ?? 'Failed to create character'); return }
+    if (!res.ok) {
+      const msg = data.detail ? `${data.error}: ${data.detail} (${data.code})` : (data.error ?? 'Failed to create character')
+      setError(msg)
+      return
+    }
     setSelectedChar({
       id: data.character.id,
       name: data.character.name,

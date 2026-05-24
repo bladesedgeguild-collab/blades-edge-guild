@@ -51,12 +51,24 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'You already have a claimed character' }, { status: 409 })
   }
 
+  const characterName = body.name.trim()
+
+  // Remove any orphaned new-member rows with the same name+realm from a previous
+  // failed attempt. Without this, a unique constraint on (name, realm) will block the insert.
+  await admin
+    .from('characters')
+    .delete()
+    .eq('name', characterName)
+    .eq('realm', 'Dreamscythe')
+    .eq('status', 'new')
+    .eq('imported_from_grm', false)
+
   // Create new character
   const { data: newChar, error: insertError } = await admin
     .from('characters')
     .insert({
       user_id: user.id,
-      name: body.name.trim(),
+      name: characterName,
       realm: 'Dreamscythe',
       class: body.class.toUpperCase(),
       race: body.race,
@@ -64,6 +76,8 @@ export async function POST(request: NextRequest) {
       rank_name: 'Fresh Recruit',
       rank_index: 9,
       status: 'new',
+      is_main: true,
+      hide_from_roster: false,
       claimed_by: user.id,
       claimed_at: new Date().toISOString(),
       imported_from_grm: false,
@@ -72,7 +86,12 @@ export async function POST(request: NextRequest) {
     .single()
 
   if (insertError || !newChar) {
-    return NextResponse.json({ error: 'Failed to create character' }, { status: 500 })
+    console.error('Character creation error:', insertError)
+    return NextResponse.json({
+      error: 'Failed to create character',
+      detail: insertError?.message ?? 'Unknown error',
+      code: insertError?.code ?? null,
+    }, { status: 500 })
   }
 
   // Link character to user and write display_name
