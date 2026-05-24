@@ -1,3 +1,4 @@
+import { createClient } from '@supabase/supabase-js'
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
@@ -52,15 +53,21 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(url)
     }
 
-    // Check if user has completed onboarding (column may not exist yet — handle gracefully)
+    // Check onboarding completion using service role to bypass RLS.
+    // The anon client query is gated on !profileError — if RLS blocks the read
+    // the error silently skips the redirect. Service role has no such risk.
     if (!pathname.startsWith('/onboarding')) {
-      const { data: profile, error: profileError } = await supabase
+      const admin = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      )
+      const { data: profile } = await admin
         .from('users')
         .select('has_completed_onboarding')
         .eq('id', user.id)
         .single()
 
-      if (!profileError && profile?.has_completed_onboarding !== true) {
+      if (profile?.has_completed_onboarding !== true) {
         const url = request.nextUrl.clone()
         url.pathname = '/onboarding'
         return NextResponse.redirect(url)
