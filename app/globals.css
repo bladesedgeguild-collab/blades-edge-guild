@@ -314,33 +314,33 @@ input[type=number] { -moz-appearance: textfield; }
   flex-shrink: 0;
 }
 
-/* Layer 3: hero — fades in after seal sequence (SEAL_TOTAL 3.0s + 1.8s stagger) */
+/* Layer 3: hero — appears 1.0s after ghost starts (class-line delay 2.4s + 1.0s) */
 .figure-hero {
   opacity: 0;
-  animation: be-hero-appear 1.8s ease-out 4.8s both;
+  animation: be-hero-appear 1.8s ease-out 3.4s both;
   z-index: 1;
   position: relative;
 }
 
-/* Layer 1: ghost large — starts after seal completes (SEAL_TOTAL 3.0s + 0.8s stagger) */
+/* Layer 1: ghost large — starts with class/rank line fade-in (2.4s) */
 .figure-ghost {
   opacity: 0;
   transform-origin: bottom center;
   position: relative;
   z-index: 0;
 }
-.ghost-drift-left  { animation: be-ghost-left  5.0s ease-out 3.8s both; }
-.ghost-drift-right { animation: be-ghost-right 5.0s ease-out 3.8s both; }
+.ghost-drift-left  { animation: be-ghost-left  5.0s ease-out 2.4s both; }
+.ghost-drift-right { animation: be-ghost-right 5.0s ease-out 2.4s both; }
 
-/* Layer 2: echo mid — (SEAL_TOTAL 3.0s + 2.2s stagger) */
+/* Layer 2: echo mid — 1.4s after ghost starts (2.4s + 1.4s) */
 .figure-echo {
   opacity: 0;
   transform-origin: bottom center;
   position: relative;
   z-index: 0;
 }
-.echo-drift-left   { animation: be-echo-left   4.5s ease-out 5.2s both; }
-.echo-drift-right  { animation: be-echo-right  4.5s ease-out 5.2s both; }
+.echo-drift-left   { animation: be-echo-left   4.5s ease-out 3.8s both; }
+.echo-drift-right  { animation: be-echo-right  4.5s ease-out 3.8s both; }
 
 /* Ground glow lives inside layer-positioner alongside figure-hero */
 .figure-ground-glow {
@@ -358,7 +358,7 @@ input[type=number] { -moz-appearance: textfield; }
   );
   filter: blur(16px);
   opacity: 0;
-  animation: be-hero-appear 1.8s ease-out 4.8s both;
+  animation: be-hero-appear 1.8s ease-out 3.4s both;
   z-index: 2;
   pointer-events: none;
 }
