@@ -56,10 +56,10 @@ export async function POST() {
 
   console.log('[reset-onboarding] alts released:', releasedAlts?.length ?? 0, 'error:', altReleaseError?.message ?? null)
 
-  // Reset the user's onboarding state
+  // Reset the user's onboarding state and clear display_name
   await admin
     .from('users')
-    .update({ has_completed_onboarding: false, claimed_character_id: null })
+    .update({ has_completed_onboarding: false, claimed_character_id: null, display_name: null })
     .eq('id', user.id)
 
   return NextResponse.json({ success: true })

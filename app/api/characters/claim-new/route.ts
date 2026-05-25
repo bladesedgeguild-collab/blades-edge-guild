@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  // Check user doesn't already have a claimed character
+  // Guard: user must not already have a claimed character
   const { data: existingUser } = await admin
     .from('users')
     .select('claimed_character_id')
@@ -52,57 +52,95 @@ export async function POST(request: NextRequest) {
   }
 
   const characterName = body.name.trim()
+  const characterClass = body.class.toUpperCase()
+  const characterRace = body.race
+  const characterLevel = body.level
+  const realm = 'Dreamscythe'
 
-  // Remove any orphaned new-member rows with the same name+realm from a previous
-  // failed attempt. Without this, a unique constraint on (name, realm) will block the insert.
-  await admin
+  // Check for any existing row with this name + realm (handles post-reset re-onboarding)
+  const { data: existingChar } = await admin
     .from('characters')
-    .delete()
+    .select('id, claimed_by, status')
     .eq('name', characterName)
-    .eq('realm', 'Dreamscythe')
-    .eq('status', 'new')
-    .eq('imported_from_grm', false)
+    .eq('realm', realm)
+    .maybeSingle()
 
-  // Create new character
-  const { data: newChar, error: insertError } = await admin
-    .from('characters')
-    .insert({
-      user_id: user.id,
-      name: characterName,
-      realm: 'Dreamscythe',
-      class: body.class.toUpperCase(),
-      race: body.race,
-      level: body.level,
-      rank_name: 'Fresh Recruit',
-      rank_index: 9,
-      status: 'new',
-      is_main: true,
-      hide_from_roster: false,
-      claimed_by: user.id,
-      claimed_at: new Date().toISOString(),
-      imported_from_grm: false,
-    })
-    .select('id, name, class, race, level')
-    .single()
+  let characterId: string
+  let returnedChar: { id: string; name: string; class: string; race: string; level: number }
 
-  if (insertError || !newChar) {
-    console.error('Character creation error:', insertError)
-    return NextResponse.json({
-      error: 'Failed to create character',
-      detail: insertError?.message ?? 'Unknown error',
-      code: insertError?.code ?? null,
-    }, { status: 500 })
+  if (existingChar) {
+    if (existingChar.claimed_by && existingChar.claimed_by !== user.id) {
+      return NextResponse.json(
+        { error: 'That character name is already claimed by another member.' },
+        { status: 409 }
+      )
+    }
+    // Unclaimed or previously belonged to this user — update and reuse
+    const { error: updateError } = await admin
+      .from('characters')
+      .update({
+        claimed_by: user.id,
+        claimed_at: new Date().toISOString(),
+        class: characterClass,
+        race: characterRace,
+        level: characterLevel,
+        status: 'new',
+        hide_from_roster: false,
+      })
+      .eq('id', existingChar.id)
+
+    if (updateError) {
+      return NextResponse.json(
+        { error: 'Failed to claim character', detail: updateError.message },
+        { status: 500 }
+      )
+    }
+    characterId = existingChar.id
+    returnedChar = { id: existingChar.id, name: characterName, class: characterClass, race: characterRace, level: characterLevel }
+  } else {
+    // No existing row — insert fresh
+    const { data: newChar, error: insertError } = await admin
+      .from('characters')
+      .insert({
+        user_id: user.id,
+        name: characterName,
+        realm,
+        class: characterClass,
+        race: characterRace,
+        level: characterLevel,
+        rank_name: 'Fresh Recruit',
+        rank_index: 9,
+        status: 'new',
+        is_main: true,
+        hide_from_roster: false,
+        claimed_by: user.id,
+        claimed_at: new Date().toISOString(),
+        imported_from_grm: false,
+      })
+      .select('id, name, class, race, level')
+      .single()
+
+    if (insertError || !newChar) {
+      console.error('Character creation error:', insertError)
+      return NextResponse.json({
+        error: 'Failed to create character',
+        detail: insertError?.message ?? 'Unknown error',
+        code: insertError?.code ?? null,
+      }, { status: 500 })
+    }
+    characterId = newChar.id
+    returnedChar = newChar
   }
 
   // Link character to user and write display_name
   const { error: userError } = await admin
     .from('users')
-    .update({ claimed_character_id: newChar.id, display_name: body.name.trim() })
+    .update({ claimed_character_id: characterId, display_name: characterName })
     .eq('id', user.id)
 
   if (userError) {
-    return NextResponse.json({ error: 'Failed to update user record' }, { status: 500 })
+    return NextResponse.json({ error: 'Failed to update user record', detail: userError.message }, { status: 500 })
   }
 
-  return NextResponse.json({ success: true, character: newChar })
+  return NextResponse.json({ success: true, character: returnedChar })
 }
