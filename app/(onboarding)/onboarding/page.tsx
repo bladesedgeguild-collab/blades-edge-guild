@@ -176,6 +176,7 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showContinue, setShowContinue] = useState(false)
+  const [continuing, setContinuing] = useState(false)
   const [maleOnRight, setMaleOnRight] = useState(true)
 
   const cinematicTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -318,6 +319,21 @@ export default function OnboardingPage() {
     }
   }
 
+  const handleContinue = async () => {
+    if (isNewMember) {
+      setContinuing(true)
+      try {
+        await fetch('/api/users/complete-onboarding', { method: 'PATCH' })
+      } catch (e) {
+        console.error(e)
+      } finally {
+        window.location.href = '/dashboard'
+      }
+    } else {
+      setStep('alts')
+    }
+  }
+
   function toggleAlt(id: string) {
     setSelectedAlts((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
@@ -381,14 +397,20 @@ export default function OnboardingPage() {
           {/* Left figure column */}
           <div className="figure-column figure-column-left">
             {leftFigure && (
-              <div className="figure-container figure-left">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={leftFigure} className="figure-ghost-large" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={leftFigure} className="figure-echo-mid" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={leftFigure} className="figure-hero" alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
-                <div className="figure-ground-glow" />
+              <div className="figure-container">
+                <div className="layer-positioner">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={leftFigure} className="figure-ghost ghost-drift-left" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+                </div>
+                <div className="layer-positioner">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={leftFigure} className="figure-echo echo-drift-left" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+                </div>
+                <div className="layer-positioner">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={leftFigure} className="figure-hero" alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+                  <div className="figure-ground-glow" />
+                </div>
               </div>
             )}
           </div>
@@ -440,7 +462,9 @@ export default function OnboardingPage() {
           </div>
           {showContinue && (
             <button
-              onClick={isNewMember ? handleSkip : () => setStep('alts')}
+              onClick={handleContinue}
+              disabled={continuing}
+              className={`oath-continue-btn${continuing ? ' loading' : ''}`}
               style={{
                 padding: '18px 48px',
                 backgroundColor: 'var(--be-gold)',
@@ -450,11 +474,21 @@ export default function OnboardingPage() {
                 fontFamily: 'var(--be-font-display)',
                 fontSize: '1.1rem',
                 letterSpacing: '0.1em',
-                cursor: 'pointer',
+                cursor: continuing ? 'wait' : 'pointer',
                 animation: 'be-fade-in 0.6s ease-out both',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
             >
-              Continue →
+              {continuing ? (
+                <>
+                  <span className="btn-spinner" />
+                  Entering the Hall...
+                </>
+              ) : (
+                'Continue →'
+              )}
             </button>
           )}
           </div>{/* oath-center-content */}
@@ -462,14 +496,20 @@ export default function OnboardingPage() {
           {/* Right figure column */}
           <div className="figure-column figure-column-right">
             {rightFigure && (
-              <div className="figure-container figure-right">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={rightFigure} className="figure-ghost-large" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={rightFigure} className="figure-echo-mid" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={rightFigure} className="figure-hero" alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
-                <div className="figure-ground-glow" />
+              <div className="figure-container">
+                <div className="layer-positioner">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={rightFigure} className="figure-ghost ghost-drift-right" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+                </div>
+                <div className="layer-positioner">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={rightFigure} className="figure-echo echo-drift-right" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+                </div>
+                <div className="layer-positioner">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={rightFigure} className="figure-hero" alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+                  <div className="figure-ground-glow" />
+                </div>
               </div>
             )}
           </div>
