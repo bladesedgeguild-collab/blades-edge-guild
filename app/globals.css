@@ -317,7 +317,7 @@ input[type=number] { -moz-appearance: textfield; }
 /* Layer 3: hero — fades in, stays, no movement */
 .figure-hero {
   opacity: 0;
-  animation: be-hero-appear 1.8s ease-out 3.5s both;
+  animation: be-hero-appear 1.8s ease-out 1.8s both;
   z-index: 1;
   position: relative;
 }
@@ -345,21 +345,22 @@ input[type=number] { -moz-appearance: textfield; }
 /* Ground glow lives inside layer-positioner alongside figure-hero */
 .figure-ground-glow {
   position: absolute;
-  bottom: -4px;
+  bottom: 2px;
   left: 50%;
   transform: translateX(-50%);
-  width: 180px;
-  height: 50px;
+  width: 200px;
+  height: 45px;
   background: radial-gradient(
     ellipse at center,
-    rgba(201, 150, 26, 0.65) 0%,
-    rgba(201, 150, 26, 0.2) 55%,
+    rgba(201, 150, 26, 0.55) 0%,
+    rgba(201, 150, 26, 0.18) 50%,
     transparent 100%
   );
-  filter: blur(14px);
+  filter: blur(16px);
   opacity: 0;
-  animation: be-hero-appear 1.8s ease-out 3.5s both;
+  animation: be-hero-appear 1.8s ease-out 1.8s both;
   z-index: 2;
+  pointer-events: none;
 }
 
 @media (max-width: 768px) {
