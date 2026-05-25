@@ -254,6 +254,27 @@
   to   { transform: translateX(0); }
 }
 
+@keyframes be-figure-rise {
+  from { opacity: 0; transform: translateY(40px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes be-figure-float {
+  0%, 100% { transform: translateY(0px); }
+  50%      { transform: translateY(-10px); }
+}
+
+.be-figure-slot {
+  position: absolute;
+  bottom: 0;
+  display: flex;
+  align-items: flex-end;
+  pointer-events: none;
+  z-index: 0;
+}
+@media (max-width: 767px) {
+  .be-figure-slot { display: none; }
+}
+
 /* Preserve decorative WoW special characters (ß Å Ð æ etc) in name display.
    Never apply text-transform to these elements — ß becomes "SS" under uppercase. */
 .character-name,

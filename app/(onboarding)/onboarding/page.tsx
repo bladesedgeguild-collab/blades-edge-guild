@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
+import { getCharacterArt } from '@/lib/character-art'
 
 const CLASS_COLORS: Record<string, string> = {
   MAGE: '#3fc7eb', PALADIN: '#f48cba', WARRIOR: '#c69b3a',
@@ -29,6 +30,7 @@ type SearchChar = {
   id: string
   name: string
   class: string
+  race: string | null
   level: number
   rank_name: string | null
   rank_index: number | null
@@ -174,6 +176,7 @@ export default function OnboardingPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [showContinue, setShowContinue] = useState(false)
+  const [maleOnRight, setMaleOnRight] = useState(true)
 
   const cinematicTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -215,6 +218,8 @@ export default function OnboardingPage() {
     cinematicTimer.current = setTimeout(() => setShowContinue(true), 3300)
     return () => { if (cinematicTimer.current) clearTimeout(cinematicTimer.current) }
   }, [step])
+
+  useEffect(() => { setMaleOnRight(Math.random() > 0.5) }, [])
 
   async function handleClaimMain(char: SearchChar) {
     setLoading(true)
@@ -271,6 +276,7 @@ export default function OnboardingPage() {
       id: data.character.id,
       name: data.character.name,
       class: data.character.class,
+      race: newMemberForm.race,
       level: data.character.level,
       rank_name: 'Fresh Recruit',
       rank_index: 9,
@@ -329,6 +335,10 @@ export default function OnboardingPage() {
 
   // ── CINEMATIC ──
   if (step === 'cinematic') {
+    const art = getCharacterArt(selectedChar?.race ?? null, selectedChar?.class ?? null)
+    const leftFigure  = art ? (maleOnRight ? art.female : art.male) : null
+    const rightFigure = art ? (maleOnRight ? art.male   : art.female) : null
+
     const embers = Array.from({ length: 28 }, (_, i) => ({
       id: i,
       left: `${Math.random() * 100}%`,
@@ -366,6 +376,45 @@ export default function OnboardingPage() {
             } as React.CSSProperties}
           />
         ))}
+
+        {/* Left figure — entrance after seal stamps, then idle float */}
+        {leftFigure && (
+          <div
+            className="be-figure-slot"
+            style={{
+              left: 0,
+              animation: 'be-figure-rise 0.8s ease-out 1.8s both, be-figure-float 4s ease-in-out 2.6s infinite both',
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={leftFigure}
+              alt=""
+              style={{ height: 'min(65vh, 600px)', width: 'auto', display: 'block' }}
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+            />
+          </div>
+        )}
+
+        {/* Right figure — slight stagger on entrance */}
+        {rightFigure && (
+          <div
+            className="be-figure-slot"
+            style={{
+              right: 0,
+              animation: 'be-figure-rise 0.8s ease-out 2.1s both, be-figure-float 4s ease-in-out 2.9s infinite both',
+            }}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={rightFigure}
+              alt=""
+              style={{ height: 'min(65vh, 600px)', width: 'auto', display: 'block' }}
+              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
+            />
+          </div>
+        )}
+
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           minHeight: 'calc(100vh - 56px)', gap: '24px', padding: '40px 20px',

@@ -25,6 +25,7 @@ type CachedChar = {
   id: string
   name: string
   class: string
+  race: string | null
   level: number
   rank_name: string | null
   rank_index: number | null
@@ -48,7 +49,7 @@ async function getCharCache(): Promise<CachedChar[]> {
 
   const { data } = await supabase
     .from('characters')
-    .select('id, name, class, level, rank_name, rank_index, last_zone, claimed_by, joined_guild_at, professions(name, skill_level, is_primary)')
+    .select('id, name, class, race, level, rank_name, rank_index, last_zone, claimed_by, joined_guild_at, professions(name, skill_level, is_primary)')
     .order('rank_index', { ascending: true, nullsFirst: false })
     .order('level', { ascending: false })
 
@@ -56,6 +57,7 @@ async function getCharCache(): Promise<CachedChar[]> {
     id: c.id,
     name: c.name,
     class: c.class,
+    race: c.race ?? null,
     level: c.level,
     rank_name: c.rank_name,
     rank_index: c.rank_index,

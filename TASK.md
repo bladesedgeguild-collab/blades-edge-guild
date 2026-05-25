@@ -1,118 +1,182 @@
-# TASK: Audit and definitively fix display_name being overwritten on login
+# TASK: Add character art to Oath Is Sealed cinematic
 
-## Problem
-Despite multiple fix attempts, display_name is still being reset on every login.
-A direct SQL update setting display_name = 'Teiston' is immediately overwritten
-when the user logs in. This task must find every single place in the codebase
-that writes to display_name and eliminate all writes outside of onboarding.
+## Overview
+46 transparent PNG character wireframe files have been added to public/images/characters/.
+Naming convention: {Race}_{Class}_{M|F}.png
+Example: Draenei_Shaman_F.png, Human_Warrior_M.png, NightElf_Druid_F.png
 
-## Step 1 — Full codebase audit
+These gold glowing lineart figures on transparent backgrounds must flank the
+wax seal on the Oath Is Sealed cinematic, selected by the user's race and class,
+showing both M and F versions. They sit directly on the existing amber gradient
+background — no background manipulation needed.
 
-Run this command and paste the output as a comment in the code:
-```bash
-grep -rn "display_name" app/ --include="*.ts" --include="*.tsx"
-```
+---
 
-Every file and line number that mentions display_name must be reviewed.
+## Available character combinations
 
-## Step 2 — Print the current state of the auth callback
+All files follow {Race}_{Class}_{M|F}.png:
 
-Output the full contents of app/auth/callback/route.ts to the console during
-the build so we can see exactly what is there. Add this at the top of the file
-temporarily:
+Draenei: Hunter, Mage, Paladin, Priest, Shaman, Warrior (M+F each)
+Dwarf: Hunter, Paladin, Priest, Rogue, Warrior (M+F each)
+Gnome: Lock (Warlock), Mage, Rogue, Warrior (M+F each)
+Human: Lock (Warlock), Mage, Paladin, Priest, Rogue, Warrior (M+F each)
+NightElf: Druid, Priest, Rogue (M+F each)
+
+Note: Warlock files may be named with "Lock" abbreviation (e.g. Gnome_Lock_F.png).
+Check actual filenames in public/images/characters/ before coding the lookup.
+
+---
+
+## Step 1 — Character image lookup utility
+
+Create lib/character-art.ts:
+
 ```ts
-console.log('AUTH CALLBACK FILE LOADED');
-```
+const RACE_MAP: Record<string, string> = {
+  'Night Elf': 'NightElf',
+  'NightElf': 'NightElf',
+  'Draenei': 'Draenei',
+  'Dwarf': 'Dwarf',
+  'Gnome': 'Gnome',
+  'Human': 'Human',
+};
 
-## Step 3 — Rules for every file found in Step 1
+const CLASS_MAP: Record<string, string> = {
+  'Warlock': 'Lock',
+  'Hunter': 'Hunter',
+  'Mage': 'Mage',
+  'Paladin': 'Paladin',
+  'Priest': 'Priest',
+  'Rogue': 'Rogue',
+  'Warrior': 'Warrior',
+  'Shaman': 'Shaman',
+  'Druid': 'Druid',
+};
 
-For EACH file that writes display_name:
-
-### If it is app/auth/callback/route.ts:
-Remove display_name completely. The file must have ZERO writes to display_name.
-Use this exact pattern — no upsert, explicit branch:
-
-```ts
-const { data: existingUser } = await supabaseAdmin
-  .from('users')
-  .select('id, display_name')
-  .eq('id', user.id)
-  .single();
-
-if (existingUser) {
-  // Existing user — ONLY update auth metadata
-  await supabaseAdmin
-    .from('users')
-    .update({ updated_at: new Date().toISOString() })
-    .eq('id', user.id);
-} else {
-  // New user — insert WITHOUT display_name
-  await supabaseAdmin
-    .from('users')
-    .insert({
-      id: user.id,
-      role: 'member',
-      has_completed_onboarding: false,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    });
+export function getCharacterArt(race: string, characterClass: string): {
+  male: string;
+  female: string;
+} | null {
+  const racePart = RACE_MAP[race] ?? race.replace(' ', '');
+  const classPart = CLASS_MAP[characterClass] ?? characterClass;
+  return {
+    male: `/images/characters/${racePart}_${classPart}_M.png`,
+    female: `/images/characters/${racePart}_${classPart}_F.png`,
+  };
 }
 ```
 
-Use supabaseAdmin (service role) for this — not the anon client.
+Verify actual filenames match. Update CLASS_MAP if abbreviations differ.
 
-### If it is middleware.ts or any layout file:
-Remove the display_name write entirely.
+---
 
-### If it is any onboarding route or action:
-Leave it — onboarding is the ONLY permitted writer of display_name.
+## Step 2 — Layout
 
-### If it is anywhere else:
-Remove it.
+Find the oath cinematic component. Add two figure slots flanking the wax seal:
 
-## Step 4 — Verify with grep after changes
-
-After making all changes, run again:
-```bash
-grep -rn "display_name" app/ --include="*.ts" --include="*.tsx"
+```
+[FIGURE LEFT]     [WAX SEAL + TEXT]     [FIGURE RIGHT]
 ```
 
-The only results that should remain are:
-- READ operations (SELECT, .select('display_name'))
-- Writes inside onboarding routes only
-- Zero writes in auth/callback/route.ts
-- Zero writes in middleware
-- Zero writes in any layout or provider file
+Which side is M vs F is randomized on mount (50/50):
 
-If any non-onboarding write to display_name remains, remove it.
+```tsx
+import { getCharacterArt } from '@/lib/character-art';
 
-## Step 5 — Data fix SQL (run after deploy)
+const art = getCharacterArt(character.race, character.class);
+const [maleOnRight, setMaleOnRight] = useState(true);
+useEffect(() => { setMaleOnRight(Math.random() > 0.5); }, []);
 
-```sql
-UPDATE public.users
-SET display_name = 'Teiston',
-    claimed_character_id = 'b9f49cb8-017b-4440-91b3-ac3ea256289e',
-    has_completed_onboarding = true
-WHERE id = '3787d5c3-f359-4ebd-bf90-08120267232b';
-
-UPDATE public.users u
-SET display_name = c.name
-FROM public.characters c
-WHERE u.claimed_character_id = c.id
-  AND u.has_completed_onboarding = true
-  AND (u.display_name IS NULL OR u.display_name = '');
+const leftFigure  = maleOnRight ? art?.female : art?.male;
+const rightFigure = maleOnRight ? art?.male   : art?.female;
 ```
+
+Render each figure as a plain <img> or Next.js <Image>:
+- No background color
+- No mix-blend-mode
+- No filter
+- The transparent PNG sits naturally on the amber gradient background
+
+Size: figures fill roughly 60-70% of the cinematic panel height.
+Align feet toward the bottom of the cinematic area.
+On mobile (< 768px): hide both figures, keep seal centered.
+
+If getCharacterArt returns null or the file doesn't exist for the combo,
+render nothing in the figure slots — no broken image icons.
+Use onError on the img tag to hide it if the file is missing.
+
+---
+
+## Step 3 — Animation sequence
+
+Do NOT touch the existing wax seal animation (be-stamp keyframe) or ember
+particles. Only add new animations for the figure slots.
+
+All new animations must use animation-fill-mode: both — never 'forwards'.
+
+### Entrance: fires after the seal stamps
+
+```css
+@keyframes be-figure-rise {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+```
+
+Apply with a delay that starts after the wax seal animation completes.
+Left figure enters slightly before right for a staggered feel.
+
+### Idle float: starts after entrance completes
+
+```css
+@keyframes be-figure-float {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-10px); }
+}
+```
+
+Duration: 4s, ease-in-out, infinite, animation-fill-mode: both.
+Chain it after the entrance using animation-delay equal to entrance duration.
+
+---
+
+## Step 4 — Pass race/class through to cinematic
+
+Confirm the oath cinematic receives race and class for both onboarding paths:
+
+Path A (returning member): character already has race + class in public.characters.
+Pass these to the cinematic component.
+
+Path B (new member): user entered race + class in the form. Confirm these are
+in state when the cinematic renders and passed through as props.
+
+---
 
 ## Verification
 
-1. Run data fix SQL
-2. Log in as aking81@gmail.com
-3. Immediately run: SELECT display_name FROM public.users WHERE id = '3787d5c3-f359-4ebd-bf90-08120267232b';
-4. Must return 'Teiston' — not 'aking81' or null
-5. Hall must show 'Teiston' not 'Adventurer'
-6. Navbar must show 'Teiston' not the email
+1. New member onboarding as Dwarf Rogue
+   → Oath screen shows Dwarf_Rogue_F.png and Dwarf_Rogue_M.png flanking the seal
+2. New member onboarding as Draenei Shaman
+   → Shows Draenei_Shaman_F.png and Draenei_Shaman_M.png
+3. Returning member onboarding
+   → Shows correct figures for their character's race/class
+4. Figures fade/rise in after the seal stamps
+5. Figures float gently after entrance
+6. Refresh oath screen multiple times — M/F sides swap randomly
+7. Mobile view — figures hidden, seal centered
+8. Race/class with no art file → no broken image, seal only
+
+---
 
 ## Do not touch
-- Oath cinematic (animation-fill-mode: both)
-- Landing page
-- Onboarding display_name writes — these are correct and must stay
+- be-stamp keyframe — do not modify
+- Ember particle effect — do not modify
+- animation-fill-mode: both on ALL existing animations — never change to forwards
+- Oath screen text, seal size, or amber background gradient
+- Any page outside the oath cinematic component
