@@ -267,6 +267,7 @@ input[type=number] { -moz-appearance: textfield; }
   justify-content: center;
   min-height: 70vh;
   flex-shrink: 0;
+  overflow: visible;
 }
 
 .oath-center-content {
@@ -300,19 +301,23 @@ input[type=number] { -moz-appearance: textfield; }
   display: flex;
   align-items: flex-end;
   justify-content: center;
+  width: max-content;
+  overflow: visible;
 }
 
 /* All figure images share base size */
 .figure-container img {
   height: 65vh;
   width: auto;
+  max-width: none;
   display: block;
+  flex-shrink: 0;
 }
 
 /* Layer 3: hero — fades in, stays, no movement */
 .figure-hero {
   opacity: 0;
-  animation: be-hero-appear 1.6s ease-out 1.2s both;
+  animation: be-hero-appear 1.8s ease-out 3.5s both;
   z-index: 1;
   position: relative;
 }
@@ -324,12 +329,8 @@ input[type=number] { -moz-appearance: textfield; }
   position: relative;
   z-index: 0;
 }
-.ghost-drift-left {
-  animation: be-ghost-left 3.6s ease-out 0.8s both;
-}
-.ghost-drift-right {
-  animation: be-ghost-right 3.6s ease-out 0.8s both;
-}
+.ghost-drift-left  { animation: be-ghost-left  5.0s ease-out 0.8s both; }
+.ghost-drift-right { animation: be-ghost-right 5.0s ease-out 0.8s both; }
 
 /* Layer 2: echo mid — 1.5x scale */
 .figure-echo {
@@ -338,12 +339,8 @@ input[type=number] { -moz-appearance: textfield; }
   position: relative;
   z-index: 0;
 }
-.echo-drift-left {
-  animation: be-echo-left 3.2s ease-out 1.0s both;
-}
-.echo-drift-right {
-  animation: be-echo-right 3.2s ease-out 1.0s both;
-}
+.echo-drift-left   { animation: be-echo-left   4.5s ease-out 2.2s both; }
+.echo-drift-right  { animation: be-echo-right  4.5s ease-out 2.2s both; }
 
 /* Ground glow lives inside layer-positioner alongside figure-hero */
 .figure-ground-glow {
@@ -361,7 +358,7 @@ input[type=number] { -moz-appearance: textfield; }
   );
   filter: blur(14px);
   opacity: 0;
-  animation: be-hero-appear 1.6s ease-out 1.2s both;
+  animation: be-hero-appear 1.8s ease-out 3.5s both;
   z-index: 2;
 }
 
@@ -370,41 +367,42 @@ input[type=number] { -moz-appearance: textfield; }
   .oath-center-content { width: 100%; }
 }
 
+/* Hero appear — unchanged */
 @keyframes be-hero-appear {
   from { opacity: 0; transform: translateY(16px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Ghost large LEFT — drifts left (negative X) */
+/* Ghost LEFT — drifts outward left and slightly down */
 @keyframes be-ghost-left {
-  0%   { opacity: 0;    transform: scale(2.5) translateX(0); }
+  0%   { opacity: 0;    transform: scale(2.5) translate(0, 0); }
   12%  { opacity: 0.12; }
-  55%  { opacity: 0.07; transform: scale(2.5) translateX(-60px); }
-  100% { opacity: 0;    transform: scale(2.5) translateX(-130px); }
+  55%  { opacity: 0.07; transform: scale(2.5) translate(-60px, 20px); }
+  100% { opacity: 0;    transform: scale(2.5) translate(-130px, 40px); }
 }
 
-/* Ghost large RIGHT — drifts right (positive X) */
+/* Ghost RIGHT — drifts outward right and slightly down */
 @keyframes be-ghost-right {
-  0%   { opacity: 0;    transform: scale(2.5) translateX(0); }
+  0%   { opacity: 0;    transform: scale(2.5) translate(0, 0); }
   12%  { opacity: 0.12; }
-  55%  { opacity: 0.07; transform: scale(2.5) translateX(60px); }
-  100% { opacity: 0;    transform: scale(2.5) translateX(130px); }
+  55%  { opacity: 0.07; transform: scale(2.5) translate(60px, 20px); }
+  100% { opacity: 0;    transform: scale(2.5) translate(130px, 40px); }
 }
 
-/* Echo mid LEFT — flipped, drifts left */
+/* Echo LEFT — flipped, drifts up-and-left (mirror of right) */
 @keyframes be-echo-left {
-  0%   { opacity: 0;    transform: scaleX(-1) scale(1.5) translateX(0); }
+  0%   { opacity: 0;    transform: scaleX(-1) scale(1.5) translate(0, 0); }
   18%  { opacity: 0.1; }
-  60%  { opacity: 0.05; transform: scaleX(-1) scale(1.5) translateX(-80px); }
-  100% { opacity: 0;    transform: scaleX(-1) scale(1.5) translateX(-160px); }
+  60%  { opacity: 0.05; transform: scaleX(-1) scale(1.5) translate(-50px, -60px); }
+  100% { opacity: 0;    transform: scaleX(-1) scale(1.5) translate(-90px, -130px); }
 }
 
-/* Echo mid RIGHT — normal orientation, drifts right */
+/* Echo RIGHT — flipped, drifts up-and-right to separate from ghost */
 @keyframes be-echo-right {
-  0%   { opacity: 0;    transform: scale(1.5) translateX(0); }
+  0%   { opacity: 0;    transform: scaleX(-1) scale(1.5) translate(0, 0); }
   18%  { opacity: 0.1; }
-  60%  { opacity: 0.05; transform: scale(1.5) translateX(80px); }
-  100% { opacity: 0;    transform: scale(1.5) translateX(160px); }
+  60%  { opacity: 0.05; transform: scaleX(-1) scale(1.5) translate(50px, -60px); }
+  100% { opacity: 0;    transform: scaleX(-1) scale(1.5) translate(90px, -130px); }
 }
 
 /* Continue button loading state */
