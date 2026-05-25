@@ -355,7 +355,6 @@ export default function OnboardingPage() {
             radial-gradient(ellipse 60% 40% at 50% 30%, rgba(120, 70, 10, 0.15) 0%, transparent 70%),
             radial-gradient(ellipse at center, rgba(60, 35, 5, 0.95) 0%, rgba(30, 18, 3, 0.98) 45%, rgba(10, 7, 2, 1) 100%)
           `,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
           overflow: 'hidden',
         }}
       >
@@ -377,41 +376,24 @@ export default function OnboardingPage() {
           />
         ))}
 
-        {/* Left figure — three-layer depth burst */}
-        {leftFigure && (
-          <div className="be-figure-slot" style={{ left: 0 }}>
-            <div className="figure-container figure-left">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={leftFigure} className="figure-ghost-large" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={leftFigure} className="figure-echo-mid" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={leftFigure} className="figure-hero" alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
-              <div className="figure-ground-glow" />
-            </div>
-          </div>
-        )}
+        <div style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'center', width: '100%', minHeight: '100vh', position: 'relative' }}>
 
-        {/* Right figure — three-layer depth burst */}
-        {rightFigure && (
-          <div className="be-figure-slot" style={{ right: 0 }}>
-            <div className="figure-container figure-right">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={rightFigure} className="figure-ghost-large" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={rightFigure} className="figure-echo-mid" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={rightFigure} className="figure-hero" alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
-              <div className="figure-ground-glow" />
-            </div>
+          {/* Left figure column */}
+          <div className="figure-column figure-column-left">
+            {leftFigure && (
+              <div className="figure-container figure-left">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={leftFigure} className="figure-ghost-large" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={leftFigure} className="figure-echo-mid" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={leftFigure} className="figure-hero" alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+                <div className="figure-ground-glow" />
+              </div>
+            )}
           </div>
-        )}
 
-        <div style={{
-          display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-          minHeight: 'calc(100vh - 56px)', gap: '24px', padding: '40px 20px',
-          animation: 'be-sigil-rise 1.4s ease-out both', position: 'relative', zIndex: 10,
-        }}>
+          <div className="oath-center-content" style={{ gap: '24px', padding: '40px 20px', animation: 'be-sigil-rise 1.4s ease-out both', position: 'relative' }}>
           <div style={{ position: 'relative', width: 280, height: 280 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -475,7 +457,24 @@ export default function OnboardingPage() {
               Continue →
             </button>
           )}
-        </div>
+          </div>{/* oath-center-content */}
+
+          {/* Right figure column */}
+          <div className="figure-column figure-column-right">
+            {rightFigure && (
+              <div className="figure-container figure-right">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={rightFigure} className="figure-ghost-large" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={rightFigure} className="figure-echo-mid" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={rightFigure} className="figure-hero" alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+                <div className="figure-ground-glow" />
+              </div>
+            )}
+          </div>
+
+        </div>{/* three-column flex wrapper */}
       </div>
     )
   }
