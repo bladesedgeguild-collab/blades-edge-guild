@@ -1,141 +1,191 @@
-# TASK: Fix duplicate character name error on re-onboarding after claim reset
+# TASK: Fix level input field + enhance oath cinematic character entrance
 
-## Problem
-When a user resets their character claim and goes through new member onboarding
-again with the same character name, they get:
-  "duplicate key value violates unique constraint characters_name_realm_key (23505)"
+---
 
-The characters table has a unique constraint on (name, realm). When a user
-resets their claim, their previous character row is left in the table but
-unlinked from their user. Re-onboarding tries to insert a new row with the
-same name and fails.
+## Fix 1 — Level input field (new member onboarding)
 
-## Fix — app/api/characters/claim-new/route.ts
+Find the level input field in the new member onboarding form (Path B, Step 1).
 
-Before inserting a new character row, check if a character with the same
-name + realm already exists. If it does and it is unclaimed (claimed_by IS NULL),
-reuse it instead of inserting. If it exists and is claimed by someone else,
-return a clear error.
+The field is currently type="number" with a default value of 1. This causes
+a UX bug: clicking into the field and typing "46" results in "146" because
+the existing "1" is not replaced.
 
-Replace the current insert logic with this pattern:
+### Change:
+- Remove type="number", min, max, and step attributes
+- Change to type="text" with inputMode="numeric" and pattern="[0-9]*"
+- Set defaultValue to "" (empty string) not 1
+- Add placeholder="e.g. 46"
+- Add validation: on submit, parse as integer, reject if not between 1-70,
+  show inline error "Please enter a level between 1 and 70"
+- Remove the up/down spinner arrows entirely with CSS:
+  input[type=number]::-webkit-inner-spin-button { display: none; }
+  (belt and suspenders in case type=number is kept anywhere)
 
-```ts
-const realm = 'Dreamscythe';
+---
 
-// Step 1: Check for existing character with same name + realm
-const { data: existing } = await supabaseAdmin
-  .from('characters')
-  .select('id, claimed_by, status')
-  .eq('name', characterName)
-  .eq('realm', realm)
-  .maybeSingle();
+## Fix 2 — Oath cinematic character entrance animation
 
-let characterId: string;
+Find the oath cinematic component where the character figure images are rendered
+(left and right figures added in the previous task).
 
-if (existing) {
-  if (existing.claimed_by && existing.claimed_by !== userId) {
-    // Claimed by someone else
-    return NextResponse.json(
-      { error: 'That character name is already claimed by another member.' },
-      { status: 409 }
-    );
-  }
-  // Unclaimed or previously belonged to this user — reuse it
-  const { error: updateError } = await supabaseAdmin
-    .from('characters')
-    .update({
-      claimed_by: userId,
-      claimed_at: new Date().toISOString(),
-      class: characterClass,
-      race: characterRace,
-      level: characterLevel,
-      status: 'new',
-      hide_from_roster: false,
-    })
-    .eq('id', existing.id);
+Currently each figure has a simple rise+float animation. Replace this entirely
+with a three-layer depth burst entrance per side.
 
-  if (updateError) {
-    return NextResponse.json(
-      { error: 'Failed to claim character', detail: updateError.message },
-      { status: 500 }
-    );
-  }
-  characterId = existing.id;
+### Concept
+Each character side renders THREE copies of the same image stacked:
+- Layer 1 (ghost-large): ~250% scale, behind everything, bursts in then drifts
+  outward and fades out
+- Layer 2 (echo-mid): ~150% scale, horizontally flipped, bursts in slightly
+  after Layer 1, also drifts outward and fades out  
+- Layer 3 (hero): final display size (~65-70% viewport height), fades in last,
+  STAYS visible until the user clicks Continue — no bounce, no float
 
-} else {
-  // No existing row — insert fresh
-  const { data: newChar, error: insertError } = await supabaseAdmin
-    .from('characters')
-    .insert({
-      name: characterName,
-      realm,
-      class: characterClass,
-      race: characterRace,
-      level: characterLevel,
-      status: 'new',
-      claimed_by: userId,
-      claimed_at: new Date().toISOString(),
-      is_main: true,
-      hide_from_roster: false,
-      imported_from_grm: false,
-    })
-    .select('id')
-    .single();
+### Implementation
 
-  if (insertError) {
-    return NextResponse.json(
-      { error: 'Failed to create character', detail: insertError.message, code: insertError.code },
-      { status: 500 }
-    );
-  }
-  characterId = newChar.id;
-}
+For each side (left and right), render a container div with position: relative,
+containing three absolutely-positioned img elements:
 
-// Step 2: Update users row
-const { error: userError } = await supabaseAdmin
-  .from('users')
-  .update({
-    claimed_character_id: characterId,
-    display_name: characterName,
-    has_completed_onboarding: true,
-  })
-  .eq('id', userId);
-
-if (userError) {
-  return NextResponse.json(
-    { error: 'Failed to update user', detail: userError.message },
-    { status: 500 }
-  );
-}
-
-return NextResponse.json({ success: true, characterId });
+```tsx
+<div className="figure-container figure-left">
+  {/* Layer 1: ghost large */}
+  <img src={leftFigure} className="figure-ghost-large" alt="" aria-hidden="true" />
+  {/* Layer 2: echo mid flipped */}
+  <img src={leftFigure} className="figure-echo-mid" alt="" aria-hidden="true" />
+  {/* Layer 3: hero — the one that stays */}
+  <img src={leftFigure} className="figure-hero" alt={`${character.race} ${character.class}`} />
+</div>
 ```
 
-## Also fix — claim reset flow
+For the RIGHT side container, Layer 2 echo is NOT flipped (it's already on the
+right, flip would push it left — omit the scaleX flip on right side or mirror
+the direction logic).
 
-Find the route or action that handles "Reset Character Claim" (in the navbar
-dropdown). When a user resets their claim, it should:
+### CSS keyframes (add to globals.css)
 
-1. Set users.claimed_character_id = NULL
-2. Set users.has_completed_onboarding = false  
-3. Set users.display_name = NULL
-4. Set characters.claimed_by = NULL and characters.claimed_at = NULL
-   for the character they previously claimed
+All animations must use animation-fill-mode: both — never 'forwards'.
 
-Currently step 4 is likely not happening, leaving orphaned claimed_by
-references. Fix the reset handler to clear both sides.
+```css
+/* Layer 1: large ghost bursts in from center, drifts out, fades */
+@keyframes be-ghost-large-left {
+  0%   { opacity: 0; transform: scale(2.5) translateX(0px); }
+  15%  { opacity: 0.25; }
+  60%  { opacity: 0.15; transform: scale(2.5) translateX(-60px); }
+  100% { opacity: 0; transform: scale(2.5) translateX(-120px); }
+}
+@keyframes be-ghost-large-right {
+  0%   { opacity: 0; transform: scale(2.5) translateX(0px); }
+  15%  { opacity: 0.25; }
+  60%  { opacity: 0.15; transform: scale(2.5) translateX(60px); }
+  100% { opacity: 0; transform: scale(2.5) translateX(120px); }
+}
+
+/* Layer 2: medium echo, horizontally flipped on left side */
+@keyframes be-echo-mid-left {
+  0%   { opacity: 0; transform: scaleX(-1) scale(1.5) translateX(0px); }
+  20%  { opacity: 0.2; }
+  70%  { opacity: 0.1; transform: scaleX(-1) scale(1.5) translateX(-80px); }
+  100% { opacity: 0; transform: scaleX(-1) scale(1.5) translateX(-160px); }
+}
+@keyframes be-echo-mid-right {
+  0%   { opacity: 0; transform: scale(1.5) translateX(0px); }
+  20%  { opacity: 0.2; }
+  70%  { opacity: 0.1; transform: scale(1.5) translateX(80px); }
+  100% { opacity: 0; transform: scale(1.5) translateX(160px); }
+}
+
+/* Layer 3: hero fades in and stays */
+@keyframes be-hero-appear {
+  0%   { opacity: 0; transform: translateY(20px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+```
+
+### Animation timing
+
+The character entrance fires AFTER the wax seal stamps. Add an overall delay
+to all three layers (e.g. 0.8s after seal animation completes).
+
+Within that, stagger the layers:
+- Layer 1 ghost: delay + 0s, duration 1.8s
+- Layer 2 echo: delay + 0.3s, duration 1.6s  
+- Layer 3 hero: delay + 0.6s, duration 0.8s
+
+```css
+.figure-ghost-large { animation: be-ghost-large-left 1.8s ease-out 0.8s both; }
+.figure-echo-mid    { animation: be-echo-mid-left 1.6s ease-out 1.1s both; }
+.figure-hero        { animation: be-hero-appear 0.8s ease-out 1.4s both; }
+
+/* Right side variants */
+.figure-container.figure-right .figure-ghost-large {
+  animation-name: be-ghost-large-right;
+}
+.figure-container.figure-right .figure-echo-mid {
+  animation-name: be-echo-mid-right;
+}
+```
+
+### Layer 3 ground glow effect
+
+After Layer 3 (hero image), add a ground glow element:
+
+```tsx
+<div className="figure-ground-glow" />
+```
+
+```css
+.figure-ground-glow {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 120px;
+  height: 40px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(201, 150, 26, 0.6) 0%,    /* --be-gold */
+    rgba(201, 150, 26, 0.2) 50%,
+    transparent 100%
+  );
+  filter: blur(12px);
+  animation: be-hero-appear 0.8s ease-out 1.4s both; /* same timing as hero */
+}
+```
+
+### Layer stacking
+All three layers and the glow are position: absolute within the container.
+They all share the same anchor point (bottom-aligned to the container base).
+The container itself is position: relative with overflow: visible so the
+ghost layers can drift outside the container bounds without clipping.
+
+Make sure the ghost layers (Layer 1 and 2) have a lower z-index than the
+central seal/text/button elements so they never obscure them even at 2.5x scale.
+Use z-index: 0 on ghost layers, z-index: 1 on hero, z-index: 10 on seal/text.
+
+---
 
 ## Verification
 
-1. Create a new character named "ResetTest" through onboarding
-2. After completing onboarding, use Reset Character Claim in navbar dropdown
-3. Go through onboarding again, enter "ResetTest" as the name
-4. Should succeed — no duplicate key error
-5. Hall should show "ResetTest" as display name
-6. Try entering a name already claimed by a DIFFERENT user
-   → Should show "That character name is already claimed by another member"
+### Level field:
+1. Click into level field — should be empty, no "1" pre-filled
+2. Type "46" — should show "46" not "146"
+3. No up/down spinner arrows visible
+4. Submit with empty level — should show validation error
+5. Submit with "999" — should show "Please enter a level between 1 and 70"
+
+### Oath cinematic:
+1. Go through new member onboarding as any race/class
+2. Oath screen: ghost layers burst out from behind characters and fade while
+   drifting outward — should feel like energy materializing
+3. Hero figures settle into final position with no bounce
+4. Ground glow visible at feet of each hero figure
+5. Central elements (seal, name, class, Continue button) never obscured
+6. Works on both Human Mage (plain pose) and Draenei Shaman (dramatic pose)
+   — the animation should add drama to both
+
+---
 
 ## Do not touch
-- Oath cinematic animations (animation-fill-mode: both)
-- Landing page
-- Any character data not directly involved in the reset/reclaim flow
+- be-stamp keyframe — do not modify
+- Ember particle effect — do not modify  
+- animation-fill-mode: both on ALL existing animations
+- Any page outside onboarding

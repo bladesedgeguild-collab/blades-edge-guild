@@ -23,7 +23,7 @@ const RACE_CLASSES: Record<string, string[]> = {
 
 type Step = 'search' | 'confirm' | 'newConfirm' | 'cinematic' | 'alts' | 'done'
 
-type NewMemberForm = { name: string; race: string; cls: string; level: number }
+type NewMemberForm = { name: string; race: string; cls: string; level: string }
 type NewMemberErrors = { name?: string; race?: string; cls?: string; level?: string }
 
 type SearchChar = {
@@ -167,7 +167,7 @@ export default function OnboardingPage() {
   const [rosterStats, setRosterStats] = useState<{ total: number; unclaimed: number } | null>(null)
 
   const [isNewMember, setIsNewMember] = useState(false)
-  const [newMemberForm, setNewMemberForm] = useState<NewMemberForm>({ name: '', race: '', cls: '', level: 1 })
+  const [newMemberForm, setNewMemberForm] = useState<NewMemberForm>({ name: '', race: '', cls: '', level: '' })
   const [newMemberErrors, setNewMemberErrors] = useState<NewMemberErrors>({})
 
   const [allUnclaimed, setAllUnclaimed] = useState<SearchChar[]>([])
@@ -244,8 +244,8 @@ export default function OnboardingPage() {
     else if (name.length > 24) errs.name = 'Name must be 24 characters or fewer.'
     if (!newMemberForm.race) errs.race = 'Please select a race.'
     if (!newMemberForm.cls) errs.cls = 'Please select a class.'
-    const lvl = newMemberForm.level
-    if (!lvl || lvl < 1 || lvl > 70) errs.level = 'Level must be between 1 and 70.'
+    const lvl = parseInt(newMemberForm.level)
+    if (!newMemberForm.level.trim() || isNaN(lvl) || lvl < 1 || lvl > 70) errs.level = 'Please enter a level between 1 and 70'
     setNewMemberErrors(errs)
     if (Object.keys(errs).length > 0) return
     setStep('newConfirm')
@@ -261,7 +261,7 @@ export default function OnboardingPage() {
         name: newMemberForm.name.trim(),
         race: newMemberForm.race,
         class: newMemberForm.cls.toUpperCase(),
-        level: newMemberForm.level,
+        level: parseInt(newMemberForm.level),
         is_new_member: true,
       }),
     })
@@ -377,48 +377,40 @@ export default function OnboardingPage() {
           />
         ))}
 
-        {/* Left figure — entrance after seal stamps, then idle float */}
+        {/* Left figure — three-layer depth burst */}
         {leftFigure && (
-          <div
-            className="be-figure-slot"
-            style={{
-              left: 0,
-              animation: 'be-figure-rise 0.8s ease-out 1.8s both, be-figure-float 4s ease-in-out 2.6s infinite both',
-            }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={leftFigure}
-              alt=""
-              style={{ height: 'min(65vh, 600px)', width: 'auto', display: 'block' }}
-              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
-            />
+          <div className="be-figure-slot" style={{ left: 0 }}>
+            <div className="figure-container figure-left">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={leftFigure} className="figure-ghost-large" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={leftFigure} className="figure-echo-mid" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={leftFigure} className="figure-hero" alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+              <div className="figure-ground-glow" />
+            </div>
           </div>
         )}
 
-        {/* Right figure — slight stagger on entrance */}
+        {/* Right figure — three-layer depth burst */}
         {rightFigure && (
-          <div
-            className="be-figure-slot"
-            style={{
-              right: 0,
-              animation: 'be-figure-rise 0.8s ease-out 2.1s both, be-figure-float 4s ease-in-out 2.9s infinite both',
-            }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={rightFigure}
-              alt=""
-              style={{ height: 'min(65vh, 600px)', width: 'auto', display: 'block' }}
-              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
-            />
+          <div className="be-figure-slot" style={{ right: 0 }}>
+            <div className="figure-container figure-right">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={rightFigure} className="figure-ghost-large" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={rightFigure} className="figure-echo-mid" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={rightFigure} className="figure-hero" alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+              <div className="figure-ground-glow" />
+            </div>
           </div>
         )}
 
         <div style={{
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           minHeight: 'calc(100vh - 56px)', gap: '24px', padding: '40px 20px',
-          animation: 'be-sigil-rise 1.4s ease-out both', position: 'relative', zIndex: 1,
+          animation: 'be-sigil-rise 1.4s ease-out both', position: 'relative', zIndex: 10,
         }}>
           <div style={{ position: 'relative', width: 280, height: 280 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -729,12 +721,12 @@ export default function OnboardingPage() {
                 <div>
                   <label style={labelStyle}>Current Level</label>
                   <input
-                    type="number"
-                    min={1}
-                    max={70}
-                    placeholder="1–70"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    placeholder="e.g. 46"
                     value={newMemberForm.level}
-                    onChange={(e) => setNewMemberForm((f) => ({ ...f, level: parseInt(e.target.value) || 1 }))}
+                    onChange={(e) => setNewMemberForm((f) => ({ ...f, level: e.target.value.replace(/[^0-9]/g, '') }))}
                     style={{
                       width: '100%',
                       padding: '12px 16px',
