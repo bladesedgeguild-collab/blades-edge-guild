@@ -358,37 +358,31 @@ input[type=number] { -moz-appearance: textfield; }
 .echo-drift-left   { animation: be-echo-left   4.5s ease-out 3.8s both; }
 .echo-drift-right  { animation: be-echo-right  4.5s ease-out 3.8s both; }
 
-/* Hero wrap — shrinks to exact image width so glow centers on image */
-.figure-hero-wrap {
-  position: relative;
+/* Hero glow wrap — inline-block shrinks to image width; ::after is the glow */
+.figure-hero-glow-wrap {
   display: inline-block;
+  position: relative;
   line-height: 0;
 }
 
-.figure-hero-wrap .figure-hero {
-  display: block;
-  height: 65vh;
-  width: auto;
-  max-width: none;
-}
-
-.figure-hero-wrap .figure-ground-glow {
+.figure-hero-glow-wrap::after {
+  content: '';
   position: absolute;
-  bottom: -6px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 200px;
-  height: 40px;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  width: 180px;
+  height: 36px;
   background: radial-gradient(
     ellipse at center,
-    rgba(201, 150, 26, 0.6) 0%,
-    rgba(201, 150, 26, 0.18) 55%,
+    rgba(201, 150, 26, 0.65) 0%,
+    rgba(201, 150, 26, 0.2) 55%,
     transparent 100%
   );
-  filter: blur(16px);
+  filter: blur(14px);
   opacity: 0;
   animation: be-hero-appear 1.8s ease-out 3.4s both;
-  z-index: 2;
   pointer-events: none;
 }
 
