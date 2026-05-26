@@ -282,6 +282,22 @@ input[type=number] { -moz-appearance: textfield; }
   flex-shrink: 0;
 }
 
+.oath-reveal-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* Always reserves button height — button appearing fills it, nothing shifts */
+.oath-button-slot {
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+}
+
 .figure-container {
   position: relative;
   width: 100%;
@@ -342,18 +358,18 @@ input[type=number] { -moz-appearance: textfield; }
 .echo-drift-left   { animation: be-echo-left   4.5s ease-out 3.8s both; }
 .echo-drift-right  { animation: be-echo-right  4.5s ease-out 3.8s both; }
 
-/* Ground glow lives inside layer-positioner alongside figure-hero */
+/* Ground glow inside hero layer-positioner (position:relative) */
 .figure-ground-glow {
   position: absolute;
-  bottom: 2px;
+  bottom: -8px;
   left: 50%;
   transform: translateX(-50%);
-  width: 200px;
-  height: 45px;
+  width: 220px;
+  height: 40px;
   background: radial-gradient(
     ellipse at center,
-    rgba(201, 150, 26, 0.55) 0%,
-    rgba(201, 150, 26, 0.18) 50%,
+    rgba(201, 150, 26, 0.6) 0%,
+    rgba(201, 150, 26, 0.18) 55%,
     transparent 100%
   );
   filter: blur(16px);

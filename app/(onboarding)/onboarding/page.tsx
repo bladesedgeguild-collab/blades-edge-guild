@@ -406,7 +406,7 @@ export default function OnboardingPage() {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={leftFigure} className="figure-echo echo-drift-left" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
                 </div>
-                <div className="layer-positioner">
+                <div className="layer-positioner" style={{ position: 'relative' }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={leftFigure} className="figure-hero" alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
                   <div className="figure-ground-glow" />
@@ -415,7 +415,8 @@ export default function OnboardingPage() {
             )}
           </div>
 
-          <div className="oath-center-content" style={{ gap: '24px', padding: '40px 20px', animation: 'be-sigil-rise 1.4s ease-out both', position: 'relative' }}>
+          <div className="oath-center-content" style={{ padding: '40px 20px', animation: 'be-sigil-rise 1.4s ease-out both', position: 'relative' }}>
+          <div className="oath-reveal-stack">
           <div style={{ position: 'relative', width: 280, height: 280 }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -460,37 +461,40 @@ export default function OnboardingPage() {
               {selectedChar?.class} · {isNewMember ? 'NEW RECRUIT' : 'OF BLÅDES EDGE'}
             </span>
           </div>
-          {showContinue && (
-            <button
-              onClick={handleContinue}
-              disabled={continuing}
-              className={`oath-continue-btn${continuing ? ' loading' : ''}`}
-              style={{
-                padding: '18px 48px',
-                backgroundColor: 'var(--be-gold)',
-                color: '#0d0b07',
-                border: 'none',
-                borderRadius: 'var(--be-radius)',
-                fontFamily: 'var(--be-font-display)',
-                fontSize: '1.1rem',
-                letterSpacing: '0.1em',
-                cursor: continuing ? 'wait' : 'pointer',
-                animation: 'be-fade-in 0.6s ease-out both',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              {continuing ? (
-                <>
-                  <span className="btn-spinner" />
-                  Entering the Hall...
-                </>
-              ) : (
-                'Continue →'
-              )}
-            </button>
-          )}
+          <div className="oath-button-slot">
+            {showContinue && (
+              <button
+                onClick={handleContinue}
+                disabled={continuing}
+                className={`oath-continue-btn${continuing ? ' loading' : ''}`}
+                style={{
+                  padding: '18px 48px',
+                  backgroundColor: 'var(--be-gold)',
+                  color: '#0d0b07',
+                  border: 'none',
+                  borderRadius: 'var(--be-radius)',
+                  fontFamily: 'var(--be-font-display)',
+                  fontSize: '1.1rem',
+                  letterSpacing: '0.1em',
+                  cursor: continuing ? 'wait' : 'pointer',
+                  animation: 'be-fade-in 0.6s ease-out both',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {continuing ? (
+                  <>
+                    <span className="btn-spinner" />
+                    Entering the Hall...
+                  </>
+                ) : (
+                  'Continue →'
+                )}
+              </button>
+            )}
+          </div>
+          </div>{/* oath-reveal-stack */}
           </div>{/* oath-center-content */}
 
           {/* Right figure column */}
@@ -505,7 +509,7 @@ export default function OnboardingPage() {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={rightFigure} className="figure-echo echo-drift-right" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
                 </div>
-                <div className="layer-positioner">
+                <div className="layer-positioner" style={{ position: 'relative' }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={rightFigure} className="figure-hero" alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
                   <div className="figure-ground-glow" />
