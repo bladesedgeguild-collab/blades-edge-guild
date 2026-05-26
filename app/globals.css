@@ -358,13 +358,26 @@ input[type=number] { -moz-appearance: textfield; }
 .echo-drift-left   { animation: be-echo-left   4.5s ease-out 3.8s both; }
 .echo-drift-right  { animation: be-echo-right  4.5s ease-out 3.8s both; }
 
-/* Ground glow inside hero layer-positioner (position:relative) */
-.figure-ground-glow {
+/* Hero wrap — shrinks to exact image width so glow centers on image */
+.figure-hero-wrap {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+}
+
+.figure-hero-wrap .figure-hero {
+  display: block;
+  height: 65vh;
+  width: auto;
+  max-width: none;
+}
+
+.figure-hero-wrap .figure-ground-glow {
   position: absolute;
-  bottom: -8px;
+  bottom: -6px;
   left: 50%;
   transform: translateX(-50%);
-  width: 220px;
+  width: 200px;
   height: 40px;
   background: radial-gradient(
     ellipse at center,

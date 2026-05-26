@@ -406,10 +406,12 @@ export default function OnboardingPage() {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={leftFigure} className="figure-echo echo-drift-left" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
                 </div>
-                <div className="layer-positioner" style={{ position: 'relative' }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={leftFigure} className="figure-hero" alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
-                  <div className="figure-ground-glow" />
+                <div className="layer-positioner">
+                  <div className="figure-hero-wrap">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={leftFigure} className="figure-hero" alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+                    <div className="figure-ground-glow" />
+                  </div>
                 </div>
               </div>
             )}
@@ -509,10 +511,12 @@ export default function OnboardingPage() {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={rightFigure} className="figure-echo echo-drift-right" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
                 </div>
-                <div className="layer-positioner" style={{ position: 'relative' }}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={rightFigure} className="figure-hero" alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
-                  <div className="figure-ground-glow" />
+                <div className="layer-positioner">
+                  <div className="figure-hero-wrap">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={rightFigure} className="figure-hero" alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+                    <div className="figure-ground-glow" />
+                  </div>
                 </div>
               </div>
             )}
