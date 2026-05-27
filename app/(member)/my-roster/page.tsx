@@ -69,7 +69,6 @@ export default async function MyRosterPage() {
   const charColor = CLASS_COLORS[mainChar.class] ?? '#c9961a'
   const art = getCharacterArt(mainChar.race, mainChar.class)
   const primaryProfs = mainChar.professions.filter((p) => p.is_primary)
-  const initials = mainChar.name.slice(0, 2).toUpperCase()
 
   const classLabel = mainChar.class.charAt(0) + mainChar.class.slice(1).toLowerCase().replace('_', ' ')
 
@@ -97,22 +96,17 @@ export default async function MyRosterPage() {
             Your Main
           </p>
 
-          {/* Avatar + name */}
-          <div style={{ display: 'flex', alignItems: 'flex-start', gap: 20, marginBottom: 12 }}>
-            <div style={{ width: 80, height: 80, borderRadius: '50%', flexShrink: 0, backgroundColor: `${charColor}22`, border: `2px solid ${charColor}88`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--be-font-display)', fontSize: '1.4rem', color: charColor, letterSpacing: '0.04em', marginTop: 2 }}>
-              {initials}
-            </div>
-            <div style={{ minWidth: 0 }}>
-              <p style={{ fontFamily: 'var(--be-font-display)', fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(138,122,90,0.6)', margin: '0 0 6px' }}>
-                {mainChar.class}
-              </p>
-              <h1 className="character-name" style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: 'clamp(1.8rem, 4vw, 3rem)', color: charColor, lineHeight: 1.05, margin: 0 }}>
-                {mainChar.name}
-              </h1>
-            </div>
+          {/* Name block */}
+          <div style={{ marginBottom: 12 }}>
+            <p style={{ fontFamily: 'var(--be-font-display)', fontSize: '1rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(138,122,90,0.6)', margin: '0 0 6px' }}>
+              {mainChar.class}
+            </p>
+            <h1 className="character-name" style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: 'clamp(2.8rem, 5vw, 4.5rem)', color: charColor, lineHeight: 1.05, margin: 0 }}>
+              {mainChar.name}
+            </h1>
           </div>
 
-          <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'rgba(138,122,90,0.65)', fontSize: '0.92rem', margin: '0 0 6px' }}>
+          <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'rgba(138,122,90,0.65)', fontSize: '1.1rem', margin: '0 0 6px' }}>
             {[mainChar.race, classLabel, `Level ${mainChar.level}`].filter(Boolean).join(' · ')}
           </p>
           <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'rgba(138,122,90,0.4)', fontSize: '0.82rem', margin: '0 0 18px' }}>
@@ -137,36 +131,41 @@ export default async function MyRosterPage() {
         </Link>
       </div>
 
-      {/* ── Vitals ── */}
-      <div style={{ ...tile, padding: '24px 40px' }}>
-        <p style={{ fontFamily: 'var(--be-font-display)', fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(201,150,26,0.85)', margin: '0 0 20px' }}>
-          Character Vitals
-        </p>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-          {vitalsRows.map((row) => (
-            <div key={row.label} style={{ display: 'grid', gridTemplateColumns: '120px 1fr', alignItems: 'center', gap: 16, paddingBottom: 10, borderBottom: '1px solid rgba(61,46,21,0.25)' }}>
-              <span style={vLabel}>{row.label}</span>
-              {row.pill && row.value ? (
-                <span className="be-rank-pill" style={{ justifySelf: 'start', fontSize: '0.6rem', padding: '2px 10px' }}>{row.value}</span>
-              ) : row.classDot ? (
-                <span style={{ ...vValue, display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: charColor, display: 'inline-block', flexShrink: 0 }} />
-                  {row.value}
-                </span>
-              ) : row.professions ? (
-                <span style={{ ...vValue, color: row.value ? '#c9961a' : 'rgba(138,122,90,0.5)', fontStyle: row.value ? 'normal' : 'italic' }}>
-                  {row.value ?? 'To Be Determined'}
-                </span>
-              ) : (
-                <span style={vValue}>{row.value ?? '—'}</span>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
+      {/* ── Body row: Vitals + Alts ── */}
+      <div className="roster-body">
 
-      {/* ── Alts (client component owns the tile) ── */}
-      <AddAltSection alts={alts} mainCharId={mainChar.id} />
+        {/* ── Vitals ── */}
+        <div style={{ ...tile, padding: '24px 40px' }}>
+          <p style={{ fontFamily: 'var(--be-font-display)', fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(201,150,26,0.85)', margin: '0 0 20px' }}>
+            Character Vitals
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {vitalsRows.map((row) => (
+              <div key={row.label} style={{ display: 'grid', gridTemplateColumns: '120px 1fr', alignItems: 'center', gap: 16, paddingBottom: 10, borderBottom: '1px solid rgba(61,46,21,0.25)' }}>
+                <span style={vLabel}>{row.label}</span>
+                {row.pill && row.value ? (
+                  <span className="be-rank-pill" style={{ justifySelf: 'start', fontSize: '0.6rem', padding: '2px 10px' }}>{row.value}</span>
+                ) : row.classDot ? (
+                  <span style={{ ...vValue, display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: charColor, display: 'inline-block', flexShrink: 0 }} />
+                    {row.value}
+                  </span>
+                ) : row.professions ? (
+                  <span style={{ ...vValue, color: row.value ? '#c9961a' : 'rgba(138,122,90,0.5)', fontStyle: row.value ? 'normal' : 'italic' }}>
+                    {row.value ?? 'To Be Determined'}
+                  </span>
+                ) : (
+                  <span style={vValue}>{row.value ?? '—'}</span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* ── Alts (client component owns the tile) ── */}
+        <AddAltSection alts={alts} mainCharId={mainChar.id} />
+
+      </div>
 
     </div>
   )
