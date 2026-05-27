@@ -130,18 +130,33 @@ function CharFormFields({ form, errors, onChange, onSubmit, submitLabel }: {
   form: CharForm; errors: CharErrors; onChange: (f: CharForm) => void; onSubmit: () => void; submitLabel: string
 }) {
   const availableClasses = form.race ? (RACE_CLASSES[form.race] ?? []) : []
+  const inlineNameError = form.name.length >= 1 ? validateWowName(form.name) : null
+  const shownNameError = inlineNameError ?? errors.name
+  const nameHasError = !!shownNameError
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       <div>
         <label style={labelStyle}>Character Name</label>
         <input
           type="text" autoComplete="off" placeholder="Exactly as it appears in game"
+          maxLength={12}
           value={form.name} onChange={(e) => onChange({ ...form, name: e.target.value })}
-          style={{ width: '100%', padding: '12px 16px', background: 'rgba(20,14,4,0.9)', border: `1px solid ${errors.name ? 'rgba(255,107,107,0.6)' : 'rgba(61,46,21,0.6)'}`, color: '#f0e6c8', fontFamily: 'var(--be-font-body)', fontSize: '1rem', borderRadius: 4, outline: 'none', boxSizing: 'border-box' }}
+          style={{ width: '100%', padding: '12px 16px', background: 'rgba(20,14,4,0.9)', border: `1px solid ${nameHasError ? 'rgba(255,107,107,0.6)' : 'rgba(61,46,21,0.6)'}`, color: '#f0e6c8', fontFamily: 'var(--be-font-body)', fontSize: '1rem', borderRadius: 4, outline: 'none', boxSizing: 'border-box' }}
           onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = 'rgba(201,150,26,0.7)' }}
-          onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = errors.name ? 'rgba(255,107,107,0.6)' : 'rgba(61,46,21,0.6)' }}
+          onBlur={(e) => {
+            if (form.name.length > 0) {
+              const cap = form.name.charAt(0).toUpperCase() + form.name.slice(1)
+              if (cap !== form.name) onChange({ ...form, name: cap })
+            }
+            ;(e.target as HTMLInputElement).style.borderColor = nameHasError ? 'rgba(255,107,107,0.6)' : 'rgba(61,46,21,0.6)'
+          }}
         />
-        {errors.name && <p style={errorStyle}>{errors.name}</p>}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginTop: 4 }}>
+          <span style={{ flex: 1 }}>{shownNameError && <span style={errorStyle}>{shownNameError}</span>}</span>
+          <span style={{ fontFamily: 'var(--be-font-body)', fontSize: '0.72rem', color: form.name.length >= 12 ? 'var(--be-gold)' : 'rgba(138,122,90,0.5)', flexShrink: 0, marginLeft: 8 }}>
+            {form.name.length} / 12
+          </span>
+        </div>
       </div>
       <div>
         <label style={labelStyle}>Race</label>
@@ -244,12 +259,20 @@ function SearchInput({ value, onChange, onFocus, onBlur, placeholder, hasDropdow
   )
 }
 
+const WOW_NAME_REGEX = /^[A-Za-zÀ-ÖØ-öø-ÿÐðÞþÆæŒœÅåÄäÖöÜüÑñ]+$/
+
+function validateWowName(name: string): string | null {
+  if (!name || name.trim().length === 0) return 'Name is required.'
+  if (name.length < 2) return 'Name must be at least 2 characters.'
+  if (name.length > 12) return 'Name must be 12 characters or fewer.'
+  if (!WOW_NAME_REGEX.test(name)) return 'Names can only contain letters. No numbers, spaces, or symbols.'
+  return null
+}
+
 function validateForm(form: CharForm): CharErrors {
   const errs: CharErrors = {}
-  const name = form.name.trim()
-  if (!name) errs.name = 'Character name is required.'
-  else if (name.length < 2) errs.name = 'Name must be at least 2 characters.'
-  else if (name.length > 24) errs.name = 'Name must be 24 characters or fewer.'
+  const nameError = validateWowName(form.name.trim())
+  if (nameError) errs.name = nameError
   if (!form.race) errs.race = 'Please select a race.'
   if (!form.cls) errs.cls = 'Please select a class.'
   const lvl = parseInt(form.level)
@@ -527,7 +550,7 @@ export default function OnboardingPage() {
             <div>
               <StepHeader current={1} total={3} label="Find Your Character" />
               <p style={{ fontFamily: 'var(--be-font-body)', fontStyle: 'italic', color: 'var(--be-ink-3)', fontSize: 15, marginBottom: 20, textAlign: 'center' }}>
-                Search the guild roster by name.
+                Type your name &amp; see if it&apos;s already found on the guild roster.
               </p>
               <div style={{ position: 'relative', marginBottom: 8 }}>
                 <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--be-iron-2)', pointerEvents: 'none', fontSize: 16, zIndex: 1 }}>⌕</span>
