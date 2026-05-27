@@ -475,3 +475,67 @@ input[type=number] { -moz-appearance: textfield; }
   .be-tile-eyebrow { font-size: 0.85rem; }
   .be-hall-page { padding: 56px 60px 100px; }
 }
+
+/* ── My Roster — Add Alt button ── */
+.add-alt-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 2rem 3rem;
+  background: var(--be-bg-2);
+  border: 1px solid rgba(201, 150, 26, 0.3);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+}
+
+.add-alt-btn:hover {
+  border-color: rgba(201, 150, 26, 0.7);
+  box-shadow: 0 0 24px rgba(201, 150, 26, 0.12);
+  transform: translateY(-2px);
+}
+
+.alt-btn-figures {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 140px;
+}
+
+.alt-fig {
+  width: auto;
+  opacity: 0.85;
+  transition: opacity 200ms ease;
+  flex-shrink: 0;
+}
+
+.add-alt-btn:hover .alt-fig { opacity: 1.0; }
+
+.alt-fig-1 { height: 80px;  margin-right: -22px; z-index: 1; position: relative; }
+.alt-fig-2 { height: 105px; margin-right: -26px; z-index: 2; position: relative; }
+.alt-fig-3 { height: 130px; margin-right: -26px; z-index: 3; position: relative; }
+.alt-fig-4 { height: 115px; margin-right: -22px; z-index: 2; position: relative; }
+.alt-fig-5 { height: 85px;  z-index: 1; position: relative; }
+
+.alt-btn-label { text-align: center; }
+
+.alt-btn-title {
+  display: block;
+  font-family: 'Cinzel', serif;
+  font-size: 1.1rem;
+  color: var(--be-gold);
+  letter-spacing: 0.1em;
+}
+
+.alt-btn-sub {
+  display: block;
+  font-family: 'Spectral', serif;
+  font-size: 0.9rem;
+  color: rgba(138, 122, 90, 0.7);
+  font-style: italic;
+  margin-top: 0.25rem;
+}

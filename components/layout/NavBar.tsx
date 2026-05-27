@@ -70,7 +70,7 @@ export async function NavBar() {
                 Hall
               </Link>
               <Link
-                href="/dashboard"
+                href="/my-roster"
                 className="text-sm transition-colors hover:text-[#c9961a]"
                 style={{ fontFamily: "'Cinzel', serif", color: '#f0e6c8' }}
               >
