@@ -70,7 +70,6 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<SearchChar[]>([])
   const [searching, setSearching] = useState(false)
-  const [focused, setFocused] = useState(false)
 
   const [candidate, setCandidate] = useState<SearchChar | null>(null)
   const [form, setForm] = useState<CharForm>({ name: '', race: '', cls: '', level: '' })
@@ -99,9 +98,7 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
     setErrors({}); setError(null)
   }
 
-  function closeModal() {
-    setModalOpen(false)
-  }
+  function closeModal() { setModalOpen(false) }
 
   async function handleClaimRosterAlt(char: SearchChar) {
     setLoading(true); setError(null)
@@ -112,8 +109,7 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
     const data = await res.json()
     setLoading(false)
     if (!res.ok) { setError(data.error ?? 'Failed to claim alt'); return }
-    setModalOpen(false)
-    router.refresh()
+    setModalOpen(false); router.refresh()
   }
 
   async function handleCreateAlt() {
@@ -125,8 +121,7 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
     const data = await res.json()
     setLoading(false)
     if (!res.ok) { setError(data.detail ? `${data.error}: ${data.detail}` : (data.error ?? 'Failed to create alt')); return }
-    setModalOpen(false)
-    router.refresh()
+    setModalOpen(false); router.refresh()
   }
 
   const showNotInRoster = query.length >= 2 && !searching && results.length === 0
@@ -135,53 +130,74 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
 
   return (
     <>
-      {/* Alt cards grid */}
-      {alts.length > 0 && (
-        <div style={{ padding: '0 40px 20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12 }}>
-          {alts.map((alt) => {
-            const color = CLASS_COLORS[alt.class] ?? '#888'
-            return (
-              <div key={alt.id} style={{ background: 'rgba(20,14,4,0.6)', border: `1px solid ${color}33`, borderLeft: `3px solid ${color}`, borderRadius: 4, padding: '14px 16px' }}>
-                <p style={{ fontFamily: 'var(--be-font-display)', fontSize: '1rem', color, margin: '0 0 4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {alt.name}
-                </p>
-                <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'rgba(138,122,90,0.8)', fontSize: '0.8rem', margin: '0 0 8px' }}>
-                  {[alt.race, alt.class.charAt(0) + alt.class.slice(1).toLowerCase(), `L${alt.level}`].filter(Boolean).join(' · ')}
-                </p>
-                {alt.rank_name && (
-                  <span className="be-rank-pill" style={{ fontSize: '0.6rem', padding: '2px 8px' }}>{alt.rank_name}</span>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      )}
+      {/* Tile: Your Alts */}
+      <div style={{ background: 'rgba(26,18,8,0.6)', border: '1px solid rgba(61,46,21,0.5)', borderRadius: 4 }}>
 
-      {/* Add Alt button */}
-      <div style={{ padding: alts.length === 0 ? '0 40px 32px' : '0 40px 32px' }}>
-        {alts.length === 0 && (
-          <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'rgba(138,122,90,0.6)', fontSize: '0.9rem', textAlign: 'center', marginBottom: 20 }}>
-            Your allies await. Bring your alts into the fold.
+        {/* Header row with eyebrow + small add button */}
+        <div style={{ padding: '24px 40px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <p style={{ fontFamily: 'var(--be-font-display)', fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(201,150,26,0.85)', margin: 0 }}>
+            Your Alts
           </p>
+          <button
+            onClick={openModal}
+            style={{ padding: '4px 12px', background: 'transparent', border: '1px solid rgba(201,150,26,0.3)', borderRadius: 4, color: 'rgba(201,150,26,0.8)', fontFamily: 'var(--be-font-display)', fontSize: '0.62rem', letterSpacing: '0.12em', cursor: 'pointer' }}
+            onMouseEnter={(e) => { ;(e.currentTarget as HTMLElement).style.borderColor = 'rgba(201,150,26,0.7)'; (e.currentTarget as HTMLElement).style.color = '#c9961a' }}
+            onMouseLeave={(e) => { ;(e.currentTarget as HTMLElement).style.borderColor = 'rgba(201,150,26,0.3)'; (e.currentTarget as HTMLElement).style.color = 'rgba(201,150,26,0.8)' }}
+          >
+            + ADD ALT
+          </button>
+        </div>
+
+        {/* Alt cards */}
+        {alts.length > 0 && (
+          <div style={{ padding: '0 40px 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            {alts.map((alt) => {
+              const color = CLASS_COLORS[alt.class] ?? '#888'
+              return (
+                <div key={alt.id} className="alt-card" style={{ borderLeft: `4px solid ${color}` }}>
+                  <div style={{ minWidth: 0 }}>
+                    <p style={{ fontFamily: 'var(--be-font-display)', fontSize: '1rem', color, margin: '0 0 4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {alt.name}
+                    </p>
+                    <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'rgba(138,122,90,0.7)', fontSize: '0.8rem', margin: 0 }}>
+                      {[alt.class.charAt(0) + alt.class.slice(1).toLowerCase().replace('_', ' '), alt.race, `Level ${alt.level}`].filter(Boolean).join(' · ')}
+                    </p>
+                  </div>
+                  {alt.rank_name && (
+                    <span className="be-rank-pill" style={{ fontSize: '0.6rem', padding: '2px 8px', flexShrink: 0 }}>{alt.rank_name}</span>
+                  )}
+                </div>
+              )
+            })}
+          </div>
         )}
-        <button className="add-alt-btn" onClick={openModal}>
-          <div className="alt-btn-figures">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/characters/Gnome_Warrior_M.png"   className="alt-fig alt-fig-1" alt="" />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/characters/Human_Priest_M.png"    className="alt-fig alt-fig-2" alt="" />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/characters/Draenei_Shaman_M.png"  className="alt-fig alt-fig-3" alt="" />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/characters/NightElf_Druid_F.png"  className="alt-fig alt-fig-4" alt="" />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/characters/Dwarf_Rogue_F.png"     className="alt-fig alt-fig-5" alt="" />
-          </div>
-          <div className="alt-btn-label">
-            <span className="alt-btn-title">Add an Alt</span>
-            <span className="alt-btn-sub">Bring another character into the guild</span>
-          </div>
-        </button>
+
+        {/* Add Alt big button */}
+        <div style={{ padding: alts.length === 0 ? '0 40px 32px' : '8px 40px 32px' }}>
+          {alts.length === 0 && (
+            <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'rgba(138,122,90,0.55)', fontSize: '0.9rem', textAlign: 'center', marginBottom: 20 }}>
+              Your allies await. Bring your alts into the fold.
+            </p>
+          )}
+          <button className="add-alt-btn" onClick={openModal}>
+            <div className="alt-btn-figures">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/images/characters/Gnome_Warrior_M.png"   className="alt-fig alt-fig-1" alt="" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/images/characters/Human_Priest_M.png"    className="alt-fig alt-fig-2" alt="" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/images/characters/Draenei_Shaman_M.png"  className="alt-fig alt-fig-3" alt="" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/images/characters/NightElf_Druid_F.png"  className="alt-fig alt-fig-4" alt="" />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/images/characters/Dwarf_Rogue_F.png"     className="alt-fig alt-fig-5" alt="" />
+            </div>
+            <div className="alt-btn-label">
+              <span className="alt-btn-title">Add an Alt</span>
+              <span className="alt-btn-sub">Bring another character into the guild</span>
+            </div>
+          </button>
+        </div>
       </div>
 
       {/* Modal */}
@@ -192,14 +208,7 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
         >
           <div style={{ width: '100%', maxWidth: 500, backgroundColor: 'rgba(16,11,4,0.97)', border: '1px solid rgba(201,150,26,0.3)', borderRadius: 12, padding: '32px 32px 28px', position: 'relative', maxHeight: '90vh', overflowY: 'auto' }}>
 
-            {/* Close */}
-            <button
-              onClick={closeModal}
-              style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: 'var(--be-iron-2)', fontSize: 20, cursor: 'pointer', lineHeight: 1, padding: 4 }}
-              aria-label="Close"
-            >
-              ×
-            </button>
+            <button onClick={closeModal} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: 'var(--be-iron-2)', fontSize: 20, cursor: 'pointer', lineHeight: 1, padding: 4 }} aria-label="Close">×</button>
 
             {error && (
               <div style={{ marginBottom: 16, padding: '10px 14px', backgroundColor: 'rgba(165,30,30,0.3)', border: '1px solid rgba(200,60,60,0.4)', borderRadius: 4, color: '#f87171', fontSize: 14 }}>
@@ -211,17 +220,15 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
             {step === 'search' && (
               <div>
                 <h2 style={{ fontFamily: 'var(--be-font-display)', fontSize: 20, color: 'var(--be-ink)', margin: '0 0 6px' }}>Search for an Alt</h2>
-                <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'var(--be-ink-3)', fontSize: 14, marginBottom: 20 }}>
-                  Search unclaimed roster characters
-                </p>
+                <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'var(--be-ink-3)', fontSize: 14, marginBottom: 20 }}>Search unclaimed roster characters</p>
                 <div style={{ position: 'relative', marginBottom: 8 }}>
                   <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--be-iron-2)', pointerEvents: 'none', fontSize: 16, zIndex: 1 }}>⌕</span>
                   <input
                     type="text" value={query} onChange={(e) => setQuery(e.target.value)}
                     placeholder="Type alt's name…" autoFocus
                     style={{ width: '100%', padding: '12px 12px 12px 36px', backgroundColor: 'var(--be-bg-1)', border: '1px solid var(--be-iron-3)', borderRadius: results.length > 0 ? 'var(--be-radius) var(--be-radius) 0 0' : 'var(--be-radius)', color: 'var(--be-ink)', fontFamily: 'var(--be-font-body)', fontSize: 16, outline: 'none', boxSizing: 'border-box' }}
-                    onFocus={(e) => { setFocused(true); (e.target as HTMLInputElement).style.borderColor = 'var(--be-gold)' }}
-                    onBlur={(e) => { setFocused(false); (e.target as HTMLInputElement).style.borderColor = 'var(--be-iron-3)' }}
+                    onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = 'var(--be-gold)' }}
+                    onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = 'var(--be-iron-3)' }}
                   />
                   {results.length > 0 && (
                     <div onMouseDown={(e) => e.preventDefault()} style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20, backgroundColor: 'var(--be-bg-0)', border: '1px solid var(--be-gold)', borderTop: 'none', borderRadius: '0 0 var(--be-radius) var(--be-radius)', overflow: 'hidden', maxHeight: 280, overflowY: 'auto' }}>
@@ -229,8 +236,7 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
                         const color = CLASS_COLORS[char.class] ?? '#888'
                         return (
                           <button key={char.id} onClick={() => { setCandidate(char); setStep('confirm') }}
-                            className="w-full text-left flex items-center gap-3 relative overflow-hidden"
-                            style={{ padding: '12px 16px', minHeight: 48, background: 'transparent', cursor: 'pointer', borderBottom: '1px solid rgba(61,46,21,0.4)', width: '100%' }}
+                            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', minHeight: 48, background: 'transparent', cursor: 'pointer', borderBottom: '1px solid rgba(61,46,21,0.4)', width: '100%', position: 'relative' }}
                             onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(201,150,26,0.1)' }}
                             onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
                           >
@@ -347,9 +353,7 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
                 <div style={{ background: 'linear-gradient(135deg, var(--be-bg-1) 0%, var(--be-bg-2) 100%)', border: '1px solid var(--be-iron-3)', borderLeft: `4px solid ${newFormClassColor}`, borderRadius: 'var(--be-radius)', padding: 20, marginBottom: 20 }}>
                   <p style={{ fontFamily: 'var(--be-font-display)', fontSize: 10, letterSpacing: '0.15em', color: newFormClassColor, marginBottom: 4 }}>{form.cls.toUpperCase()}</p>
                   <h3 style={{ fontFamily: 'var(--be-font-display)', fontSize: 36, color: 'var(--be-ink)', margin: '0 0 4px', lineHeight: 1 }}>{form.name}</h3>
-                  <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'var(--be-ink-3)', fontSize: 14, margin: 0 }}>
-                    Level {form.level} · {form.race} · Fresh Recruit
-                  </p>
+                  <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'var(--be-ink-3)', fontSize: 14, margin: 0 }}>Level {form.level} · {form.race} · Fresh Recruit</p>
                 </div>
                 <div style={{ display: 'flex', gap: 10 }}>
                   <button onClick={() => setStep('newForm')} style={{ flex: 1, padding: '11px 0', backgroundColor: 'transparent', border: '1px solid var(--be-iron-3)', borderRadius: 'var(--be-radius)', color: 'var(--be-iron-2)', fontFamily: 'var(--be-font-display)', fontSize: 13, cursor: 'pointer' }}>← Make Edits</button>

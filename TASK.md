@@ -1,121 +1,192 @@
-# TASK: Unify onboarding into single search-first flow
+# TASK: My Roster page — design upgrade + character art in hero + larger alt button figures
 
-## Problem
-Onboarding currently presents two explicit paths to the user:
-- "I'm a returning member" 
-- "I'm new to the guild"
+## Reference
+Two versions exist:
+- Current: functional but sparse, missing design polish
+- Design version (Skålbogg screenshot): the target aesthetic
 
-This is wrong. Users shouldn't have to know which category they are.
-A new member might already be in the roster from a GRM import (status=mia).
-A returning member might not find themselves if they search wrong.
-
-The correct flow is one unified path:
-1. "What is your character's name?" — search bar, that's it
-2. IF FOUND in roster → show character card → confirm + claim
-3. IF NOT FOUND → show new character form (name pre-filled, add race/class/level)
-4. Both paths lead to oath cinematic → alts → Hall
+Implement everything below to bridge the gap.
 
 ---
 
-## New unified onboarding flow
+## Fix 1 — Hero section: add character art + spec + avatar + guild tag
 
-### Step 1 — Search (same for everyone)
-Single screen with:
-- Heading: "Find Your Character"
-- Subheading: "Search the guild roster by name"
-- Search input with special character normalization (D→Ð, A→Å, B→ß)
-- Results appear as character cards below as they type
-- If results found: show up to 5 matching cards, user clicks theirs
-- If no results: show message "Not in the roster yet?" with button
-  "Create New Character →" which pre-fills the name they typed
+### Character art in hero
+The empty right side of the YOUR MAIN hero panel should show the two
+matching character wireframes for the user's race + class.
 
-No "Are you new or returning?" question. Ever.
+Use the same getCharacterArt() utility from lib/character-art.ts.
+Show both M and F versions side by side, bottom-aligned, in the right
+portion of the hero panel. They should fill roughly 60-70% of the
+hero panel height. No animation — static display only.
 
-### Step 2A — Found: Confirm existing character
-Same as current Path A Step 2:
-- Show character card with name, class, race, level, rank, professions
-- "Yes, this is me →" button claims the character
-- "Not me, search again ←" button goes back
+```tsx
+const art = getCharacterArt(character.race, character.class);
 
-### Step 2B — Not found: Create new character  
-Same as current Path B but name is pre-filled from their search:
-- Name field pre-filled (editable)
-- Race dropdown
-- Class dropdown (filtered by race, TBC Alliance rules)
-- Level field (text input, numeric, no spinner)
-- "Continue →" 
+// In the hero panel right side:
+{art && (
+  <div className="roster-hero-art">
+    <img src={art.female} className="roster-hero-fig" alt="" />
+    <img src={art.male}   className="roster-hero-fig" alt="" />
+  </div>
+)}
+```
 
-### Step 3 — Oath cinematic
-Same for both paths. No change.
+```css
+.roster-hero-art {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  height: 100%;
+  opacity: 0.7;
+}
+.roster-hero-fig {
+  height: 160px;
+  width: auto;
+  max-width: none;
+}
+```
 
-### Step 4 — Add Alts
-After oath cinematic, show alt-adding screen.
-This step uses the SAME unified search flow:
-- "Do you have alts in the guild?" with "Add an Alt" button
-- Clicking it opens the same search → found/not-found flow
-- Each alt added gets its own oath? NO — no cinematic for alts,
-  just a quick confirm card then back to the alts list
-- "Done, take me to the Hall →" skips or finishes alt adding
+### Spec line above character name
+Above the large character name, show class + spec in small caps:
+```
+WARRIOR · PROTECTION
+```
+Spec comes from professions? No — spec is a separate concept.
+For now, if no spec is stored, show just the class:
+```
+WARRIOR
+```
+Style: Cinzel, small, --be-muted color, letter-spacing wide
 
-The alt search should find characters where:
-- claimed_by IS NULL (unclaimed)
-- name matches search
-No cinematic for alts — just confirm card + add to list.
+### Avatar circle
+Left of the character name, show a circle avatar:
+- Background: class color at 20% opacity
+- Border: class color at 60% opacity  
+- Text: first 2 initials of character name, in class color
+- Size: 80px
+
+### Guild tag
+Below race/class/level line show:
+`<Blådes Edge>` in --be-muted italic Spectral
+
+### Edit Profile button
+Top right of hero panel: small secondary button "Edit Profile →"
+Links to /settings for now.
 
 ---
 
-## DB / API changes
+## Fix 2 — Vitals panel: match design version layout
 
-### No new tables needed.
+The design version shows vitals as a clean label/value table on the left:
 
-### Update the claim flow to handle both cases from one endpoint
-The existing /api/characters/claim route handles returning members.
-The existing /api/characters/claim-new route handles new members.
+```
+RACE          Dwarf
+CLASS         • Warrior · Protection  
+LEVEL         60
+PROFESSIONS   Mining · Blacksmithing
+GUILD RANK    [GUILD MASTER badge]
+JOINED        Mar 13, 2019
+```
 
-These can stay as separate API routes — the frontend just calls the
-right one based on whether the character was found in the roster or not.
-The user never sees this distinction.
-
-### Alt claiming
-Create or update /api/characters/claim-alt route:
-- Accepts character_id (for roster alts) OR new character data
-- Sets claimed_by = userId, is_main = false on the character
-- Does NOT set has_completed_onboarding or display_name
-- Does NOT trigger oath cinematic
+Labels in Cinzel small caps, --be-muted
+Values right-aligned in Spectral, --be-ink
+Class dot colored by class color
+Rank shown as a pill badge styled like rank name
+Professions in --be-gold if present, "To Be Determined" italic if not
 
 ---
 
-## What to remove
-- Remove any UI that says "I'm a returning member" / "I'm new"
-- Remove any branching step that asks the user to self-categorize
-- Remove Path A / Path B labels from the code comments (replace with
-  "roster claim" and "new character" internally)
+## Fix 3 — Alt cards: match design version style
 
-## What to keep
-- All existing search normalization logic (D→Ð, A→Å, B→ß)
-- Oath cinematic — unchanged, fires for main character only
-- be-stamp keyframe — do not touch
-- animation-fill-mode: both — never change to forwards
-- All character art (figures flanking the seal)
-- Level input as text field (from previous fix)
+Design version alt cards have:
+- Left border accent in class color (4px solid)
+- Character name in class color, Cinzel
+- Class · Spec · Race · Level on second line
+- Professions on right side of card
+- Clean card background --be-bg-2
+
+```css
+.alt-card {
+  background: var(--be-bg-2);
+  border: 1px solid rgba(201, 150, 26, 0.15);
+  border-left: 4px solid var(--class-color); /* set via inline style */
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+```
+
+### Small + ADD ALT button in section header
+The design version has a small "+ ADD ALT" button in the top right of
+the Alts section header row, in addition to (or instead of) the big
+card button. Keep BOTH — small button in header, big silhouette card below.
+
+---
+
+## Fix 4 — Add Alt button: larger figures, fill the rectangle better
+
+The current figures are too small and leave too much empty space in the button.
+
+Increase all figure heights and reduce negative margins slightly so they
+spread out more within the button width:
+
+```css
+.alt-btn-figures {
+  height: 180px;   /* was 140px */
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.alt-fig-1 { height: 110px; margin-right: -18px; z-index: 1; }
+.alt-fig-2 { height: 145px; margin-right: -20px; z-index: 2; }
+.alt-fig-3 { height: 178px; margin-right: -20px; z-index: 3; }
+.alt-fig-4 { height: 158px; margin-right: -18px; z-index: 2; }
+.alt-fig-5 { height: 118px; z-index: 1; }
+```
+
+Also increase button max-width to fill more of the page:
+```css
+.add-alt-btn {
+  max-width: 680px;   /* was 480px */
+  padding: 2.5rem 3rem;
+}
+
+.alt-btn-title {
+  font-size: 1.4rem;  /* was 1.1rem */
+}
+```
+
+---
+
+## Fix 5 — Navbar
+
+Design version shows: Hall · My Roster · Settings · Officers
+Current version shows: Hall · My Roster · Dungeons · [user dropdown]
+
+Add Settings as a nav link (between My Roster and Dungeons).
+Keep Dungeons as disabled/muted for now.
+Officers link only shows for role = officer/admin/gm.
 
 ---
 
 ## Verification
-1. New user onboards — sees only a search bar, no path choice
-2. Searches "Darliouse" — finds the roster character, claims it
-3. Searches "Brandnewguy" — no results, falls through to create form
-   with "Brandnewguy" pre-filled as name
-4. Both paths reach oath cinematic correctly
-5. After cinematic, alt-adding screen appears
-6. Alt search finds unclaimed roster characters
-7. Alt search falls through to new character form if not found
-8. No cinematic for alts — just quick confirm
-9. "Done" takes user to Hall
+1. Log in as TestingYo — hero shows Draenei Shaman M+F art on right side
+2. Avatar circle shows "TE" in shaman blue (#0070dd)
+3. Guild tag shows <Blådes Edge>
+4. Vitals panel matches design layout
+5. Alt cards have class-colored left border
+6. Add Alt button figures are noticeably larger and fill the rectangle
+7. Small "+ ADD ALT" button appears in alts section header
+8. Edit Profile → links to /settings
 
 ## Do not touch
-- Oath cinematic animations
-- Character art figures
-- Hall page
+- Oath cinematic
 - Landing page
-- /import page
+- Hall page
+- animation-fill-mode: both on all animations
+- Onboarding flow

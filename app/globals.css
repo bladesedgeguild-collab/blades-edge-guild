@@ -476,20 +476,70 @@ input[type=number] { -moz-appearance: textfield; }
   .be-hall-page { padding: 56px 60px 100px; }
 }
 
+/* ── My Roster — Hero art ── */
+.roster-hero-art {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+  height: 100%;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.roster-hero-fig {
+  height: 160px;
+  width: auto;
+  max-width: none;
+}
+
+/* ── My Roster — Edit Profile button ── */
+.roster-edit-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  padding: 6px 14px;
+  background: transparent;
+  border: 1px solid rgba(61, 46, 21, 0.6);
+  border-radius: 4px;
+  font-family: var(--be-font-display);
+  font-size: 0.65rem;
+  letter-spacing: 0.1em;
+  color: rgba(138, 122, 90, 0.7);
+  text-decoration: none;
+  z-index: 3;
+  transition: border-color 200ms ease, color 200ms ease;
+}
+
+.roster-edit-btn:hover {
+  border-color: rgba(201, 150, 26, 0.5);
+  color: var(--be-gold);
+}
+
+/* ── My Roster — Alt cards ── */
+.alt-card {
+  background: var(--be-bg-2);
+  border: 1px solid rgba(201, 150, 26, 0.15);
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 /* ── My Roster — Add Alt button ── */
 .add-alt-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 1rem;
-  padding: 2rem 3rem;
+  padding: 2.5rem 3rem;
   background: var(--be-bg-2);
   border: 1px solid rgba(201, 150, 26, 0.3);
   border-radius: 12px;
   cursor: pointer;
   transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
   width: 100%;
-  max-width: 480px;
+  max-width: 680px;
   margin: 0 auto;
 }
 
@@ -503,7 +553,8 @@ input[type=number] { -moz-appearance: textfield; }
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  height: 140px;
+  height: 180px;
+  width: 100%;
 }
 
 .alt-fig {
@@ -515,18 +566,18 @@ input[type=number] { -moz-appearance: textfield; }
 
 .add-alt-btn:hover .alt-fig { opacity: 1.0; }
 
-.alt-fig-1 { height: 80px;  margin-right: -22px; z-index: 1; position: relative; }
-.alt-fig-2 { height: 105px; margin-right: -26px; z-index: 2; position: relative; }
-.alt-fig-3 { height: 130px; margin-right: -26px; z-index: 3; position: relative; }
-.alt-fig-4 { height: 115px; margin-right: -22px; z-index: 2; position: relative; }
-.alt-fig-5 { height: 85px;  z-index: 1; position: relative; }
+.alt-fig-1 { height: 110px; margin-right: -18px; z-index: 1; position: relative; }
+.alt-fig-2 { height: 145px; margin-right: -20px; z-index: 2; position: relative; }
+.alt-fig-3 { height: 178px; margin-right: -20px; z-index: 3; position: relative; }
+.alt-fig-4 { height: 158px; margin-right: -18px; z-index: 2; position: relative; }
+.alt-fig-5 { height: 118px; z-index: 1; position: relative; }
 
 .alt-btn-label { text-align: center; }
 
 .alt-btn-title {
   display: block;
   font-family: 'Cinzel', serif;
-  font-size: 1.1rem;
+  font-size: 1.4rem;
   color: var(--be-gold);
   letter-spacing: 0.1em;
 }
