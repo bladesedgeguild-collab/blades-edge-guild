@@ -34,13 +34,6 @@ export function NavUserMenu({ displayName, charColor, avatarUrl }: NavUserMenuPr
     router.refresh()
   }
 
-  async function handleResetClaim() {
-    setOpen(false)
-    await fetch('/api/users/reset-onboarding', { method: 'POST' })
-    router.push('/onboarding')
-    router.refresh()
-  }
-
   return (
     <div ref={ref} style={{ position: 'relative' }}>
       <button
@@ -90,14 +83,6 @@ export function NavUserMenu({ displayName, charColor, avatarUrl }: NavUserMenuPr
           >
             Settings
           </Link>
-          <button
-            onClick={handleResetClaim}
-            style={{ display: 'block', width: '100%', textAlign: 'left', padding: '10px 16px', fontFamily: "'Cinzel', serif", fontSize: 12, color: '#8a7a5a', background: 'none', border: 'none', cursor: 'pointer' }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = '#1a1208'; (e.currentTarget as HTMLElement).style.color = '#f0e6c8' }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent'; (e.currentTarget as HTMLElement).style.color = '#8a7a5a' }}
-          >
-            Reset Character Claim
-          </button>
           <div style={{ height: 1, backgroundColor: '#3d2e15', margin: '4px 0' }} />
           <button
             onClick={handleSignOut}

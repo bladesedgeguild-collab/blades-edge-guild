@@ -5,15 +5,15 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const code = searchParams.get('code')
+  const mode = searchParams.get('mode')
 
   if (!code) {
     return NextResponse.redirect(new URL('/login?error=no_code', request.url))
   }
 
-  // Create the redirect response FIRST so cookies can be written onto it
-  const response = NextResponse.redirect(new URL('/dashboard', request.url))
+  const redirectUrl = mode === 'link' ? '/settings' : '/dashboard'
+  const response = NextResponse.redirect(new URL(redirectUrl, request.url))
 
-  // Supabase client whose setAll writes session cookies directly onto the response
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -46,34 +46,63 @@ export async function GET(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
-    // Explicit branch: never use upsert — it can silently merge/overwrite display_name.
-    // display_name is NEVER written here; onboarding owns it exclusively.
-    const { data: existingUser } = await adminClient
-      .from('users')
-      .select('id')
-      .eq('id', user.id)
-      .single()
+    // Extract Discord identity fields if this is a Discord OAuth login
+    const discordIdentity = user.identities?.find(i => i.provider === 'discord')
+    const discordId = discordIdentity?.id ?? null
+    const discordUsername = (discordIdentity?.identity_data?.full_name as string | undefined)
+      ?? (discordIdentity?.identity_data?.name as string | undefined)
+      ?? null
+    const discordAvatarHash = discordIdentity?.identity_data?.avatar_hash as string | undefined ?? null
+    const discordAvatarUrl = discordId && discordAvatarHash
+      ? `https://cdn.discordapp.com/avatars/${discordId}/${discordAvatarHash}.png?size=40`
+      : (discordIdentity?.identity_data?.avatar_url as string | undefined) ?? null
 
-    if (existingUser) {
-      // Existing user — touch only updated_at; never overwrite display_name or any profile field
+    if (mode === 'link') {
+      // Link-only mode: update discord fields on the existing user row.
+      // Never reset onboarding or display_name.
       await adminClient
         .from('users')
-        .update({ updated_at: new Date().toISOString() })
-        .eq('id', user.id)
-    } else {
-      // Brand-new user — bare row only; onboarding owns display_name exclusively
-      await adminClient
-        .from('users')
-        .insert({
-          id: user.id,
-          role: 'member',
-          has_completed_onboarding: false,
-          created_at: new Date().toISOString(),
+        .update({
+          discord_id: discordId,
+          discord_username: discordUsername,
+          discord_avatar: discordAvatarUrl,
           updated_at: new Date().toISOString(),
         })
+        .eq('id', user.id)
+    } else {
+      // Normal login flow
+      const { data: existingUser } = await adminClient
+        .from('users')
+        .select('id')
+        .eq('id', user.id)
+        .single()
+
+      if (existingUser) {
+        // Existing user — update discord fields if this is a Discord login, touch updated_at
+        const updates: Record<string, string | null> = { updated_at: new Date().toISOString() }
+        if (discordId) {
+          updates.discord_id = discordId
+          updates.discord_username = discordUsername
+          updates.discord_avatar = discordAvatarUrl
+        }
+        await adminClient.from('users').update(updates).eq('id', user.id)
+      } else {
+        // Brand-new user — bare row only; onboarding owns display_name exclusively
+        await adminClient
+          .from('users')
+          .insert({
+            id: user.id,
+            discord_id: discordId,
+            discord_username: discordUsername,
+            discord_avatar: discordAvatarUrl,
+            role: 'member',
+            has_completed_onboarding: false,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          })
+      }
     }
   }
 
-  // Return the response WITH the session cookies already set on it
   return response
 }
