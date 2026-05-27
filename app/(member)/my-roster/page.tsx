@@ -17,7 +17,10 @@ type MainChar = {
   professions: { name: string; skill_level: number; is_primary: boolean }[]
 }
 
-type AltChar = { id: string; name: string; class: string; race: string | null; level: number; rank_name: string | null }
+type AltChar = {
+  id: string; name: string; class: string; race: string | null; level: number; rank_name: string | null
+  professions: { name: string; skill_level: number; is_primary: boolean }[]
+}
 
 const tile: CSSProperties = { background: 'rgba(26,18,8,0.6)', border: '1px solid rgba(61,46,21,0.5)', borderRadius: 4 }
 
@@ -46,7 +49,7 @@ export default async function MyRosterPage() {
 
     const { data: altData } = await supabase
       .from('characters')
-      .select('id, name, class, race, level, rank_name')
+      .select('id, name, class, race, level, rank_name, professions(name, skill_level, is_primary)')
       .eq('claimed_by', user?.id ?? '')
       .neq('id', profile.claimed_character_id)
       .order('name', { ascending: true })
@@ -85,7 +88,7 @@ export default async function MyRosterPage() {
   const vValue: CSSProperties = { fontFamily: "'Spectral', serif", fontSize: '0.92rem', color: '#c4b490', margin: 0 }
 
   return (
-    <div className="page-container" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="page-container" style={{ display: 'flex', flexDirection: 'column', gap: 16, paddingTop: '1.75rem', paddingBottom: '1.75rem' }}>
 
       {/* ── Hero ── */}
       <div style={{ ...tile, position: 'relative', overflow: 'hidden', borderBottom: '2px solid rgba(201,150,26,0.18)', minHeight: 220, display: 'flex', alignItems: 'stretch' }}>
@@ -152,7 +155,7 @@ export default async function MyRosterPage() {
                   </span>
                 ) : row.professions ? (
                   <span style={{ ...vValue, color: row.value ? '#c9961a' : 'rgba(138,122,90,0.5)', fontStyle: row.value ? 'normal' : 'italic' }}>
-                    {row.value ?? 'To Be Determined'}
+                    {row.value ?? 'Profession 1 TBD · Profession 2 TBD'}
                   </span>
                 ) : (
                   <span style={vValue}>{row.value ?? '—'}</span>

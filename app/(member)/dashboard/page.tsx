@@ -3,7 +3,6 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { CharacterClass } from '@/types'
-import { getCharacterArt } from '@/lib/character-art'
 
 type MainChar = {
   id: string
@@ -157,10 +156,9 @@ export default async function DashboardPage() {
 
   const charCount = yourCharCount ?? 0
   const displayName = profile?.display_name ?? 'Adventurer'
-  const art = mainChar ? getCharacterArt(mainChar.race, mainChar.class) : null
 
   return (
-    <div className="be-hall-page page-container" style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div className="be-hall-page page-container" style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingTop: '1.75rem', paddingBottom: '1.75rem' }}>
 
       {/* ── Header ── */}
       <div>
@@ -175,14 +173,6 @@ export default async function DashboardPage() {
             <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'rgba(138,122,90,0.8)', fontSize: '1rem', margin: 0 }}>
               {[mainChar.race, mainChar.class, `Level ${mainChar.level}`].filter(Boolean).join(' · ')}
             </p>
-            {art && (
-              <div className="hall-char-art">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={art.female} className="hall-char-fig" alt="" aria-hidden="true" />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={art.male} className="hall-char-fig" alt="" aria-hidden="true" />
-              </div>
-            )}
             {mainChar.rank_name && (
               <div className="be-rank-pill" style={{ whiteSpace: 'nowrap', marginLeft: 16 }}>
                 {mainChar.rank_name}

@@ -20,6 +20,14 @@ const RACE_CLASSES: Record<string, string[]> = {
 
 type AltChar = {
   id: string; name: string; class: string; race: string | null; level: number; rank_name: string | null
+  professions: { name: string; skill_level: number; is_primary: boolean }[]
+}
+
+function altProfessions(profs: { name: string; is_primary: boolean }[]): string {
+  const primary = profs.filter(p => p.is_primary).slice(0, 2)
+  const p1 = primary[0]?.name ?? 'Profession 1 TBD'
+  const p2 = primary[1]?.name ?? 'Profession 2 TBD'
+  return `${p1} · ${p2}`
 }
 
 type SearchChar = {
@@ -174,9 +182,7 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
                       {[alt.class.charAt(0) + alt.class.slice(1).toLowerCase().replace('_', ' '), alt.race, `Level ${alt.level}`].filter(Boolean).join(' · ')}
                     </p>
                   </div>
-                  {alt.rank_name && (
-                    <span className="be-rank-pill" style={{ fontSize: '0.6rem', padding: '2px 8px', flexShrink: 0 }}>{alt.rank_name}</span>
-                  )}
+                  <span className="alt-card-professions">{altProfessions(alt.professions)}</span>
                 </div>
               )
             })}
