@@ -1,223 +1,121 @@
-# TASK: Fix oath cinematic character figures — positioning broken
+# TASK: Unify onboarding into single search-first flow
 
 ## Problem
-After the depth burst cinematic task, character figures are not visible.
-A gold glow appears at the bottom-left corner, indicating the images are
-loading but positioned off-screen. The figure containers are not anchored
-correctly within the oath screen layout.
+Onboarding currently presents two explicit paths to the user:
+- "I'm a returning member" 
+- "I'm new to the guild"
 
-## Diagnosis to run first
-Add a temporary red border to the figure containers to see where they are:
-```css
-.figure-container { border: 2px solid red; }
-```
-Remove after diagnosing.
+This is wrong. Users shouldn't have to know which category they are.
+A new member might already be in the roster from a GRM import (status=mia).
+A returning member might not find themselves if they search wrong.
 
-## Root cause (likely)
-The figure containers are position: absolute children escaping their parent,
-or the parent layout is not giving them a defined space to sit in.
+The correct flow is one unified path:
+1. "What is your character's name?" — search bar, that's it
+2. IF FOUND in roster → show character card → confirm + claim
+3. IF NOT FOUND → show new character form (name pre-filled, add race/class/level)
+4. Both paths lead to oath cinematic → alts → Hall
 
-## Fix — figure container layout
+---
 
-The oath cinematic screen should have a three-column layout:
-- Left column: left figure (25-30% width)
-- Center column: seal + text + button (40-50% width)  
-- Right column: right figure (25-30% width)
+## New unified onboarding flow
 
-Replace the current figure positioning with this explicit flex layout:
+### Step 1 — Search (same for everyone)
+Single screen with:
+- Heading: "Find Your Character"
+- Subheading: "Search the guild roster by name"
+- Search input with special character normalization (D→Ð, A→Å, B→ß)
+- Results appear as character cards below as they type
+- If results found: show up to 5 matching cards, user clicks theirs
+- If no results: show message "Not in the roster yet?" with button
+  "Create New Character →" which pre-fills the name they typed
 
-```tsx
-<div style={{
-  display: 'flex',
-  alignItems: 'flex-end',
-  justifyContent: 'center',
-  width: '100%',
-  minHeight: '100vh',
-  position: 'relative',
-}}>
-  {/* Left figure column */}
-  <div className="figure-column figure-column-left">
-    <div className="figure-container figure-left">
-      <img src={leftFigure} className="figure-ghost-large" alt="" aria-hidden="true" />
-      <img src={leftFigure} className="figure-echo-mid" alt="" aria-hidden="true" />
-      <img src={leftFigure} className="figure-hero" alt="" />
-      <div className="figure-ground-glow" />
-    </div>
-  </div>
+No "Are you new or returning?" question. Ever.
 
-  {/* Center content column — seal, name, class, button */}
-  <div className="oath-center-content">
-    {/* existing seal + text + button */}
-  </div>
+### Step 2A — Found: Confirm existing character
+Same as current Path A Step 2:
+- Show character card with name, class, race, level, rank, professions
+- "Yes, this is me →" button claims the character
+- "Not me, search again ←" button goes back
 
-  {/* Right figure column */}
-  <div className="figure-column figure-column-right">
-    <div className="figure-container figure-right">
-      <img src={rightFigure} className="figure-ghost-large" alt="" aria-hidden="true" />
-      <img src={rightFigure} className="figure-echo-mid" alt="" aria-hidden="true" />
-      <img src={rightFigure} className="figure-hero" alt="" />
-      <div className="figure-ground-glow" />
-    </div>
-  </div>
-</div>
-```
+### Step 2B — Not found: Create new character  
+Same as current Path B but name is pre-filled from their search:
+- Name field pre-filled (editable)
+- Race dropdown
+- Class dropdown (filtered by race, TBC Alliance rules)
+- Level field (text input, numeric, no spinner)
+- "Continue →" 
 
-## Fix — figure CSS (replace existing figure styles in globals.css)
+### Step 3 — Oath cinematic
+Same for both paths. No change.
 
-```css
-/* Column layout */
-.figure-column {
-  width: 28%;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  min-height: 70vh;
-  flex-shrink: 0;
-}
+### Step 4 — Add Alts
+After oath cinematic, show alt-adding screen.
+This step uses the SAME unified search flow:
+- "Do you have alts in the guild?" with "Add an Alt" button
+- Clicking it opens the same search → found/not-found flow
+- Each alt added gets its own oath? NO — no cinematic for alts,
+  just a quick confirm card then back to the alts list
+- "Done, take me to the Hall →" skips or finishes alt adding
 
-.oath-center-content {
-  width: 44%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-  z-index: 10;
-  flex-shrink: 0;
-}
+The alt search should find characters where:
+- claimed_by IS NULL (unclaimed)
+- name matches search
+No cinematic for alts — just confirm card + add to list.
 
-/* Container holds all 3 layers stacked */
-.figure-container {
-  position: relative;
-  width: 100%;
-  height: 70vh;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  overflow: visible;
-}
+---
 
-/* All layers share base positioning */
-.figure-container img,
-.figure-ground-glow {
-  position: absolute;
-  bottom: 0;
-}
+## DB / API changes
 
-/* Layer 3 hero — base size, stays visible */
-.figure-hero {
-  width: auto;
-  height: 65vh;
-  max-width: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1;
-  animation: be-hero-appear 0.8s ease-out 1.4s both;
-}
+### No new tables needed.
 
-/* Layer 1 ghost large */
-.figure-ghost-large {
-  width: auto;
-  height: 65vh;
-  left: 50%;
-  transform: translateX(-50%) scale(2.5);
-  transform-origin: bottom center;
-  z-index: 0;
-  pointer-events: none;
-}
-.figure-left .figure-ghost-large {
-  animation: be-ghost-large-left 1.8s ease-out 0.8s both;
-}
-.figure-right .figure-ghost-large {
-  animation: be-ghost-large-right 1.8s ease-out 0.8s both;
-}
+### Update the claim flow to handle both cases from one endpoint
+The existing /api/characters/claim route handles returning members.
+The existing /api/characters/claim-new route handles new members.
 
-/* Layer 2 echo mid */
-.figure-echo-mid {
-  width: auto;
-  height: 65vh;
-  left: 50%;
-  transform-origin: bottom center;
-  z-index: 0;
-  pointer-events: none;
-}
-.figure-left .figure-echo-mid {
-  transform: translateX(-50%) scaleX(-1) scale(1.5);
-  animation: be-echo-mid-left 1.6s ease-out 1.1s both;
-}
-.figure-right .figure-echo-mid {
-  transform: translateX(-50%) scale(1.5);
-  animation: be-echo-mid-right 1.6s ease-out 1.1s both;
-}
+These can stay as separate API routes — the frontend just calls the
+right one based on whether the character was found in the roster or not.
+The user never sees this distinction.
 
-/* Ground glow */
-.figure-ground-glow {
-  left: 50%;
-  transform: translateX(-50%);
-  width: 160px;
-  height: 50px;
-  background: radial-gradient(
-    ellipse at center,
-    rgba(201, 150, 26, 0.7) 0%,
-    rgba(201, 150, 26, 0.25) 50%,
-    transparent 100%
-  );
-  filter: blur(14px);
-  z-index: 2;
-  animation: be-hero-appear 0.8s ease-out 1.4s both;
-}
+### Alt claiming
+Create or update /api/characters/claim-alt route:
+- Accepts character_id (for roster alts) OR new character data
+- Sets claimed_by = userId, is_main = false on the character
+- Does NOT set has_completed_onboarding or display_name
+- Does NOT trigger oath cinematic
 
-/* Hide figures on mobile */
-@media (max-width: 768px) {
-  .figure-column { display: none; }
-  .oath-center-content { width: 100%; }
-}
-```
+---
 
-## Keyframes (keep from previous task, just ensure these exist in globals.css)
+## What to remove
+- Remove any UI that says "I'm a returning member" / "I'm new"
+- Remove any branching step that asks the user to self-categorize
+- Remove Path A / Path B labels from the code comments (replace with
+  "roster claim" and "new character" internally)
 
-```css
-@keyframes be-hero-appear {
-  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
-  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
-}
-@keyframes be-ghost-large-left {
-  0%   { opacity: 0;    transform: translateX(-50%) scale(2.5) translateX(0px); }
-  15%  { opacity: 0.22; }
-  60%  { opacity: 0.12; transform: translateX(-50%) scale(2.5) translateX(-80px); }
-  100% { opacity: 0;    transform: translateX(-50%) scale(2.5) translateX(-160px); }
-}
-@keyframes be-ghost-large-right {
-  0%   { opacity: 0;    transform: translateX(-50%) scale(2.5) translateX(0px); }
-  15%  { opacity: 0.22; }
-  60%  { opacity: 0.12; transform: translateX(-50%) scale(2.5) translateX(80px); }
-  100% { opacity: 0;    transform: translateX(-50%) scale(2.5) translateX(160px); }
-}
-@keyframes be-echo-mid-left {
-  0%   { opacity: 0;    transform: translateX(-50%) scaleX(-1) scale(1.5) translateX(0px); }
-  20%  { opacity: 0.18; }
-  70%  { opacity: 0.08; transform: translateX(-50%) scaleX(-1) scale(1.5) translateX(-100px); }
-  100% { opacity: 0;    transform: translateX(-50%) scaleX(-1) scale(1.5) translateX(-200px); }
-}
-@keyframes be-echo-mid-right {
-  0%   { opacity: 0;    transform: translateX(-50%) scale(1.5) translateX(0px); }
-  20%  { opacity: 0.18; }
-  70%  { opacity: 0.08; transform: translateX(-50%) scale(1.5) translateX(100px); }
-  100% { opacity: 0;    transform: translateX(-50%) scale(1.5) translateX(200px); }
-}
-```
+## What to keep
+- All existing search normalization logic (D→Ð, A→Å, B→ß)
+- Oath cinematic — unchanged, fires for main character only
+- be-stamp keyframe — do not touch
+- animation-fill-mode: both — never change to forwards
+- All character art (figures flanking the seal)
+- Level input as text field (from previous fix)
+
+---
 
 ## Verification
-1. Go through new member onboarding
-2. Oath screen: both character figures visible on left and right
-3. Ghost layers burst outward from behind figures and fade
-4. Hero figures stay planted at bottom of their columns
-5. Ground glow visible at feet
-6. Seal, name, class line, and Continue button never obscured
-7. Mobile: figures hidden, center content full width
+1. New user onboards — sees only a search bar, no path choice
+2. Searches "Darliouse" — finds the roster character, claims it
+3. Searches "Brandnewguy" — no results, falls through to create form
+   with "Brandnewguy" pre-filled as name
+4. Both paths reach oath cinematic correctly
+5. After cinematic, alt-adding screen appears
+6. Alt search finds unclaimed roster characters
+7. Alt search falls through to new character form if not found
+8. No cinematic for alts — just quick confirm
+9. "Done" takes user to Hall
 
 ## Do not touch
-- be-stamp keyframe
-- Ember particles
-- animation-fill-mode: both on all animations — never 'forwards'
-- Level input fix from previous task — leave as-is
+- Oath cinematic animations
+- Character art figures
+- Hall page
+- Landing page
+- /import page
