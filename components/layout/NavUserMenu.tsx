@@ -82,16 +82,7 @@ export function NavUserMenu({ displayName, charColor, avatarUrl }: NavUserMenuPr
           }}
         >
           <Link
-            href="/dashboard"
-            onClick={() => setOpen(false)}
-            style={{ display: 'block', padding: '10px 16px', fontFamily: "'Cinzel', serif", fontSize: 12, color: '#f0e6c8', textDecoration: 'none' }}
-            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = '#1a1208' }}
-            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent' }}
-          >
-            My Profile
-          </Link>
-          <Link
-            href="/dashboard"
+            href="/settings"
             onClick={() => setOpen(false)}
             style={{ display: 'block', padding: '10px 16px', fontFamily: "'Cinzel', serif", fontSize: 12, color: '#f0e6c8', textDecoration: 'none' }}
             onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = '#1a1208' }}
@@ -114,7 +105,7 @@ export function NavUserMenu({ displayName, charColor, avatarUrl }: NavUserMenuPr
             onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = '#1a1208' }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = 'transparent' }}
           >
-            Sign Out
+            Log Out
           </button>
         </div>
       )}

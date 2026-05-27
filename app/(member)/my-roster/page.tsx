@@ -55,7 +55,7 @@ export default async function MyRosterPage() {
 
   if (!mainChar) {
     return (
-      <div style={{ maxWidth: 960, margin: '0 auto', textAlign: 'center', padding: '80px 20px' }}>
+      <div className="page-container" style={{ textAlign: 'center', paddingTop: 80, paddingBottom: 80 }}>
         <p style={{ fontFamily: 'var(--be-font-display)', color: 'rgba(138,122,90,0.7)', fontSize: '1rem', marginBottom: 24 }}>
           No character claimed yet.
         </p>
@@ -85,7 +85,7 @@ export default async function MyRosterPage() {
   const vValue: CSSProperties = { fontFamily: "'Spectral', serif", fontSize: '0.92rem', color: '#c4b490', margin: 0 }
 
   return (
-    <div style={{ maxWidth: 960, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="page-container" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
       {/* ── Hero ── */}
       <div style={{ ...tile, position: 'relative', overflow: 'hidden', borderBottom: '2px solid rgba(201,150,26,0.18)', minHeight: 220, display: 'flex', alignItems: 'stretch' }}>
@@ -101,7 +101,7 @@ export default async function MyRosterPage() {
             <p style={{ fontFamily: 'var(--be-font-display)', fontSize: '1rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(138,122,90,0.6)', margin: '0 0 6px' }}>
               {mainChar.class}
             </p>
-            <h1 className="character-name" style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: 'clamp(2.8rem, 5vw, 4.5rem)', color: charColor, lineHeight: 1.05, margin: 0 }}>
+            <h1 className="character-name" style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: 'clamp(2.2rem, 4vw, 4rem)', color: charColor, lineHeight: 1.05, margin: 0 }}>
               {mainChar.name}
             </h1>
           </div>

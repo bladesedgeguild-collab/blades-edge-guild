@@ -489,7 +489,7 @@ export default function OnboardingPage() {
           <div className="oath-button-slot">
             {showContinue && (
               <button
-                onClick={() => setStep('alts')}
+                onClick={isNewChar ? handleFinish : () => setStep('alts')}
                 className="oath-continue-btn"
                 style={{ padding: '18px 48px', backgroundColor: 'var(--be-gold)', color: '#0d0b07', border: 'none', borderRadius: 'var(--be-radius)', fontFamily: 'var(--be-font-display)', fontSize: '1.1rem', letterSpacing: '0.1em', cursor: 'pointer', animation: 'be-fade-in 0.6s ease-out both', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
