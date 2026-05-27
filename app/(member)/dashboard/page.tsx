@@ -16,11 +16,18 @@ type MainChar = {
 
 type AltChar = { id: string; name: string; class: CharacterClass; level: number }
 
-type NotifRow = {
-  id: string
-  title: string
-  body: string | null
-  created_at: string
+type FeedEntry = {
+  key: string
+  who: string
+  what: string
+  cls: string | null
+  when: string | null
+}
+
+const CLASS_COLORS: Record<string, string> = {
+  MAGE: '#3fc7eb', PALADIN: '#f48cba', WARRIOR: '#c69b3a', PRIEST: '#ffffff',
+  DRUID: '#ff7c0a', HUNTER: '#aad372', ROGUE: '#fff468', WARLOCK: '#8788ee',
+  SHAMAN: '#0070dd',
 }
 
 const tile: CSSProperties = {
@@ -38,13 +45,6 @@ const eyebrow: CSSProperties = {
   margin: '0 0 12px',
 }
 
-const PLACEHOLDER_FEED = [
-  { who: 'Åvatarødys', what: 'founded',          detail: 'Blådes Edge',      when: 'guild created' },
-  { who: 'Darliouse',  what: 'answered the call', detail: 'character claimed', when: 'recently'      },
-  { who: 'Dsix',       what: 'answered the call', detail: 'character claimed', when: 'recently'      },
-  { who: 'Inthetrees', what: 'answered the call', detail: 'character claimed', when: 'recently'      },
-]
-
 const PLACEHOLDER_EVENTS = [
   { date: 'TUE', time: '20:00', name: 'Karazhan — Progression', signups: 0, cap: 25 },
   { date: 'THU', time: '20:00', name: 'Dungeon Night',           signups: 0, cap: 10 },
@@ -52,13 +52,17 @@ const PLACEHOLDER_EVENTS = [
   { date: 'SUN', time: '20:00', name: 'Heroic Runs',             signups: 0, cap: 5  },
 ]
 
-function relativeTime(dateStr: string): string {
+function relativeTime(dateStr: string | null): string {
+  if (!dateStr) return 'GUILD CREATED'
   const diff = Date.now() - new Date(dateStr).getTime()
+  const mins  = Math.floor(diff / 60_000)
   const hours = Math.floor(diff / 3_600_000)
-  const days = Math.floor(diff / 86_400_000)
-  if (days > 0) return `${days}d ago`
-  if (hours > 0) return `${hours}h ago`
-  return 'recently'
+  const days  = Math.floor(diff / 86_400_000)
+  if (days >= 7) return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  if (days > 0)  return `${days} day${days !== 1 ? 's' : ''} ago`
+  if (hours > 0) return `${hours} hour${hours !== 1 ? 's' : ''} ago`
+  if (mins > 0)  return `${mins} minute${mins !== 1 ? 's' : ''} ago`
+  return 'just now'
 }
 
 export default async function DashboardPage() {
@@ -113,13 +117,43 @@ export default async function DashboardPage() {
     .select('*', { count: 'exact', head: true })
     .eq('has_completed_onboarding', true)
 
-  const { data: notifData } = await supabase
-    .from('notifications')
-    .select('id, title, body, created_at')
-    .order('created_at', { ascending: false })
-    .limit(8)
+  // Feed: service role bypasses RLS for cross-user read
+  const { data: feedUsers } = await adminDb
+    .from('users')
+    .select('id, display_name, updated_at, claimed_character_id')
+    .eq('has_completed_onboarding', true)
+    .order('updated_at', { ascending: false })
+    .limit(20)
 
-  const notifications: NotifRow[] = (notifData ?? []) as NotifRow[]
+  const charIds = ((feedUsers ?? []) as { claimed_character_id: string | null }[])
+    .map(u => u.claimed_character_id)
+    .filter((id): id is string => id !== null)
+
+  const feedCharMap: Record<string, { class: string; status: string }> = {}
+  if (charIds.length > 0) {
+    const { data: feedCharData } = await adminDb
+      .from('characters')
+      .select('id, class, status')
+      .in('id', charIds)
+    for (const c of (feedCharData ?? []) as { id: string; class: string; status: string }[]) {
+      feedCharMap[c.id] = { class: c.class, status: c.status }
+    }
+  }
+
+  const feedEntries: FeedEntry[] = [
+    ...((feedUsers ?? []) as { id: string; display_name: string | null; updated_at: string; claimed_character_id: string | null }[]).map(u => {
+      const char = u.claimed_character_id ? feedCharMap[u.claimed_character_id] : null
+      const status = char?.status ?? null
+      const what = status === 'new'
+        ? 'joined as a fresh recruit'
+        : status === 'returned'
+        ? 'answered the call and returned'
+        : 'answered the call · character claimed'
+      return { key: u.id, who: u.display_name ?? '???', what, cls: char?.class ?? null, when: u.updated_at }
+    }),
+    { key: 'guild-founded', who: 'Åvatarødys', what: 'founded Blådes Edge', cls: null, when: null },
+  ]
+
   const charCount = yourCharCount ?? 0
   const displayName = profile?.display_name ?? 'Adventurer'
 
@@ -239,37 +273,34 @@ export default async function DashboardPage() {
           <div style={{ padding: '22px 22px 0' }}>
             <p style={eyebrow}>Hall Feed</p>
           </div>
-          {notifications.length > 0
-            ? notifications.map((n) => (
-                <div key={n.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 22px', borderTop: '1px solid rgba(61,46,21,0.4)' }}>
-                  <div className="be-mini-avatar">{n.title.slice(0, 1)}</div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: 0, fontFamily: "'Spectral', serif", fontSize: '0.9rem', color: '#f0e6c8', lineHeight: 1.3 }}>
-                      <span style={{ fontFamily: 'var(--be-font-display)' }}>{n.title}</span>
-                      {n.body && <span style={{ color: 'var(--be-gold)', marginLeft: 5 }}>{n.body}</span>}
-                    </p>
-                  </div>
-                  <span style={{ fontFamily: 'monospace', fontSize: '0.65rem', color: 'rgba(138,122,90,0.6)', textTransform: 'uppercase', flexShrink: 0 }}>
-                    {relativeTime(n.created_at)}
-                  </span>
+          {feedEntries.map((entry) => {
+            const color = entry.cls ? (CLASS_COLORS[entry.cls] ?? 'var(--be-gold)') : 'var(--be-gold)'
+            const isPinned = entry.key === 'guild-founded'
+            return (
+              <div key={entry.key} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 22px', borderTop: '1px solid rgba(61,46,21,0.4)', opacity: isPinned ? 0.65 : 1 }}>
+                <div style={{
+                  width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  backgroundColor: `${color}33`,
+                  border: `1px solid ${color}99`,
+                  fontFamily: 'var(--be-font-display)',
+                  fontSize: '0.75rem',
+                  color,
+                }}>
+                  {entry.who.slice(0, 1)}
                 </div>
-              ))
-            : PLACEHOLDER_FEED.map((item, i) => (
-                <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 22px', borderTop: '1px solid rgba(61,46,21,0.4)' }}>
-                  <div className="be-mini-avatar">{item.who.slice(0, 1)}</div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ margin: 0, fontFamily: "'Spectral', serif", fontSize: '0.9rem', color: '#f0e6c8', lineHeight: 1.3 }}>
-                      <span style={{ fontFamily: 'var(--be-font-display)' }}>{item.who}</span>
-                      <span style={{ color: 'rgba(138,122,90,0.8)', margin: '0 5px' }}>{item.what}</span>
-                      <span style={{ color: 'var(--be-gold)' }}>{item.detail}</span>
-                    </p>
-                  </div>
-                  <span style={{ fontFamily: 'monospace', fontSize: '0.65rem', color: 'rgba(138,122,90,0.6)', textTransform: 'uppercase', flexShrink: 0 }}>
-                    {item.when}
-                  </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ margin: 0, fontFamily: "'Spectral', serif", fontSize: '0.9rem', color: '#f0e6c8', lineHeight: 1.3 }}>
+                    <span style={{ fontFamily: 'var(--be-font-display)', color }}>{entry.who}</span>
+                    <span style={{ color: 'rgba(138,122,90,0.8)', marginLeft: 5 }}>{entry.what}</span>
+                  </p>
                 </div>
-              ))
-          }
+                <span style={{ fontFamily: 'monospace', fontSize: '0.65rem', color: 'rgba(138,122,90,0.6)', textTransform: 'uppercase', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                  {relativeTime(entry.when)}
+                </span>
+              </div>
+            )
+          })}
         </div>
 
         {/* Upcoming */}
