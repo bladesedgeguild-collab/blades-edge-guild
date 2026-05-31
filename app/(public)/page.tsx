@@ -1,4 +1,6 @@
 // Run supabase/migrations/003_hide_from_roster.sql before deploying (adds hide_from_roster + note columns)
+export const dynamic = 'force-dynamic'
+
 import { ReturnMeter } from '@/components/roster/ReturnMeter'
 import { ScrollingNames, type NameEntry } from '@/components/landing/ScrollingNames'
 import { CtaLoginPanel } from '@/components/landing/CtaLoginPanel'

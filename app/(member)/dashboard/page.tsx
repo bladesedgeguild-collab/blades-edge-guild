@@ -165,7 +165,7 @@ export default async function DashboardPage() {
         <p style={{ fontFamily: 'var(--be-font-display)', fontSize: '0.65rem', letterSpacing: '0.2em', color: 'var(--be-gold)', textTransform: 'uppercase', margin: '0 0 6px' }}>
           Welcome Back
         </p>
-        <h1 className="character-name" style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: '3rem', color: '#f0e6c8', lineHeight: 1, margin: '0 0 8px' }}>
+        <h1 className="character-name hall-greeting-name" style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: '3rem', color: '#f0e6c8', lineHeight: 1, margin: '0 0 8px' }}>
           {displayName}
         </h1>
         {mainChar && (
@@ -183,7 +183,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* ── Main grid: 2fr 1fr ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20 }}>
+      <div className="hall-main-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20 }}>
 
         {/* Campaign banner */}
         <div style={{
@@ -251,7 +251,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Quick stats column */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div className="hall-stats-grid" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div style={{ ...tile, padding: 22 }}>
             <p style={eyebrow}>Your Characters</p>
             <p className="be-stat" style={{ margin: 0 }}>{charCount}</p>
@@ -266,7 +266,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* ── Bottom grid: 1fr 1fr ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+      <div className="hall-bottom-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
 
         {/* Hall Feed */}
         <div style={tile}>

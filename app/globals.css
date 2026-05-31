@@ -770,3 +770,191 @@ input[type=number] { -moz-appearance: textfield; }
   background: rgba(220, 60, 60, 0.1);
   border-color: #dc3c3c;
 }
+
+/* ════════════════════════════════════════
+   MOBILE RESPONSIVE — max-width: 768px
+   All rules below are additive overrides.
+   Desktop layouts above are unchanged.
+   ════════════════════════════════════════ */
+
+/* ── Global base ── */
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+    font-size: 16px;
+  }
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+  .page-container {
+    padding: 0 1rem;
+  }
+}
+
+/* ── Navbar: desktop/mobile visibility ── */
+.nav-desktop-links {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+.nav-mobile-wrapper {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .nav-desktop-links {
+    display: none;
+  }
+  .nav-mobile-wrapper {
+    display: flex;
+    align-items: center;
+  }
+  .nav-mobile-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: var(--be-bg-1);
+    border-bottom: 1px solid rgba(201, 150, 26, 0.2);
+    display: flex;
+    flex-direction: column;
+    z-index: 100;
+  }
+  .nav-mobile-link {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    color: var(--be-ink);
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid rgba(201, 150, 26, 0.08);
+    text-decoration: none;
+    display: block;
+  }
+  .nav-mobile-user {
+    padding: 0.75rem 1rem;
+    border-top: 1px solid rgba(201, 150, 26, 0.15);
+    margin-top: 0.25rem;
+  }
+}
+
+/* ── Onboarding panel ── */
+@media (max-width: 768px) {
+  .onboarding-crest-wrap {
+    margin-bottom: 1rem !important;
+  }
+  .onboarding-guild-crest {
+    width: 64px !important;
+    height: 64px !important;
+  }
+  .onboarding-panel {
+    padding: 1.5rem 1.25rem !important;
+    border-radius: 8px !important;
+  }
+  .onboarding-char-name {
+    font-size: clamp(1.8rem, 8vw, 3rem) !important;
+    line-height: 1.05 !important;
+  }
+}
+
+/* ── Oath cinematic (mobile enhancements) ── */
+@media (max-width: 768px) {
+  .oath-center-content {
+    padding: 1.5rem 1.25rem !important;
+  }
+  .oath-name {
+    font-size: clamp(2rem, 8vw, 3.5rem) !important;
+  }
+  .oath-button-slot {
+    padding-bottom: 2rem;
+  }
+  .oath-continue-btn {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
+
+/* ── Hall / Dashboard page ── */
+@media (max-width: 768px) {
+  .hall-greeting-name {
+    font-size: clamp(2rem, 7vw, 3rem) !important;
+  }
+  .hall-main-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+  .hall-stats-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 1rem !important;
+  }
+  .hall-bottom-grid {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+}
+
+/* ── My Roster hero ── */
+@media (max-width: 768px) {
+  .roster-hero-art {
+    opacity: 0.25;
+  }
+  .roster-hero-fig {
+    height: 120px;
+  }
+  .roster-hero-name {
+    font-size: clamp(1.8rem, 7vw, 3rem) !important;
+  }
+  .roster-hero-class {
+    font-size: 0.85rem !important;
+  }
+  .roster-body {
+    padding: 0;
+    gap: 1rem;
+  }
+  .vitals-tile {
+    padding: 16px 20px !important;
+  }
+  .alts-tile-header {
+    padding: 16px 20px 14px !important;
+  }
+  .alts-tile-cards {
+    padding: 0 20px 14px !important;
+  }
+  .alts-tile-footer {
+    padding: 0 20px 24px !important;
+  }
+  .add-alt-btn {
+    max-width: 100%;
+    border-radius: 8px;
+    padding: 1.5rem 1.5rem;
+  }
+  .alt-btn-figures {
+    height: 155px;
+  }
+  .alt-fig-1 { height: 90px; }
+  .alt-fig-2 { height: 118px; }
+  .alt-fig-3 { height: 145px; }
+  .alt-fig-4 { height: 128px; }
+  .alt-fig-5 { height: 96px; }
+}
+
+/* ── Settings ── */
+@media (max-width: 768px) {
+  .settings-section {
+    padding: 1.25rem;
+    border-radius: 8px;
+  }
+  .settings-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+  .settings-btn-secondary,
+  .settings-btn-discord,
+  .settings-btn-danger {
+    width: 100%;
+    padding: 0.75rem;
+    text-align: center;
+  }
+}

@@ -101,10 +101,10 @@ export default async function MyRosterPage() {
 
           {/* Name block */}
           <div style={{ marginBottom: 12 }}>
-            <p style={{ fontFamily: 'var(--be-font-display)', fontSize: '1rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(138,122,90,0.6)', margin: '0 0 6px' }}>
+            <p className="roster-hero-class" style={{ fontFamily: 'var(--be-font-display)', fontSize: '1rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(138,122,90,0.6)', margin: '0 0 6px' }}>
               {mainChar.class}
             </p>
-            <h1 className="character-name" style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: 'clamp(2.2rem, 4vw, 4rem)', color: charColor, lineHeight: 1.05, margin: 0 }}>
+            <h1 className="character-name roster-hero-name" style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: 'clamp(2.2rem, 4vw, 4rem)', color: charColor, lineHeight: 1.05, margin: 0 }}>
               {mainChar.name}
             </h1>
           </div>
@@ -138,7 +138,7 @@ export default async function MyRosterPage() {
       <div className="roster-body">
 
         {/* ── Vitals ── */}
-        <div style={{ ...tile, padding: '24px 40px' }}>
+        <div className="vitals-tile" style={{ ...tile, padding: '24px 40px' }}>
           <p style={{ fontFamily: 'var(--be-font-display)', fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(201,150,26,0.85)', margin: '0 0 20px' }}>
             Character Vitals
           </p>

@@ -477,7 +477,7 @@ export default function OnboardingPage() {
           <p style={{ fontFamily: 'var(--be-font-display)', fontSize: '1.4rem', letterSpacing: '0.25em', color: 'var(--be-portal)', textTransform: 'uppercase', margin: 0, opacity: 0, animation: 'be-fade-in 0.8s ease-out 1.8s both' }}>
             The Oath is Sealed
           </p>
-          <p className="character-name" style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: '7rem', color: 'var(--be-ink)', lineHeight: 1, margin: 0, opacity: 0, animation: 'be-fade-in 0.8s ease-out 2.1s both' }}>
+          <p className="character-name oath-name" style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: '7rem', color: 'var(--be-ink)', lineHeight: 1, margin: 0, opacity: 0, animation: 'be-fade-in 0.8s ease-out 2.1s both' }}>
             {selectedChar?.name}
           </p>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: 0, animation: 'be-fade-in 0.6s ease-out 2.4s both' }}>
@@ -531,14 +531,14 @@ export default function OnboardingPage() {
     <div style={{ minHeight: '100vh', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingTop: 56, paddingBottom: 64, paddingLeft: 16, paddingRight: 16, background: "url('/images/hero-portal.png') center/cover no-repeat fixed" }}>
       <div style={{ width: '100%', maxWidth: 560 }}>
 
-        <div style={{ textAlign: 'center', marginBottom: -60, position: 'relative', zIndex: 2 }}>
-          <div style={{ display: 'inline-block', width: 120, height: 120, borderRadius: '50%', overflow: 'hidden', boxShadow: '0 0 0 2px rgba(201,150,26,0.4), 0 0 30px rgba(26,255,110,0.35), 0 0 60px rgba(26,255,110,0.15)', animation: 'be-aura-pulse 4.5s ease-in-out infinite' }}>
+        <div className="onboarding-crest-wrap" style={{ textAlign: 'center', marginBottom: -60, position: 'relative', zIndex: 2 }}>
+          <div className="onboarding-guild-crest" style={{ display: 'inline-block', width: 120, height: 120, borderRadius: '50%', overflow: 'hidden', boxShadow: '0 0 0 2px rgba(201,150,26,0.4), 0 0 30px rgba(26,255,110,0.35), 0 0 60px rgba(26,255,110,0.15)', animation: 'be-aura-pulse 4.5s ease-in-out infinite' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/images/guild-crest.png" alt="Blådes Edge" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
           </div>
         </div>
 
-        <div style={{ backgroundColor: 'rgba(10,8,5,0.88)', backdropFilter: 'blur(8px)', border: '1px solid rgba(201,150,26,0.25)', borderRadius: 12, padding: '72px 40px 40px', position: 'relative' }}>
+        <div className="onboarding-panel" style={{ backgroundColor: 'rgba(10,8,5,0.88)', backdropFilter: 'blur(8px)', border: '1px solid rgba(201,150,26,0.25)', borderRadius: 12, padding: '72px 40px 40px', position: 'relative' }}>
           {error && (
             <div style={{ marginBottom: 16, padding: '10px 14px', backgroundColor: 'rgba(165,30,30,0.3)', border: '1px solid rgba(200,60,60,0.4)', borderRadius: 4, color: '#f87171', fontSize: 14, fontFamily: 'var(--be-font-ui)' }}>
               {error}
@@ -592,7 +592,7 @@ export default function OnboardingPage() {
               <StepHeader current={2} total={3} label="Is this you?" />
               <div style={{ background: 'linear-gradient(135deg, var(--be-bg-1) 0%, var(--be-bg-2) 100%)', border: '1px solid var(--be-iron-3)', borderLeft: `4px solid ${CLASS_COLORS[selectedChar.class] ?? '#888'}`, borderRadius: 'var(--be-radius)', padding: 24, marginBottom: 20 }}>
                 <p style={{ fontFamily: 'var(--be-font-display)', fontSize: 11, letterSpacing: '0.15em', color: CLASS_COLORS[selectedChar.class] ?? '#888', marginBottom: 6 }}>{selectedChar.class}</p>
-                <h1 style={{ fontFamily: 'var(--be-font-display)', fontSize: 48, color: 'var(--be-ink)', margin: '0 0 6px', lineHeight: 1 }}>{selectedChar.name}</h1>
+                <h1 className="onboarding-char-name" style={{ fontFamily: 'var(--be-font-display)', fontSize: 48, color: 'var(--be-ink)', margin: '0 0 6px', lineHeight: 1 }}>{selectedChar.name}</h1>
                 <p style={{ fontFamily: 'var(--be-font-body)', fontStyle: 'italic', color: 'var(--be-ink-3)', fontSize: 15, marginBottom: 16 }}>Level {selectedChar.level}</p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 20px' }}>
                   {selectedChar.rank_name && (
@@ -631,7 +631,7 @@ export default function OnboardingPage() {
               <StepHeader current={2} total={3} label="Is this correct?" />
               <div style={{ background: 'linear-gradient(135deg, var(--be-bg-1) 0%, var(--be-bg-2) 100%)', border: '1px solid var(--be-iron-3)', borderLeft: `4px solid ${newFormClassColor}`, borderRadius: 'var(--be-radius)', padding: 24, marginBottom: 20 }}>
                 <p style={{ fontFamily: 'var(--be-font-display)', fontSize: 11, letterSpacing: '0.15em', color: newFormClassColor, marginBottom: 6 }}>{newForm.cls.toUpperCase()}</p>
-                <h1 style={{ fontFamily: 'var(--be-font-display)', fontSize: 48, color: 'var(--be-ink)', margin: '0 0 6px', lineHeight: 1 }}>{newForm.name}</h1>
+                <h1 className="onboarding-char-name" style={{ fontFamily: 'var(--be-font-display)', fontSize: 48, color: 'var(--be-ink)', margin: '0 0 6px', lineHeight: 1 }}>{newForm.name}</h1>
                 <p style={{ fontFamily: 'var(--be-font-body)', fontStyle: 'italic', color: 'var(--be-ink-3)', fontSize: 15, marginBottom: 16 }}>Level {newForm.level}</p>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px 20px' }}>
                   <div>
@@ -730,7 +730,7 @@ export default function OnboardingPage() {
               <h2 style={{ fontFamily: 'var(--be-font-display)', fontSize: 22, color: 'var(--be-ink)', margin: '0 0 16px', textAlign: 'center' }}>Add this alt?</h2>
               <div style={{ background: 'linear-gradient(135deg, var(--be-bg-1) 0%, var(--be-bg-2) 100%)', border: '1px solid var(--be-iron-3)', borderLeft: `4px solid ${CLASS_COLORS[altCandidate.class] ?? '#888'}`, borderRadius: 'var(--be-radius)', padding: 24, marginBottom: 20 }}>
                 <p style={{ fontFamily: 'var(--be-font-display)', fontSize: 11, letterSpacing: '0.15em', color: CLASS_COLORS[altCandidate.class] ?? '#888', marginBottom: 6 }}>{altCandidate.class}</p>
-                <h1 style={{ fontFamily: 'var(--be-font-display)', fontSize: 40, color: 'var(--be-ink)', margin: '0 0 6px', lineHeight: 1 }}>{altCandidate.name}</h1>
+                <h1 className="onboarding-char-name" style={{ fontFamily: 'var(--be-font-display)', fontSize: 40, color: 'var(--be-ink)', margin: '0 0 6px', lineHeight: 1 }}>{altCandidate.name}</h1>
                 <p style={{ fontFamily: 'var(--be-font-body)', fontStyle: 'italic', color: 'var(--be-ink-3)', fontSize: 15 }}>
                   Level {altCandidate.level}{altCandidate.race ? ` · ${altCandidate.race}` : ''}{altCandidate.rank_name ? ` · ${altCandidate.rank_name}` : ''}
                 </p>
@@ -762,7 +762,7 @@ export default function OnboardingPage() {
                 <h2 style={{ fontFamily: 'var(--be-font-display)', fontSize: 22, color: 'var(--be-ink)', margin: '0 0 16px', textAlign: 'center' }}>Add this alt?</h2>
                 <div style={{ background: 'linear-gradient(135deg, var(--be-bg-1) 0%, var(--be-bg-2) 100%)', border: '1px solid var(--be-iron-3)', borderLeft: `4px solid ${color}`, borderRadius: 'var(--be-radius)', padding: 24, marginBottom: 20 }}>
                   <p style={{ fontFamily: 'var(--be-font-display)', fontSize: 11, letterSpacing: '0.15em', color, marginBottom: 6 }}>{altNewForm.cls.toUpperCase()}</p>
-                  <h1 style={{ fontFamily: 'var(--be-font-display)', fontSize: 40, color: 'var(--be-ink)', margin: '0 0 6px', lineHeight: 1 }}>{altNewForm.name}</h1>
+                  <h1 className="onboarding-char-name" style={{ fontFamily: 'var(--be-font-display)', fontSize: 40, color: 'var(--be-ink)', margin: '0 0 6px', lineHeight: 1 }}>{altNewForm.name}</h1>
                   <p style={{ fontFamily: 'var(--be-font-body)', fontStyle: 'italic', color: 'var(--be-ink-3)', fontSize: 15 }}>Level {altNewForm.level} · {altNewForm.race} · Fresh Recruit</p>
                 </div>
                 <div style={{ display: 'flex', gap: 12 }}>

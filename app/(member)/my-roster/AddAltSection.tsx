@@ -153,7 +153,7 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
       <div style={{ background: 'rgba(26,18,8,0.6)', border: '1px solid rgba(61,46,21,0.5)', borderRadius: 4 }}>
 
         {/* Header row with eyebrow + small add button */}
-        <div style={{ padding: '24px 40px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className="alts-tile-header" style={{ padding: '24px 40px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <p style={{ fontFamily: 'var(--be-font-display)', fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(201,150,26,0.85)', margin: 0 }}>
             Your Alts
           </p>
@@ -169,7 +169,7 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
 
         {/* Alt cards */}
         {alts.length > 0 && (
-          <div style={{ padding: '0 40px 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div className="alts-tile-cards" style={{ padding: '0 40px 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
             {alts.map((alt) => {
               const color = CLASS_COLORS[alt.class] ?? '#888'
               return (
@@ -190,7 +190,7 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
         )}
 
         {/* Add Alt big button */}
-        <div style={{ padding: alts.length === 0 ? '0 40px 32px' : '8px 40px 32px' }}>
+        <div className="alts-tile-footer" style={{ padding: alts.length === 0 ? '0 40px 32px' : '8px 40px 32px' }}>
           {alts.length === 0 && (
             <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'rgba(138,122,90,0.55)', fontSize: '0.9rem', textAlign: 'center', marginBottom: 20 }}>
               Your allies await. Bring your alts into the fold.

@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { CLASS_COLORS, CharacterClass } from '@/types'
 import { NavScrollGlow } from './NavScrollGlow'
 import { NavUserMenu } from './NavUserMenu'
+import { NavMobileMenu } from './NavMobileMenu'
 
 type ProfileData = {
   display_name: string | null
@@ -42,6 +43,10 @@ export async function NavBar() {
 
   const charColor = claimedChar ? (CLASS_COLORS[claimedChar.class] ?? '#c9961a') : '#c9961a'
   const displayName = profile?.display_name ?? 'Adventurer'
+  const avatarUrl = !claimedChar && profile?.discord_avatar
+    ? `https://cdn.discordapp.com/avatars/${user?.user_metadata?.provider_id}/${profile.discord_avatar}.png?size=32`
+    : null
+  const isOfficer = ['admin', 'gm', 'officer'].includes(profile?.role ?? '')
 
   return (
     <nav
@@ -59,7 +64,8 @@ export async function NavBar() {
           Blådes Edge
         </Link>
 
-        <div className="flex items-center gap-6">
+        {/* Desktop nav — hidden on mobile via .nav-desktop-links */}
+        <div className="nav-desktop-links">
           {user ? (
             <>
               <Link
@@ -89,7 +95,7 @@ export async function NavBar() {
                   Coming soon
                 </span>
               </span>
-              {['admin', 'gm', 'officer'].includes(profile?.role ?? '') && (
+              {isOfficer && (
                 <Link
                   href="/approvals"
                   className="text-sm transition-colors hover:text-[#c9961a]"
@@ -101,11 +107,7 @@ export async function NavBar() {
               <NavUserMenu
                 displayName={displayName ?? ''}
                 charColor={charColor}
-                avatarUrl={
-                  !claimedChar && profile?.discord_avatar
-                    ? `https://cdn.discordapp.com/avatars/${user.user_metadata?.provider_id}/${profile.discord_avatar}.png?size=32`
-                    : null
-                }
+                avatarUrl={avatarUrl}
               />
             </>
           ) : (
@@ -147,6 +149,15 @@ export async function NavBar() {
             </>
           )}
         </div>
+
+        {/* Mobile nav — hidden on desktop via .nav-mobile-wrapper */}
+        <NavMobileMenu
+          isLoggedIn={!!user}
+          isOfficer={isOfficer}
+          displayName={displayName ?? ''}
+          charColor={charColor}
+          avatarUrl={avatarUrl}
+        />
       </div>
     </nav>
   )
