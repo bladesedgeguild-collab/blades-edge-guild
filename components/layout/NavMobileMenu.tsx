@@ -66,7 +66,7 @@ export function NavMobileMenu({ isLoggedIn, isOfficer, displayName, charColor, a
               <Link href="/my-roster" className="nav-mobile-link" onClick={() => setOpen(false)}>My Roster</Link>
               <span className="nav-mobile-link" style={{ color: '#3d2e15', cursor: 'not-allowed' }}>Dungeons</span>
               {isOfficer && (
-                <Link href="/approvals" className="nav-mobile-link" onClick={() => setOpen(false)}>Officers</Link>
+                <Link href="/officers" className="nav-mobile-link" onClick={() => setOpen(false)}>Officers</Link>
               )}
               <div className="nav-mobile-user">
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
