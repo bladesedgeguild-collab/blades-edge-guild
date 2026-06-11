@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
 
     try {
       if (!match) {
-        // INSERT new character, status = 'mia'
+        // INSERT new character — genuinely new, not in original 275
         const insertData: Record<string, unknown> = {
           name: uc.name,
           realm: REALM,
@@ -147,8 +147,9 @@ export async function POST(request: NextRequest) {
           rank_index: uc.rank_index ?? null,
           rank_name: uc.rank_name ?? null,
           note: uc.note ?? null,
-          status: 'mia',
-          imported_from_grm: true,
+          status: 'new',
+          in_original_roster: false,
+          imported_from_grm: false,
           hide_from_roster: false,
           is_main: true,
         }
@@ -184,17 +185,14 @@ export async function POST(request: NextRequest) {
         }
         added++
       } else {
-        // UPDATE existing — only update safe fields; never touch claimed_by/user_id/is_main/hide_from_roster
+        // UPDATE existing — set status='returned', update level/rank/last_online_days
+        // Never touch claimed_by/user_id/is_main/hide_from_roster/in_original_roster
         const updateData: Record<string, unknown> = {
           level: uc.level ?? 1,
           rank_index: uc.rank_index ?? null,
           rank_name: uc.rank_name ?? null,
+          status: 'returned',
           updated_at: new Date().toISOString(),
-        }
-
-        // Only update status for unclaimed characters
-        if (!match.claimed_by) {
-          // Keep status as-is from DB for MIA/new chars that aren't claimed
         }
 
         // Try with last_online_days first

@@ -1,4 +1,7 @@
-// Run supabase/migrations/003_hide_from_roster.sql before deploying (adds hide_from_roster + note columns)
+// Migration required before these counts work correctly:
+// ALTER TABLE public.characters ADD COLUMN IF NOT EXISTS in_original_roster boolean DEFAULT false;
+// UPDATE public.characters SET in_original_roster = true WHERE imported_from_grm = true;
+// Run in Supabase SQL editor after deploying.
 export const dynamic = 'force-dynamic'
 
 import { ReturnMeter } from '@/components/roster/ReturnMeter'
@@ -46,74 +49,88 @@ export default async function LandingPage() {
     activeCharsResult,
     originalsResult,
   ] = await Promise.all([
-    // Total roster size
+    // Total current guildies (all non-hidden)
     supabase
       .from('characters')
       .select('*', { count: 'exact', head: true })
-      .eq('realm', 'Dreamscythe')
       .eq('hide_from_roster', false),
-    // Returned original members
+    // Returned originals: in_original_roster=true AND status='returned'
     supabase
       .from('characters')
       .select('*', { count: 'exact', head: true })
+      .eq('in_original_roster', true)
       .eq('status', 'returned'),
-    // New adventurers
+    // New adventurers: not in original 275
     supabase
       .from('characters')
       .select('*', { count: 'exact', head: true })
-      .eq('status', 'new')
-      .eq('realm', 'Dreamscythe')
+      .eq('in_original_roster', false)
       .eq('hide_from_roster', false),
     // MIA count
     supabase
       .from('characters')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'mia')
-      .eq('realm', 'Dreamscythe')
       .eq('hide_from_roster', false),
     // MIA chars for right scroll column
     supabase
       .from('characters')
       .select('name, class')
-      .eq('realm', 'Dreamscythe')
       .eq('status', 'mia')
       .neq('hide_from_roster', true)
       .order('name')
       .limit(60),
-    // Active this week (last_online_days <= 7)
+    // Active this week — last_online_days <= 7, includes professions for hover
     supabase
       .from('characters')
-      .select('name, class, level, rank_name, status, last_online_days')
+      .select('name, class, race, level, rank_name, status, last_online_days, professions(name, skill_level, is_primary)')
       .lte('last_online_days', 7)
       .eq('hide_from_roster', false)
       .order('last_online_days', { ascending: true })
       .limit(30),
-    // All returned chars — for left scroll column + Original Blådes Edge Members rows
+    // Original Blådes Edge Members: in_original_roster=true, status='returned'
     supabase
       .from('characters')
-      .select('name, class, level, rank_name, status')
+      .select('name, class, race, level, rank_name, status, professions(name, skill_level, is_primary)')
+      .eq('in_original_roster', true)
       .eq('status', 'returned')
       .eq('hide_from_roster', false)
       .order('rank_index', { ascending: true }),
   ])
 
   const totalRoster = totalResult.count ?? 0
-  const total = totalRoster
   const returnedOriginal = returnedCountResult.count ?? 0
   const newCount = newCountResult.count ?? 0
   const mia = miaCountResult.count ?? 0
 
-  // Left column — Answered the Call
+  // Left column — Answered the Call: original members who returned, Aaron 3× deprioritized
+  type OrigChar = {
+    name: string
+    class: string
+    status: string
+    race?: string | null
+    level?: number
+    rank_name?: string | null
+    professions?: { name: string; skill_level: number; is_primary: boolean }[]
+  }
+  const originalsData: OrigChar[] = (originalsResult.data ?? []) as OrigChar[]
+
   const seenReturnedNames = new Set<string>()
-  const returnedEntries: NameEntry[] = (originalsResult.data ?? [])
-    .filter((c) => { if (seenReturnedNames.has(c.name)) return false; seenReturnedNames.add(c.name); return true })
-    .map((c) => ({ name: c.name, color: CLASS_COLORS[(c.class as CharacterClass)] ?? '#1aff6e' }))
+  const nonAaronReturned = originalsData.filter((c) => !AARON_CHARS.has(c.name) && !seenReturnedNames.has(c.name) && seenReturnedNames.add(c.name))
+  const aaronReturnedRaw = originalsData.filter((c) => AARON_CHARS.has(c.name))
+
+  const returnedEntries: NameEntry[] = [
+    ...nonAaronReturned,
+    ...nonAaronReturned,
+    ...nonAaronReturned,
+    ...aaronReturnedRaw,
+  ].map((c) => ({ name: c.name, color: CLASS_COLORS[(c.class as CharacterClass)] ?? '#1aff6e' }))
 
   // Right column — Still MIA
   const miaEntries: NameEntry[] = (miaCharsResult.data ?? [])
     .map((c) => ({ name: c.name, color: '#8a7a5a' }))
 
-  // Active This Week — exclude Aaron's alts
+  // Active This Week — exclude Aaron's chars
   const activeThisWeek: RosterChar[] = (activeCharsResult.data ?? [])
     .filter((c) => !AARON_CHARS.has(c.name))
     .map((c) => ({
@@ -122,21 +139,25 @@ export default async function LandingPage() {
       level: c.level as number,
       rank_name: (c.rank_name as string | null) ?? null,
       status: c.status as string,
+      race: (c.race as string | null) ?? null,
+      professions: (c.professions as RosterChar['professions']) ?? [],
     }))
 
-  // Original Blådes Edge Members — 3× non-Aaron loop, then Aaron's chars
-  const originalsAll: RosterChar[] = (originalsResult.data ?? []).map((c) => ({
-    name: c.name as string,
-    class: c.class as string,
-    level: c.level as number,
-    rank_name: (c.rank_name as string | null) ?? null,
-    status: c.status as string,
+  // Original Blådes Edge Members — 3× non-Aaron, then Aaron's
+  const originalsAll: RosterChar[] = originalsData.map((c) => ({
+    name: c.name,
+    class: c.class,
+    level: c.level ?? 1,
+    rank_name: c.rank_name ?? null,
+    status: c.status,
+    race: c.race ?? null,
+    professions: c.professions ?? [],
   }))
-  const nonAaron = originalsAll.filter((c) => !AARON_CHARS.has(c.name))
-  const aaronChars = originalsAll.filter((c) => AARON_CHARS.has(c.name))
+  const nonAaronOriginals = originalsAll.filter((c) => !AARON_CHARS.has(c.name))
+  const aaronOriginals = originalsAll.filter((c) => AARON_CHARS.has(c.name))
   const originalsScrollArray: RosterChar[] = [
-    ...nonAaron, ...nonAaron, ...nonAaron,
-    ...aaronChars,
+    ...nonAaronOriginals, ...nonAaronOriginals, ...nonAaronOriginals,
+    ...aaronOriginals,
   ]
 
   return (
@@ -151,7 +172,6 @@ export default async function LandingPage() {
           backgroundPosition: 'center',
         }}
       >
-        {/* Bottom-fade overlay */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -159,7 +179,6 @@ export default async function LandingPage() {
               'linear-gradient(to bottom, rgba(26,18,8,0.2) 0%, transparent 30%, rgba(26,18,8,0.75) 70%, #1a1208 100%)',
           }}
         />
-        {/* Left/right vignette */}
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
@@ -168,7 +187,6 @@ export default async function LandingPage() {
           }}
         />
 
-        {/* Stats panel — slightly overlaps bottom of hero */}
         <div
           className="absolute z-10 w-full"
           style={{
@@ -186,7 +204,6 @@ export default async function LandingPage() {
           <ReturnMeter totalRoster={totalRoster} returnedOriginal={returnedOriginal} newCount={newCount} />
         </div>
 
-        {/* Floating guild title — lower-right quadrant, no card */}
         <div
           className="absolute z-20 text-right hidden sm:block"
           style={{ bottom: 180, right: 0, paddingRight: 32 }}
@@ -232,7 +249,7 @@ export default async function LandingPage() {
               className="text-lg italic"
               style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
             >
-              {total} adventurers strong. The call has gone out.
+              187 adventurers strong. {returnedOriginal} have returned. The call has gone out.
             </p>
           </div>
 
@@ -316,10 +333,10 @@ export default async function LandingPage() {
             </div>
           </div>
 
-          {/* Active This Week + Original Blådes Edge Members */}
+          {/* Roster scroll sections */}
           <div className="mt-16 flex flex-col gap-14">
 
-            {/* Active This Week */}
+            {/* Active This Week — 2 rows */}
             {activeThisWeek.length > 0 && (
               <div>
                 <div className="text-center mb-6">
@@ -336,28 +353,30 @@ export default async function LandingPage() {
                     Guildies spotted online in the last 7 days.
                   </p>
                 </div>
-                <CinematicRoster chars={activeThisWeek} />
+                <CinematicRoster chars={activeThisWeek} rowCount={2} variant="active" />
               </div>
             )}
 
-            {/* Original Blådes Edge Members */}
-            <div>
-              <div className="text-center mb-6">
-                <h3
-                  className="text-2xl font-bold mb-2"
-                  style={{ fontFamily: "'Cinzel', serif", color: '#c9961a' }}
-                >
-                  Original Blådes Edge Members
-                </h3>
-                <p
-                  className="text-sm italic"
-                  style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
-                >
-                  Log in to see the full roster and claim your character.
-                </p>
+            {/* Original Blådes Edge Members — 3 rows */}
+            {originalsScrollArray.length > 0 && (
+              <div>
+                <div className="text-center mb-6">
+                  <h3
+                    className="text-2xl font-bold mb-2"
+                    style={{ fontFamily: "'Cinzel', serif", color: '#c9961a' }}
+                  >
+                    Original Blådes Edge Members
+                  </h3>
+                  <p
+                    className="text-sm italic"
+                    style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
+                  >
+                    Log in to see the full roster and claim your character.
+                  </p>
+                </div>
+                <CinematicRoster chars={originalsScrollArray} rowCount={3} variant="originals" />
               </div>
-              <CinematicRoster chars={originalsScrollArray} />
-            </div>
+            )}
 
           </div>
 

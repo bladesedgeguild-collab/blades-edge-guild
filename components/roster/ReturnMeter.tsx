@@ -30,7 +30,7 @@ export function ReturnMeter({ totalRoster, returnedOriginal, newCount }: ReturnM
             {totalRoster}
           </p>
           <p className="text-xs" style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}>
-            adventurers in the roster
+            Current Guildies
           </p>
         </div>
         <div className="w-px h-10 flex-shrink-0" style={{ backgroundColor: '#3d2e15' }} />

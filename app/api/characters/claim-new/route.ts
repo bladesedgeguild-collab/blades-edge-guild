@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
     characterId = existingChar.id
     returnedChar = { id: existingChar.id, name: characterName, class: characterClass, race: characterRace, level: characterLevel }
   } else {
-    // No existing row — insert fresh
+    // No existing row — insert fresh (brand new member, not in original 275)
     const { data: newChar, error: insertError } = await admin
       .from('characters')
       .insert({
@@ -111,6 +111,7 @@ export async function POST(request: NextRequest) {
         rank_name: 'Fresh Recruit',
         rank_index: 9,
         status: 'new',
+        in_original_roster: false,
         is_main: true,
         hide_from_roster: false,
         claimed_by: user.id,

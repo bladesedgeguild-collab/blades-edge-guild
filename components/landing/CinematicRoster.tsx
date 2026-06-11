@@ -14,12 +14,19 @@ export type RosterChar = {
   level: number
   rank_name: string | null
   status: string
+  race?: string | null
+  professions?: { name: string; skill_level: number; is_primary: boolean }[]
 }
 
 function NameChip({ char }: { char: RosterChar }) {
   const [hovered, setHovered] = useState(false)
-  const classColor = CLASS_COLORS[char.class] ?? '#888'
+  const classColor = CLASS_COLORS[char.class] ?? '#c9961a'
   const isReturned = char.status === 'returned'
+
+  const primaryProfs = (char.professions ?? []).filter((p) => p.is_primary).slice(0, 2)
+  const profText = primaryProfs.length > 0
+    ? primaryProfs.map((p) => p.name).join(' · ')
+    : 'No professions listed'
 
   return (
     <div
@@ -39,7 +46,7 @@ function NameChip({ char }: { char: RosterChar }) {
         boxShadow: isReturned ? '0 0 8px rgba(26,255,110,0.4)' : 'none',
         height: hovered ? 'auto' : 52,
         minHeight: 52,
-        width: hovered ? 220 : 'auto',
+        width: hovered ? 230 : 'auto',
         transition: 'all 0.25s ease',
         zIndex: hovered ? 10 : 1,
         position: 'relative',
@@ -59,20 +66,25 @@ function NameChip({ char }: { char: RosterChar }) {
       />
       {hovered ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-          <span style={{ fontFamily: "'Cinzel', serif", fontSize: '0.9rem', color: '#f0e6c8', whiteSpace: 'nowrap' }}>
+          <span style={{ fontFamily: "'Cinzel', serif", fontSize: '0.9rem', color: classColor, whiteSpace: 'nowrap' }}>
             {char.name}
           </span>
-          <span style={{ fontFamily: "'Crimson Pro', serif", fontSize: '0.75rem', color: classColor, whiteSpace: 'nowrap' }}>
-            {char.class.charAt(0) + char.class.slice(1).toLowerCase()} · {char.level}
+          <span style={{ fontFamily: "'Crimson Pro', serif", fontSize: '0.75rem', color: '#f0e6c8', whiteSpace: 'nowrap' }}>
+            {char.class.charAt(0) + char.class.slice(1).toLowerCase()}
+            {char.race ? ` · ${char.race}` : ''}
+            {` · ${char.level}`}
           </span>
           {char.rank_name && (
             <span style={{ fontSize: '0.7rem', color: '#8a7a5a', whiteSpace: 'nowrap' }}>
               {char.rank_name}
             </span>
           )}
+          <span style={{ fontSize: '0.68rem', color: '#8a7a5a', whiteSpace: 'nowrap', fontStyle: 'italic' }}>
+            {profText}
+          </span>
         </div>
       ) : (
-        <span style={{ fontFamily: "'Cinzel', serif", fontSize: '0.85rem', color: '#f0e6c8', whiteSpace: 'nowrap' }}>
+        <span style={{ fontFamily: "'Cinzel', serif", fontSize: '0.85rem', color: classColor, whiteSpace: 'nowrap' }}>
           {char.name}
         </span>
       )}
@@ -83,12 +95,12 @@ function NameChip({ char }: { char: RosterChar }) {
 function RosterRow({
   chars,
   direction,
-  duration,
+  speedVar,
   paused,
 }: {
   chars: RosterChar[]
   direction: 'left' | 'right'
-  duration: number
+  speedVar: string
   paused: boolean
 }) {
   const doubled = [...chars, ...chars]
@@ -99,7 +111,7 @@ function RosterRow({
         style={{
           display: 'flex',
           gap: 16,
-          animation: `${direction === 'left' ? 'scroll-left' : 'scroll-right'} ${duration}s linear infinite`,
+          animation: `${direction === 'left' ? 'scroll-left' : 'scroll-right'} ${speedVar} linear infinite`,
           animationPlayState: paused ? 'paused' : 'running',
           width: 'max-content',
           alignItems: 'center',
@@ -113,22 +125,32 @@ function RosterRow({
   )
 }
 
-export function CinematicRoster({ chars }: { chars: RosterChar[] }) {
+export function CinematicRoster({
+  chars,
+  rowCount = 4,
+  variant = 'originals',
+}: {
+  chars: RosterChar[]
+  rowCount?: number
+  variant?: 'active' | 'originals'
+}) {
   const [paused, setPaused] = useState(false)
 
   if (chars.length === 0) return null
+
+  const speedVar = variant === 'active'
+    ? 'var(--scroll-speed-active)'
+    : 'var(--scroll-speed-originals)'
 
   function rotated(offset: number): RosterChar[] {
     const n = offset % chars.length
     return [...chars.slice(n), ...chars.slice(0, n)]
   }
 
-  const rows: { chars: RosterChar[]; direction: 'left' | 'right'; duration: number }[] = [
-    { chars: rotated(0),   direction: 'left',  duration: 800 },
-    { chars: rotated(Math.floor(chars.length / 4)),     direction: 'right', duration: 1000 },
-    { chars: rotated(Math.floor(chars.length / 2)),     direction: 'left',  duration: 800 },
-    { chars: rotated(Math.floor(chars.length * 3 / 4)), direction: 'right', duration: 1000 },
-  ]
+  const rows = Array.from({ length: rowCount }, (_, i) => ({
+    chars: rotated(Math.floor((i * chars.length) / rowCount)),
+    direction: (i % 2 === 0 ? 'left' : 'right') as 'left' | 'right',
+  }))
 
   return (
     <div
@@ -141,7 +163,7 @@ export function CinematicRoster({ chars }: { chars: RosterChar[] }) {
           key={i}
           chars={row.chars}
           direction={row.direction}
-          duration={row.duration}
+          speedVar={speedVar}
           paused={paused}
         />
       ))}
