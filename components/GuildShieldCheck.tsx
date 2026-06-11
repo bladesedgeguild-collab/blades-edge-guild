@@ -6,33 +6,36 @@ export function GuildShieldCheck({ size = 20, color = '#1a1208' }: {
     <svg
       width={size}
       height={size}
-      viewBox="0 0 24 26"
+      viewBox="0 0 20 22"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
     >
-      {/* Tabard top crossbar / shoulder piece */}
+      {/* Shield body — classic heater shape, wide top, pointed bottom */}
       <path
-        d="M1 2 Q1 1 2 1 L22 1 Q23 1 23 2 L23 7 Q23 8 22 8 L15 8 L15 23 Q15 24 14 25 L12 26 L10 25 Q9 24 9 23 L9 8 L2 8 Q1 8 1 7 Z"
+        d="M2 2 L18 2 L18 13 Q18 18 10 21 Q2 18 2 13 Z"
         fill={color}
-        fillOpacity="0.2"
+        fillOpacity="0.18"
         stroke={color}
-        strokeWidth="1.2"
+        strokeWidth="1.4"
         strokeLinejoin="round"
       />
-      {/* Rivets along top bar — left side */}
-      <circle cx="3.5" cy="4.5" r="0.7" fill={color} />
-      <circle cx="6.5" cy="4.5" r="0.7" fill={color} />
-      {/* Rivets along top bar — right side */}
-      <circle cx="17.5" cy="4.5" r="0.7" fill={color} />
-      <circle cx="20.5" cy="4.5" r="0.7" fill={color} />
-      {/* Sword blade — centered in body */}
-      <line x1="12" y1="9.5" x2="12" y2="21" stroke={color} strokeWidth="1.3" strokeLinecap="round" />
-      {/* Sword crossguard */}
-      <line x1="9.5" y1="12.5" x2="14.5" y2="12.5" stroke={color} strokeWidth="1.3" strokeLinecap="round" />
-      {/* Sword grip */}
-      <line x1="12" y1="12.5" x2="12" y2="15.5" stroke={color} strokeWidth="1.8" strokeLinecap="round" />
+      {/* Inner shield border for depth */}
+      <path
+        d="M4 4 L16 4 L16 12.5 Q16 16.5 10 19 Q4 16.5 4 12.5 Z"
+        fill="none"
+        stroke={color}
+        strokeWidth="0.6"
+        strokeOpacity="0.5"
+        strokeLinejoin="round"
+      />
       {/* Pommel */}
-      <circle cx="12" cy="21.5" r="1" fill={color} />
+      <rect x="8.5" y="4.5" width="3" height="1.8" rx="0.9" fill={color} />
+      {/* Grip */}
+      <rect x="9.3" y="6.3" width="1.4" height="3" rx="0.3" fill={color} />
+      {/* Crossguard */}
+      <rect x="6.5" y="9" width="7" height="1.5" rx="0.5" fill={color} />
+      {/* Blade — long, slightly tapered */}
+      <path d="M9.3 10.5 L10.7 10.5 L10.2 18.5 L10 19.2 L9.8 18.5 Z" fill={color} />
     </svg>
   )
 }

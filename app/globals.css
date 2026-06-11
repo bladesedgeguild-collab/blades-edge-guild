@@ -597,6 +597,40 @@ input[type=number] { -moz-appearance: textfield; }
   color: var(--be-gold);
 }
 
+/* ── My Roster — Alt search modal overlay + card ── */
+.alt-search-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  z-index: 1000;
+  padding: 5vh 1rem 2rem;
+  overflow-y: auto;
+}
+.alt-search-modal {
+  position: relative;
+  width: 100%;
+  max-width: 580px;
+  max-height: 88vh;
+  overflow-y: auto;
+  background: rgba(16, 11, 4, 0.97);
+  border: 1px solid rgba(201, 150, 26, 0.3);
+  border-radius: 12px;
+  padding: 32px 32px 28px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+  margin-bottom: 2rem;
+}
+@media (max-width: 768px) {
+  .alt-search-modal-overlay {
+    padding-top: 2vh;
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
 /* ── My Roster — Alt search result rows ── */
 .alt-result-row {
   display: flex;

@@ -300,10 +300,10 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
       {/* Modal */}
       {modalOpen && (
         <div
-          style={{ position: 'fixed', inset: 0, zIndex: 100, backgroundColor: 'rgba(10,8,5,0.85)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
+          className="alt-search-modal-overlay"
           onClick={(e) => { if (e.target === e.currentTarget) handleBackdropClick() }}
         >
-          <div style={{ width: '100%', maxWidth: 500, backgroundColor: 'rgba(16,11,4,0.97)', border: '1px solid rgba(201,150,26,0.3)', borderRadius: 12, padding: '32px 32px 28px', position: 'relative', maxHeight: step !== 'search' ? '90vh' : undefined, overflowY: step !== 'search' ? 'auto' : 'visible' }}>
+          <div className="alt-search-modal">
 
             <button onClick={handleClose} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: 'var(--be-iron-2)', fontSize: 20, cursor: 'pointer', lineHeight: 1, padding: 4 }} aria-label="Close">×</button>
 
