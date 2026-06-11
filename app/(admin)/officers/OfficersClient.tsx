@@ -1,6 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
+import { MemberManagement } from './MemberManagement'
 
 type DiffNew = { status: 'NEW'; name: string; change: string }
 type DiffUpdated = { status: 'UPDATED'; dbName: string; uploadedName: string; change: string; dbId: string }
@@ -397,14 +398,10 @@ export function OfficersClient() {
         )}
       </section>
 
-      {/* ── MEMBER APPROVALS (placeholder) ── */}
+      {/* ── MEMBER MANAGEMENT ── */}
       <section>
-        <p style={sectionHeading}>Member Approvals</p>
-        <div style={{ ...cardStyle, opacity: 0.6 }}>
-          <p style={{ fontFamily: "'Spectral', serif", color: '#8a7a5a', fontSize: '0.9rem', fontStyle: 'italic' }}>
-            Approval queue and character claims — coming soon.
-          </p>
-        </div>
+        <p style={sectionHeading}>Member Management</p>
+        <MemberManagement />
       </section>
     </div>
   )
