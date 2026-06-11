@@ -5,8 +5,17 @@ import { ReturnMeter } from '@/components/roster/ReturnMeter'
 import { ScrollingNames, type NameEntry } from '@/components/landing/ScrollingNames'
 import { CtaLoginPanel } from '@/components/landing/CtaLoginPanel'
 import { CinematicRoster, type RosterChar } from '@/components/landing/CinematicRoster'
-import { CLASS_COLORS, CharacterClass, CharacterStatus } from '@/types'
+import { CLASS_COLORS, CharacterClass } from '@/types'
 import { createClient } from '@supabase/supabase-js'
+
+const AARON_CHARS = new Set([
+  'Åvatarødys', 'Guildßank', 'Sumkalimdor', 'Sumwinter', 'Sumzulgurub',
+  'Tøph', 'Zmite', 'Æminåmi', 'Ðeerføx', 'Ðjenna', 'Ðråcårys',
+  'Ghrumuhlorr', 'Tourisßlaðes', 'Bootyßayah', 'Irøhh', 'Pukanacua',
+  'Raghop', 'Sumdeadmines', 'Sumfelwood', 'Summaraudon', 'Sumscarlet',
+  'Sumsouthshor', 'Sumstormwind', 'Sumtanaris', 'Sumßlastlnds', 'Sumßlaðes',
+  'Sumßootybay', 'Sumßrð', 'Sumåzshara', 'Sumðiremaul', 'Ðjøç',
+])
 
 function SectionDivider() {
   return (
@@ -30,108 +39,105 @@ export default async function LandingPage() {
 
   const [
     totalResult,
-    returnedOriginalResult,
+    returnedCountResult,
     newCountResult,
     miaCountResult,
-    allCharsResult,
-    previewResult,
-    returnedCharsResult,
+    miaCharsResult,
+    activeCharsResult,
+    originalsResult,
   ] = await Promise.all([
+    // Total roster size
     supabase
       .from('characters')
       .select('*', { count: 'exact', head: true })
       .eq('realm', 'Dreamscythe')
       .eq('hide_from_roster', false),
+    // Returned original members
     supabase
       .from('characters')
       .select('*', { count: 'exact', head: true })
-      .eq('status', 'returned')
-      .eq('imported_from_grm', true)
-      .eq('realm', 'Dreamscythe')
-      .eq('hide_from_roster', false),
+      .eq('status', 'returned'),
+    // New adventurers
     supabase
       .from('characters')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'new')
       .eq('realm', 'Dreamscythe')
       .eq('hide_from_roster', false),
+    // MIA count
     supabase
       .from('characters')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'mia')
       .eq('realm', 'Dreamscythe')
       .eq('hide_from_roster', false),
-    supabase
-      .from('characters')
-      .select('name, class, level, rank_name, status')
-      .eq('realm', 'Dreamscythe')
-      .neq('hide_from_roster', true)
-      .order('name'),
-    supabase
-      .from('characters')
-      .select('name, class, level, rank_name, rank_index, status, professions(name, is_primary)')
-      .eq('realm', 'Dreamscythe')
-      .eq('hide_from_roster', false)
-      .order('rank_index', { ascending: true })
-      .order('level', { ascending: false })
-      .limit(10),
+    // MIA chars for right scroll column
     supabase
       .from('characters')
       .select('name, class')
       .eq('realm', 'Dreamscythe')
-      .eq('status', 'returned')
+      .eq('status', 'mia')
       .neq('hide_from_roster', true)
-      .order('name'),
+      .order('name')
+      .limit(60),
+    // Active this week (last_online_days <= 7)
+    supabase
+      .from('characters')
+      .select('name, class, level, rank_name, status, last_online_days')
+      .lte('last_online_days', 7)
+      .eq('hide_from_roster', false)
+      .order('last_online_days', { ascending: true })
+      .limit(30),
+    // All returned chars — for left scroll column + Original Blådes Edge Members rows
+    supabase
+      .from('characters')
+      .select('name, class, level, rank_name, status')
+      .eq('status', 'returned')
+      .eq('hide_from_roster', false)
+      .order('rank_index', { ascending: true }),
   ])
 
   const totalRoster = totalResult.count ?? 0
   const total = totalRoster
-  const returnedOriginal = returnedOriginalResult.count ?? 0
+  const returnedOriginal = returnedCountResult.count ?? 0
   const newCount = newCountResult.count ?? 0
   const mia = miaCountResult.count ?? 0
-  const returned = returnedOriginal
 
-  const rawChars = allCharsResult.data ?? []
-
-  // Returned characters from dedicated status-filtered query, deduplicated by name
+  // Left column — Answered the Call
   const seenReturnedNames = new Set<string>()
-  const returnedEntries: NameEntry[] = (returnedCharsResult.data ?? [])
+  const returnedEntries: NameEntry[] = (originalsResult.data ?? [])
     .filter((c) => { if (seenReturnedNames.has(c.name)) return false; seenReturnedNames.add(c.name); return true })
     .map((c) => ({ name: c.name, color: CLASS_COLORS[(c.class as CharacterClass)] ?? '#1aff6e' }))
 
-  const miaEntries: NameEntry[] = rawChars
-    .filter((c) => c.status === 'mia')
-    .slice(0, 60)
+  // Right column — Still MIA
+  const miaEntries: NameEntry[] = (miaCharsResult.data ?? [])
     .map((c) => ({ name: c.name, color: '#8a7a5a' }))
 
-  // All chars for cinematic rows
-  const allChars: RosterChar[] = rawChars.map((c) => ({
+  // Active This Week — exclude Aaron's alts
+  const activeThisWeek: RosterChar[] = (activeCharsResult.data ?? [])
+    .filter((c) => !AARON_CHARS.has(c.name))
+    .map((c) => ({
+      name: c.name as string,
+      class: c.class as string,
+      level: c.level as number,
+      rank_name: (c.rank_name as string | null) ?? null,
+      status: c.status as string,
+    }))
+
+  // Original Blådes Edge Members — 3× non-Aaron loop, then Aaron's chars
+  const originalsAll: RosterChar[] = (originalsResult.data ?? []).map((c) => ({
     name: c.name as string,
     class: c.class as string,
     level: c.level as number,
     rank_name: (c.rank_name as string | null) ?? null,
     status: c.status as string,
   }))
-
-  type PreviewMember = {
-    name: string
-    class: CharacterClass
-    level: number
-    rank: string
-    status: CharacterStatus
-    professions: string[]
-  }
-
-  const previewMembers: PreviewMember[] = (previewResult.data ?? []).map((c) => ({
-    name: c.name as string,
-    class: c.class as CharacterClass,
-    level: c.level as number,
-    rank: (c.rank_name as string | null) ?? '',
-    status: c.status as CharacterStatus,
-    professions: ((c.professions as { name: string; is_primary: boolean }[] | null) ?? [])
-      .filter((p) => p.is_primary)
-      .map((p) => p.name),
-  }))
+  const nonAaron = originalsAll.filter((c) => !AARON_CHARS.has(c.name))
+  const aaronChars = originalsAll.filter((c) => AARON_CHARS.has(c.name))
+  const originalsScrollArray: RosterChar[] = [
+    ...nonAaron, ...nonAaron, ...nonAaron,
+    ...aaronChars,
+  ]
 
   return (
     <div style={{ backgroundColor: '#1a1208' }}>
@@ -162,7 +168,7 @@ export default async function LandingPage() {
           }}
         />
 
-        {/* Stats panel — slightly overlaps bottom of hero (moved up 25px from -80) */}
+        {/* Stats panel — slightly overlaps bottom of hero */}
         <div
           className="absolute z-10 w-full"
           style={{
@@ -254,7 +260,7 @@ export default async function LandingPage() {
                 className="text-xs mb-3"
                 style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
               >
-                {returned} {returned === 1 ? 'has' : 'have'} returned
+                {returnedOriginal} {returnedOriginal === 1 ? 'has' : 'have'} returned
               </p>
               <ScrollingNames
                 entries={returnedEntries}
@@ -310,23 +316,49 @@ export default async function LandingPage() {
             </div>
           </div>
 
-          {/* Roster Preview — cinematic scrolling rows */}
-          <div className="mt-16">
-            <div className="text-center mb-6">
-              <h3
-                className="text-2xl font-bold mb-2"
-                style={{ fontFamily: "'Cinzel', serif", color: '#c9961a' }}
-              >
-                Roster Preview
-              </h3>
-              <p
-                className="text-sm italic"
-                style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
-              >
-                Log in to see the full roster and claim your character.
-              </p>
+          {/* Active This Week + Original Blådes Edge Members */}
+          <div className="mt-16 flex flex-col gap-14">
+
+            {/* Active This Week */}
+            {activeThisWeek.length > 0 && (
+              <div>
+                <div className="text-center mb-6">
+                  <h3
+                    className="text-2xl font-bold mb-2"
+                    style={{ fontFamily: "'Cinzel', serif", color: '#1aff6e' }}
+                  >
+                    Active This Week
+                  </h3>
+                  <p
+                    className="text-sm italic"
+                    style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
+                  >
+                    Guildies spotted online in the last 7 days.
+                  </p>
+                </div>
+                <CinematicRoster chars={activeThisWeek} />
+              </div>
+            )}
+
+            {/* Original Blådes Edge Members */}
+            <div>
+              <div className="text-center mb-6">
+                <h3
+                  className="text-2xl font-bold mb-2"
+                  style={{ fontFamily: "'Cinzel', serif", color: '#c9961a' }}
+                >
+                  Original Blådes Edge Members
+                </h3>
+                <p
+                  className="text-sm italic"
+                  style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
+                >
+                  Log in to see the full roster and claim your character.
+                </p>
+              </div>
+              <CinematicRoster chars={originalsScrollArray} />
             </div>
-            <CinematicRoster chars={allChars} />
+
           </div>
 
         </div>

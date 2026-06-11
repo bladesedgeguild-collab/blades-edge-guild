@@ -56,7 +56,7 @@ export function ReturnMeter({ totalRoster, returnedOriginal, newCount }: ReturnM
       {/* Progress bar */}
       <div className="mb-1 flex justify-between items-baseline">
         <span className="text-xs" style={{ fontFamily: "'Cinzel', serif", color: '#c9961a' }}>
-          Original members returned
+          Original Members Returned
         </span>
         <span className="text-xs" style={{ color: '#8a7a5a' }}>
           {Math.round(pct)}%

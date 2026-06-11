@@ -124,10 +124,10 @@ export function CinematicRoster({ chars }: { chars: RosterChar[] }) {
   }
 
   const rows: { chars: RosterChar[]; direction: 'left' | 'right'; duration: number }[] = [
-    { chars: rotated(0),   direction: 'left',  duration: 400 },
-    { chars: rotated(Math.floor(chars.length / 4)),     direction: 'right', duration: 500 },
-    { chars: rotated(Math.floor(chars.length / 2)),     direction: 'left',  duration: 400 },
-    { chars: rotated(Math.floor(chars.length * 3 / 4)), direction: 'right', duration: 500 },
+    { chars: rotated(0),   direction: 'left',  duration: 800 },
+    { chars: rotated(Math.floor(chars.length / 4)),     direction: 'right', duration: 1000 },
+    { chars: rotated(Math.floor(chars.length / 2)),     direction: 'left',  duration: 800 },
+    { chars: rotated(Math.floor(chars.length * 3 / 4)), direction: 'right', duration: 1000 },
   ]
 
   return (
