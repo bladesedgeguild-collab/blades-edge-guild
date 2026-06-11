@@ -95,6 +95,7 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
 
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [showCloseWarning, setShowCloseWarning] = useState(false)
 
   useEffect(() => {
     if (query.length < 1) { setResults([]); setSearching(false); return }
@@ -114,12 +115,22 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
 
   function openModal() {
     setModalOpen(true); setStep('search'); setQuery(''); setResults([])
-    setSelectedChars([])
+    setSelectedChars([]); setShowCloseWarning(false)
     setForm({ name: '', race: '', cls: '', level: '' })
     setErrors({}); setError(null)
   }
 
-  function closeModal() { setModalOpen(false) }
+  function closeModal() { setShowCloseWarning(false); setModalOpen(false) }
+
+  function handleClose() {
+    if (selectedChars.length > 0) { setShowCloseWarning(true); return }
+    closeModal()
+  }
+
+  function handleBackdropClick() {
+    if (selectedChars.length > 0) return  // protect selections from accidental dismiss
+    closeModal()
+  }
 
   const toggleSelect = (char: SearchChar) => {
     setSelectedChars(prev =>
@@ -167,6 +178,50 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
 
   const showNotInRoster = query.length >= 2 && !searching && results.length === 0
   const newFormClassColor = CLASS_COLORS[form.cls.toUpperCase()] ?? '#888'
+
+  // Two-column layout at 10+ results
+  const useColumns = results.length >= 10
+  const col1 = results.slice(0, Math.ceil(results.length / 2))
+  const col2 = results.slice(Math.ceil(results.length / 2))
+
+  const renderResultRow = (char: SearchChar) => {
+    const color = CLASS_COLORS[char.class] ?? '#888'
+    const selected = isSelected(char)
+    return (
+      <button
+        key={char.id}
+        className={`alt-result-row${selected ? ' selected' : ''}`}
+        onClick={() => toggleSelect(char)}
+        style={selected ? { background: '#c9961a' } : {}}
+      >
+        <div
+          className="alt-result-avatar"
+          style={selected ? {
+            background: 'rgba(26,18,8,0.2)',
+            border: '1px solid rgba(26,18,8,0.4)',
+            color: '#1a1208',
+          } : {
+            background: `${color}22`,
+            border: `1px solid ${color}99`,
+            color,
+          }}
+        >
+          {char.name.charAt(0)}
+        </div>
+        <div className="alt-result-info">
+          <span className="alt-result-name" style={{ color, filter: selected ? 'brightness(0.55)' : 'none' }}>
+            {char.name}
+          </span>
+          <span className="alt-result-meta" style={{ color: selected ? '#5a3a08' : 'var(--be-muted)' }}>
+            L{char.level} · {char.class.charAt(0) + char.class.slice(1).toLowerCase().replace('_', ' ')}{char.race ? ` · ${char.race}` : ''}
+          </span>
+        </div>
+        <div className="alt-result-check">
+          {selected ? <GuildShieldCheck size={20} color="#1a1208" /> : <div className="alt-result-checkbox" />}
+        </div>
+      </button>
+    )
+  }
   const availableClasses = form.race ? (RACE_CLASSES[form.race] ?? []) : []
   const inlineNameError = form.name.length >= 1 ? validateWowName(form.name) : null
   const shownNameError = inlineNameError ?? errors.name
@@ -246,11 +301,19 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
       {modalOpen && (
         <div
           style={{ position: 'fixed', inset: 0, zIndex: 100, backgroundColor: 'rgba(10,8,5,0.85)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
-          onClick={(e) => { if (e.target === e.currentTarget) closeModal() }}
+          onClick={(e) => { if (e.target === e.currentTarget) handleBackdropClick() }}
         >
           <div style={{ width: '100%', maxWidth: 500, backgroundColor: 'rgba(16,11,4,0.97)', border: '1px solid rgba(201,150,26,0.3)', borderRadius: 12, padding: '32px 32px 28px', position: 'relative', maxHeight: step !== 'search' ? '90vh' : undefined, overflowY: step !== 'search' ? 'auto' : 'visible' }}>
 
-            <button onClick={closeModal} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: 'var(--be-iron-2)', fontSize: 20, cursor: 'pointer', lineHeight: 1, padding: 4 }} aria-label="Close">×</button>
+            <button onClick={handleClose} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: 'var(--be-iron-2)', fontSize: 20, cursor: 'pointer', lineHeight: 1, padding: 4 }} aria-label="Close">×</button>
+
+            {showCloseWarning && (
+              <div className="alt-close-warning">
+                <span>You have {selectedChars.length} character{selectedChars.length > 1 ? 's' : ''} selected.</span>
+                <button onClick={closeModal}>Discard and close</button>
+                <button onClick={() => setShowCloseWarning(false)}>Keep selecting</button>
+              </div>
+            )}
 
             {error && (
               <div style={{ marginBottom: 16, padding: '10px 14px', backgroundColor: 'rgba(165,30,30,0.3)', border: '1px solid rgba(200,60,60,0.4)', borderRadius: 4, color: '#f87171', fontSize: 14 }}>
@@ -297,57 +360,11 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
                   />
 
                   {results.length > 0 && (
-                    <div onMouseDown={(e) => e.preventDefault()} style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 99999, backgroundColor: 'var(--be-bg-1)', border: '1px solid rgba(201,150,26,0.3)', borderRadius: 8, maxHeight: 320, overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
-                      {results.map((char) => {
-                        const color = CLASS_COLORS[char.class] ?? '#888'
-                        const selected = isSelected(char)
-                        return (
-                          <button
-                            key={char.id}
-                            className={`alt-result-row${selected ? ' selected' : ''}`}
-                            onClick={() => toggleSelect(char)}
-                            style={selected ? { background: '#c9961a' } : {}}
-                          >
-                            <div
-                              className="alt-result-avatar"
-                              style={selected ? {
-                                background: 'rgba(26,18,8,0.2)',
-                                border: '1px solid rgba(26,18,8,0.4)',
-                                color: '#1a1208',
-                              } : {
-                                background: `${color}22`,
-                                border: `1px solid ${color}99`,
-                                color,
-                              }}
-                            >
-                              {char.name.charAt(0)}
-                            </div>
-                            <div className="alt-result-info">
-                              <span
-                                className="alt-result-name"
-                                style={{
-                                  color,
-                                  filter: selected ? 'brightness(0.55)' : 'none',
-                                }}
-                              >
-                                {char.name}
-                              </span>
-                              <span
-                                className="alt-result-meta"
-                                style={{ color: selected ? '#5a3a08' : 'var(--be-muted)' }}
-                              >
-                                L{char.level} · {char.class.charAt(0) + char.class.slice(1).toLowerCase().replace('_', ' ')}{char.race ? ` · ${char.race}` : ''}
-                              </span>
-                            </div>
-                            <div className="alt-result-check">
-                              {selected
-                                ? <GuildShieldCheck size={20} color="#1a1208" />
-                                : <div className="alt-result-checkbox" />
-                              }
-                            </div>
-                          </button>
-                        )
-                      })}
+                    <div onMouseDown={(e) => e.preventDefault()} style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 99999, backgroundColor: 'var(--be-bg-1)', border: '1px solid rgba(201,150,26,0.3)', borderRadius: 8, boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
+                      <div className={`alt-results-grid ${useColumns ? 'two-col' : 'one-col'}`}>
+                        <div className="alt-results-col">{col1.map(renderResultRow)}</div>
+                        {useColumns && <div className="alt-results-col">{col2.map(renderResultRow)}</div>}
+                      </div>
                     </div>
                   )}
                 </div>
