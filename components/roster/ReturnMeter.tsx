@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from 'react'
 
-const ORIGINAL_TOTAL = 187
-const GUILD_MAX = 200
+const ORIGINAL_TOTAL = 286
 
 interface ReturnMeterProps {
   totalRoster: number      // current active guildies (last_online_days < 9999)
@@ -12,19 +11,22 @@ interface ReturnMeterProps {
 }
 
 export function ReturnMeter({ totalRoster, returnedOriginal, newCount }: ReturnMeterProps) {
-  const [width, setWidth] = useState(0)
+  const [animated, setAnimated] = useState(false)
 
-  // Bar fills based on current guildies out of GUILD_MAX
-  const fillPct = Math.min((totalRoster / GUILD_MAX) * 100, 100)
-  // Where the green→gold split falls within the filled bar
+  // Bar fills to totalRoster / ORIGINAL_TOTAL (286 = full guild)
+  const totalFill = Math.min((totalRoster / ORIGINAL_TOTAL) * 100, 100)
   const returnedPct = totalRoster > 0
-    ? Math.min((returnedOriginal / totalRoster) * 100, 100)
+    ? (returnedOriginal / totalRoster) * totalFill
     : 0
+  const newPct = totalFill - returnedPct
 
   useEffect(() => {
-    const t = setTimeout(() => setWidth(fillPct), 100)
+    const t = setTimeout(() => setAnimated(true), 100)
     return () => clearTimeout(t)
-  }, [fillPct])
+  }, [])
+
+  const displayReturnedPct = animated ? returnedPct : 0
+  const displayNewPct = animated ? newPct : 0
 
   const mia = ORIGINAL_TOTAL - returnedOriginal
 
@@ -67,22 +69,24 @@ export function ReturnMeter({ totalRoster, returnedOriginal, newCount }: ReturnM
         </span>
       </div>
 
-      {/* Bar: fills to currentGuildies/200; green = returned, gold = new */}
-      <div
-        className="h-4 rounded-full overflow-hidden"
-        style={{ backgroundColor: '#0d0b07' }}
-      >
+      {/* Two-div bar: green = returned originals, gold = new adventurers */}
+      <div className="meter-track">
         <div
-          className="h-full rounded-full transition-all duration-1000 ease-out"
           style={{
-            width: `${width}%`,
-            background: `linear-gradient(to right,
-              #1aff6e 0%,
-              #1aff6e ${returnedPct}%,
-              #c9961a ${returnedPct}%,
-              #c9961a 100%
-            )`,
-            boxShadow: '0 0 12px rgba(26,255,110,0.4)',
+            width: `${displayReturnedPct}%`,
+            background: '#1aff6e',
+            height: '100%',
+            borderRadius: returnedPct > 0 ? '6px 0 0 6px' : '0',
+            transition: 'width 1s ease-out',
+          }}
+        />
+        <div
+          style={{
+            width: `${displayNewPct}%`,
+            background: '#c9961a',
+            height: '100%',
+            borderRadius: newPct > 0 ? (returnedPct > 0 ? '0 6px 6px 0' : '6px') : '0',
+            transition: 'width 1s ease-out',
           }}
         />
       </div>

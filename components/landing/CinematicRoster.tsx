@@ -27,7 +27,7 @@ function NameChip({ char, variant }: { char: RosterChar; variant: 'active' | 'or
   const isReturned = (char.last_online_days ?? 9999) < 9999
 
   // Originals section: dim MIA chars; active section: always full opacity
-  const chipOpacity = hovered ? 1 : (variant === 'originals' && !isReturned ? 0.35 : 1)
+  const chipOpacity = hovered ? 1 : (variant === 'originals' && !isReturned ? 0.3 : 1)
   const nameColor = (variant === 'originals' && !isReturned && !hovered) ? '#8a7a5a' : classColor
   const dotColor = (variant === 'originals' && !isReturned && !hovered) ? '#8a7a5a' : classColor
 
@@ -53,7 +53,8 @@ function NameChip({ char, variant }: { char: RosterChar; variant: 'active' | 'or
         height: hovered ? 'auto' : 52,
         minHeight: 52,
         width: hovered ? 230 : 'auto',
-        transition: 'all 0.25s ease',
+        // Originals: no transition so opacity/color are applied instantly (no flicker)
+        transition: variant === 'originals' ? 'none' : 'all 0.25s ease',
         zIndex: hovered ? 10 : 1,
         position: 'relative',
         cursor: 'default',

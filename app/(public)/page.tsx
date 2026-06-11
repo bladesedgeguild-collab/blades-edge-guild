@@ -107,11 +107,18 @@ export default async function LandingPage() {
   }
   const originalsData: OrigChar[] = (originalsResult.data ?? []) as OrigChar[]
 
-  // Left column — Answered the Call: returned originals only, no duplication (keeps natural speed)
-  const seenNames = new Set<string>()
-  const returnedEntries: NameEntry[] = originalsData
-    .filter((c) => (c.last_online_days ?? 9999) < 9999 && !seenNames.has(c.name) && !!seenNames.add(c.name))
-    .map((c) => ({ name: c.name, color: CLASS_COLORS[(c.class as CharacterClass)] ?? '#1aff6e' }))
+  // Left column — Answered the Call: in_original_roster=true AND last_online_days < 9999
+  // Aaron's chars deprioritized: non-Aaron cycles 3× before Aaron appears
+  const nonAaronReturned = originalsData.filter(
+    (c) => (c.last_online_days ?? 9999) < 9999 && !AARON_CHARS.has(c.name)
+  )
+  const aaronReturned = originalsData.filter(
+    (c) => (c.last_online_days ?? 9999) < 9999 && AARON_CHARS.has(c.name)
+  )
+  const returnedEntries: NameEntry[] = [
+    ...nonAaronReturned, ...nonAaronReturned, ...nonAaronReturned,
+    ...aaronReturned,
+  ].map((c) => ({ name: c.name, color: CLASS_COLORS[(c.class as CharacterClass)] ?? '#1aff6e' }))
 
   // Right column — Still MIA
   const miaEntries: NameEntry[] = (miaCharsResult.data ?? [])
@@ -243,7 +250,7 @@ export default async function LandingPage() {
               className="text-lg italic"
               style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
             >
-              187 adventurers strong. {returnedCount} have returned. The call has gone out.
+              286 adventurers strong. {returnedCount} have returned. The call has gone out.
             </p>
           </div>
 
@@ -359,7 +366,7 @@ export default async function LandingPage() {
                     className="text-2xl font-bold mb-2"
                     style={{ fontFamily: "'Cinzel', serif", color: '#c9961a' }}
                   >
-                    Original Blådes Edge Members
+                    Original Blades Edge Members
                   </h3>
                   <p
                     className="text-sm italic"

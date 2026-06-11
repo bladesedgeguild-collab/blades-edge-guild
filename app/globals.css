@@ -70,8 +70,8 @@
   --be-radius: 4px;
 
   /* Tune these to adjust horizontal scroll speed */
-  --scroll-active-week: 300s;   /* Active This Week rows */
-  --scroll-originals: 300s;     /* Original Members rows */
+  --scroll-active-week: 150s;   /* Active This Week rows (prev 300s, halved) */
+  --scroll-originals: 600s;     /* Original Members rows (prev 300s, doubled) */
   --be-font-display: 'Cinzel', 'Cinzel Decorative', Georgia, serif;
   --be-font-body: 'Spectral', Georgia, serif;
   --be-font-ui: 'Inter', system-ui, sans-serif;
@@ -256,6 +256,16 @@
 @keyframes scroll-right {
   from { transform: translateX(-50%); }
   to   { transform: translateX(0); }
+}
+
+/* Return meter track */
+.meter-track {
+  display: flex;
+  height: 14px;
+  border-radius: 7px;
+  background: var(--be-bg-3);
+  overflow: hidden;
+  width: 100%;
 }
 
 /* CinematicRoster row animation classes — duration driven by CSS variables above */
