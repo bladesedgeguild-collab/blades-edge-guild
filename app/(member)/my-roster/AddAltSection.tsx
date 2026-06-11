@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { GuildShieldCheck } from '@/components/GuildShieldCheck'
 
 const CLASS_COLORS: Record<string, string> = {
   MAGE: '#3fc7eb', PALADIN: '#f48cba', WARRIOR: '#c69b3a',
@@ -39,7 +40,7 @@ type SearchChar = {
 type CharForm   = { name: string; race: string; cls: string; level: string }
 type CharErrors = { name?: string; race?: string; cls?: string; level?: string }
 
-type ModalStep = 'search' | 'confirm' | 'newForm' | 'newConfirm'
+type ModalStep = 'search' | 'newForm' | 'newConfirm'
 
 const selectStyle: React.CSSProperties = {
   background: 'rgba(20,14,4,0.9)', border: '1px solid rgba(61,46,21,0.6)',
@@ -87,7 +88,8 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
   const [results, setResults] = useState<SearchChar[]>([])
   const [searching, setSearching] = useState(false)
 
-  const [candidate, setCandidate] = useState<SearchChar | null>(null)
+  const [selectedChars, setSelectedChars] = useState<SearchChar[]>([])
+
   const [form, setForm] = useState<CharForm>({ name: '', race: '', cls: '', level: '' })
   const [errors, setErrors] = useState<CharErrors>({})
 
@@ -101,7 +103,7 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
       const res = await fetch(`/api/characters/search?q=${encodeURIComponent(query)}`)
       const d = await res.json()
       const chars: SearchChar[] = d.characters ?? []
-      // Deduplicate by id (safety net for any join-caused duplicates in API response)
+      // Deduplicate by id (safety net for join duplicates)
       const unique = chars.filter((c, i, self) => i === self.findIndex((x) => x.id === c.id))
       const altIds = new Set(alts.map((a) => a.id))
       setResults(unique.filter((c) => !c.claimed_by && c.id !== mainCharId && !altIds.has(c.id)))
@@ -112,22 +114,43 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
 
   function openModal() {
     setModalOpen(true); setStep('search'); setQuery(''); setResults([])
-    setCandidate(null); setForm({ name: '', race: '', cls: '', level: '' })
+    setSelectedChars([])
+    setForm({ name: '', race: '', cls: '', level: '' })
     setErrors({}); setError(null)
   }
 
   function closeModal() { setModalOpen(false) }
 
-  async function handleClaimRosterAlt(char: SearchChar) {
-    setLoading(true); setError(null)
-    const res = await fetch('/api/characters/claim-alt', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ character_id: char.id }),
-    })
-    const data = await res.json()
+  const toggleSelect = (char: SearchChar) => {
+    setSelectedChars(prev =>
+      prev.find(c => c.id === char.id)
+        ? prev.filter(c => c.id !== char.id)
+        : [...prev, char]
+    )
+  }
+
+  const isSelected = (char: SearchChar) => selectedChars.some(c => c.id === char.id)
+
+  async function handleAddAlts() {
+    if (selectedChars.length === 0) return
+    setLoading(true)
+    setError(null)
+    for (const char of selectedChars) {
+      const res = await fetch('/api/characters/claim-alt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ character_id: char.id }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setError(data.error ?? `Failed to add ${char.name}`)
+        setLoading(false)
+        return
+      }
+    }
     setLoading(false)
-    if (!res.ok) { setError(data.error ?? 'Failed to claim alt'); return }
-    setModalOpen(false); router.refresh()
+    setModalOpen(false)
+    router.refresh()
   }
 
   async function handleCreateAlt() {
@@ -154,7 +177,7 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
       {/* Tile: Your Alts */}
       <div style={{ background: 'rgba(26,18,8,0.6)', border: '1px solid rgba(61,46,21,0.5)', borderRadius: 4 }}>
 
-        {/* Header row with eyebrow + small add button */}
+        {/* Header row */}
         <div className="alts-tile-header" style={{ padding: '24px 40px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <p style={{ fontFamily: 'var(--be-font-display)', fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'rgba(201,150,26,0.85)', margin: 0 }}>
             Your Alts
@@ -235,33 +258,63 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
               </div>
             )}
 
-            {/* ── SEARCH ── */}
+            {/* ── SEARCH (multi-select) ── */}
             {step === 'search' && (
               <div>
-                <h2 style={{ fontFamily: 'var(--be-font-display)', fontSize: 20, color: 'var(--be-ink)', margin: '0 0 6px' }}>Search for an Alt</h2>
-                <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'var(--be-ink-3)', fontSize: 14, marginBottom: 20 }}>Search unclaimed roster characters</p>
+                <h2 style={{ fontFamily: 'var(--be-font-display)', fontSize: 20, color: 'var(--be-ink)', margin: '0 0 6px' }}>Search for Alts</h2>
+                <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'var(--be-ink-3)', fontSize: 14, marginBottom: 16 }}>Select one or more unclaimed characters</p>
+
+                {/* Selected tray */}
+                {selectedChars.length > 0 && (
+                  <div className="alt-selected-tray">
+                    {selectedChars.map(char => (
+                      <div
+                        key={char.id}
+                        className="alt-selected-chip"
+                        style={{ borderColor: CLASS_COLORS[char.class] ?? '#c9961a' }}
+                      >
+                        <GuildShieldCheck size={14} color={CLASS_COLORS[char.class] ?? '#c9961a'} />
+                        <span style={{ color: CLASS_COLORS[char.class] ?? '#c9961a' }}>{char.name}</span>
+                        <button
+                          className="alt-selected-remove"
+                          onClick={() => toggleSelect(char)}
+                          aria-label={`Remove ${char.name}`}
+                        >×</button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Search input */}
                 <div style={{ position: 'relative', marginBottom: 8 }}>
                   <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--be-iron-2)', pointerEvents: 'none', fontSize: 16, zIndex: 1 }}>⌕</span>
                   <input
                     type="text" value={query} onChange={(e) => setQuery(e.target.value)}
-                    placeholder="Type alt's name…" autoFocus
+                    placeholder="Type a character name…" autoFocus
                     style={{ width: '100%', padding: '12px 12px 12px 36px', backgroundColor: 'var(--be-bg-1)', border: '1px solid var(--be-iron-3)', borderRadius: results.length > 0 ? 'var(--be-radius) var(--be-radius) 0 0' : 'var(--be-radius)', color: 'var(--be-ink)', fontFamily: 'var(--be-font-body)', fontSize: 16, outline: 'none', boxSizing: 'border-box' }}
                     onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = 'var(--be-gold)' }}
                     onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = 'var(--be-iron-3)' }}
                   />
+
                   {results.length > 0 && (
                     <div onMouseDown={(e) => e.preventDefault()} style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 99999, backgroundColor: 'var(--be-bg-1)', border: '1px solid rgba(201,150,26,0.3)', borderRadius: 8, maxHeight: 320, overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
                       {results.map((char) => {
                         const color = CLASS_COLORS[char.class] ?? '#888'
+                        const selected = isSelected(char)
                         return (
                           <button
                             key={char.id}
-                            className="alt-result-row"
-                            onClick={() => { setCandidate(char); setStep('confirm') }}
+                            className={`alt-result-row${selected ? ' selected' : ''}`}
+                            onClick={() => toggleSelect(char)}
+                            style={selected ? { background: '#c9961a' } : {}}
                           >
                             <div
                               className="alt-result-avatar"
-                              style={{
+                              style={selected ? {
+                                background: 'rgba(26,18,8,0.2)',
+                                border: '1px solid rgba(26,18,8,0.4)',
+                                color: '#1a1208',
+                              } : {
                                 background: `${color}22`,
                                 border: `1px solid ${color}99`,
                                 color,
@@ -270,20 +323,35 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
                               {char.name.charAt(0)}
                             </div>
                             <div className="alt-result-info">
-                              <span className="alt-result-name" style={{ color }}>{char.name}</span>
-                              <span className="alt-result-meta">
+                              <span
+                                className="alt-result-name"
+                                style={{
+                                  color,
+                                  filter: selected ? 'brightness(0.55)' : 'none',
+                                }}
+                              >
+                                {char.name}
+                              </span>
+                              <span
+                                className="alt-result-meta"
+                                style={{ color: selected ? '#5a3a08' : 'var(--be-muted)' }}
+                              >
                                 L{char.level} · {char.class.charAt(0) + char.class.slice(1).toLowerCase().replace('_', ' ')}{char.race ? ` · ${char.race}` : ''}
                               </span>
                             </div>
-                            {char.rank_name && (
-                              <span className="alt-result-rank">{char.rank_name}</span>
-                            )}
+                            <div className="alt-result-check">
+                              {selected
+                                ? <GuildShieldCheck size={20} color="#1a1208" />
+                                : <div className="alt-result-checkbox" />
+                              }
+                            </div>
                           </button>
                         )
                       })}
                     </div>
                   )}
                 </div>
+
                 {showNotInRoster && (
                   <div style={{ marginTop: 16, textAlign: 'center' }}>
                     <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'var(--be-ink-3)', fontSize: 14, marginBottom: 12 }}>Not in the roster yet?</p>
@@ -297,27 +365,20 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
                     </button>
                   </div>
                 )}
-              </div>
-            )}
 
-            {/* ── CONFIRM ── */}
-            {step === 'confirm' && candidate && (
-              <div>
-                <button onClick={() => { setCandidate(null); setStep('search') }} style={{ background: 'none', border: 'none', color: 'var(--be-gold-2)', fontFamily: 'var(--be-font-display)', fontSize: '0.72rem', letterSpacing: '0.1em', cursor: 'pointer', padding: '0 0 16px', display: 'block' }}>← Search again</button>
-                <h2 style={{ fontFamily: 'var(--be-font-display)', fontSize: 20, color: 'var(--be-ink)', margin: '0 0 16px' }}>Add this alt?</h2>
-                <div style={{ background: 'linear-gradient(135deg, var(--be-bg-1) 0%, var(--be-bg-2) 100%)', border: '1px solid var(--be-iron-3)', borderLeft: `4px solid ${CLASS_COLORS[candidate.class] ?? '#888'}`, borderRadius: 'var(--be-radius)', padding: 20, marginBottom: 20 }}>
-                  <p style={{ fontFamily: 'var(--be-font-display)', fontSize: 10, letterSpacing: '0.15em', color: CLASS_COLORS[candidate.class] ?? '#888', marginBottom: 4 }}>{candidate.class}</p>
-                  <h3 style={{ fontFamily: 'var(--be-font-display)', fontSize: 36, color: 'var(--be-ink)', margin: '0 0 4px', lineHeight: 1 }}>{candidate.name}</h3>
-                  <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'var(--be-ink-3)', fontSize: 14, margin: 0 }}>
-                    Level {candidate.level}{candidate.race ? ` · ${candidate.race}` : ''}{candidate.rank_name ? ` · ${candidate.rank_name}` : ''}
-                  </p>
-                </div>
-                <div style={{ display: 'flex', gap: 10 }}>
-                  <button onClick={() => { setCandidate(null); setStep('search') }} style={{ flex: 1, padding: '11px 0', backgroundColor: 'transparent', border: '1px solid var(--be-iron-3)', borderRadius: 'var(--be-radius)', color: 'var(--be-iron-2)', fontFamily: 'var(--be-font-display)', fontSize: 13, cursor: 'pointer' }}>← Not this one</button>
-                  <button onClick={() => handleClaimRosterAlt(candidate)} disabled={loading} style={{ flex: 2, padding: '11px 0', backgroundColor: 'var(--be-gold)', color: '#0d0b07', border: 'none', borderRadius: 'var(--be-radius)', fontFamily: 'var(--be-font-display)', fontSize: 13, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.5 : 1 }}>
-                    {loading ? 'Adding…' : `Yes, add ${candidate.name}`}
-                  </button>
-                </div>
+                {/* Confirm / add button */}
+                <button
+                  className="alt-confirm-btn"
+                  onClick={handleAddAlts}
+                  disabled={selectedChars.length === 0 || loading}
+                >
+                  {loading
+                    ? 'Adding…'
+                    : selectedChars.length === 0
+                      ? 'Select characters above'
+                      : `Add ${selectedChars.length} Alt${selectedChars.length > 1 ? 's' : ''} →`
+                  }
+                </button>
               </div>
             )}
 
