@@ -101,8 +101,10 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
       const res = await fetch(`/api/characters/search?q=${encodeURIComponent(query)}`)
       const d = await res.json()
       const chars: SearchChar[] = d.characters ?? []
+      // Deduplicate by id (safety net for any join-caused duplicates in API response)
+      const unique = chars.filter((c, i, self) => i === self.findIndex((x) => x.id === c.id))
       const altIds = new Set(alts.map((a) => a.id))
-      setResults(chars.filter((c) => !c.claimed_by && c.id !== mainCharId && !altIds.has(c.id)))
+      setResults(unique.filter((c) => !c.claimed_by && c.id !== mainCharId && !altIds.has(c.id)))
       setSearching(false)
     }, 300)
     return () => clearTimeout(t)
@@ -252,17 +254,30 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
                       {results.map((char) => {
                         const color = CLASS_COLORS[char.class] ?? '#888'
                         return (
-                          <button key={char.id} onClick={() => { setCandidate(char); setStep('confirm') }}
-                            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '12px 16px', minHeight: 48, background: 'transparent', cursor: 'pointer', borderBottom: '1px solid rgba(61,46,21,0.4)', width: '100%', position: 'relative' }}
-                            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(201,150,26,0.1)' }}
-                            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
+                          <button
+                            key={char.id}
+                            className="alt-result-row"
+                            onClick={() => { setCandidate(char); setStep('confirm') }}
                           >
-                            <span style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, backgroundColor: color }} />
-                            {/* Character name: use body font + textTransform:none to prevent ß→SS conversion */}
-                            <span style={{ marginLeft: 8, fontFamily: 'var(--be-font-body)', fontSize: '1rem', color: 'var(--be-gold)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textTransform: 'none' }}>{char.name}</span>
-                            <span style={{ fontFamily: 'var(--be-font-display)', fontSize: '0.8rem', color: 'var(--be-iron-2)', flexShrink: 0 }}>L{char.level}</span>
-                            <span style={{ fontFamily: 'var(--be-font-body)', fontSize: '0.8rem', fontWeight: 'bold', color, flexShrink: 0 }}>{char.class.charAt(0) + char.class.slice(1).toLowerCase().replace('_', ' ')}</span>
-                            {char.rank_name && <span style={{ fontSize: '0.7rem', color: 'var(--be-gold-2)', fontFamily: 'var(--be-font-display)', letterSpacing: '0.06em', flexShrink: 0 }}>{char.rank_name}</span>}
+                            <div
+                              className="alt-result-avatar"
+                              style={{
+                                background: `${color}22`,
+                                border: `1px solid ${color}99`,
+                                color,
+                              }}
+                            >
+                              {char.name.charAt(0)}
+                            </div>
+                            <div className="alt-result-info">
+                              <span className="alt-result-name" style={{ color }}>{char.name}</span>
+                              <span className="alt-result-meta">
+                                L{char.level} · {char.class.charAt(0) + char.class.slice(1).toLowerCase().replace('_', ' ')}{char.race ? ` · ${char.race}` : ''}
+                              </span>
+                            </div>
+                            {char.rank_name && (
+                              <span className="alt-result-rank">{char.rank_name}</span>
+                            )}
                           </button>
                         )
                       })}

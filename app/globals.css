@@ -597,6 +597,67 @@ input[type=number] { -moz-appearance: textfield; }
   color: var(--be-gold);
 }
 
+/* ── My Roster — Alt search result rows ── */
+.alt-result-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  cursor: pointer;
+  transition: background 150ms ease;
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(61, 46, 21, 0.4);
+  text-align: left;
+}
+.alt-result-row:hover {
+  background: rgba(201, 150, 26, 0.08);
+}
+.alt-result-row:last-child {
+  border-bottom: none;
+}
+.alt-result-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.alt-result-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex: 1;
+  min-width: 0;
+}
+.alt-result-name {
+  font-family: 'Spectral', serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* NO text-transform — preserves ß, Å, Ð etc */
+}
+.alt-result-meta {
+  font-family: 'Spectral', serif;
+  font-size: 0.75rem;
+  color: var(--be-muted);
+}
+.alt-result-rank {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  color: var(--be-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 /* ── My Roster — Alt cards ── */
 .alt-card {
   background: var(--be-bg-2);
