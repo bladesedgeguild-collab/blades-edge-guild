@@ -250,7 +250,7 @@ export default async function LandingPage() {
               className="text-lg italic"
               style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
             >
-              286 adventurers strong. {returnedCount} have returned. The call has gone out.
+              {totalCurrentGuildies} adventurers strong. {returnedCount} have returned. The call has gone out.
             </p>
           </div>
 
@@ -347,11 +347,9 @@ export default async function LandingPage() {
                   >
                     Active This Week
                   </h3>
-                  <p
-                    className="text-sm italic"
-                    style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
-                  >
-                    Guildies spotted online in the last 7 days.
+                  <p className="active-label">
+                    <span className="active-count">{activeThisWeek.length}</span>
+                    {' '}guildies spotted online in the last 7 days.
                   </p>
                 </div>
                 <CinematicRoster chars={activeThisWeek} rowCount={2} variant="active" />

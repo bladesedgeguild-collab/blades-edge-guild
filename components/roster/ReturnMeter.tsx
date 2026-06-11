@@ -71,8 +71,14 @@ export function ReturnMeter({ totalRoster, returnedOriginal, newCount }: ReturnM
           className="meter-bar"
           style={{
             width: `${width}%`,
-            '--returned-pct': `${returnedPct}%`,
-          } as React.CSSProperties}
+            background: `linear-gradient(to right,
+              #1aff6e 0%,
+              #1aff6e ${Math.max(0, returnedPct - 4)}%,
+              #8adf6a ${returnedPct}%,
+              #d4a830 ${Math.min(100, returnedPct + 4)}%,
+              #c9961a 100%
+            )`,
+          }}
         />
       </div>
 

@@ -68,6 +68,7 @@
   --be-iron-3: oklch(0.38 0.010 80);
   --be-blood:  oklch(0.58 0.20 28);
   --be-radius: 4px;
+  --be-muted: #8a7a5a;
 
   /* Tune these to adjust horizontal scroll speed */
   --scroll-active-week: 150s;   /* Active This Week rows (prev 300s, halved) */
@@ -269,13 +270,21 @@
 .meter-bar {
   height: 100%;
   border-radius: 7px;
-  background: linear-gradient(
-    to right,
-    #1aff6e 0%,
-    #1aff6e var(--returned-pct, 50%),
-    #c9961a 100%
-  );
+  /* gradient set inline with JS-computed returnedPct for accurate split */
   transition: width 1s ease-out;
+}
+
+.active-label {
+  font-family: 'Spectral', serif;
+  font-style: italic;
+  color: var(--be-muted);
+  text-align: center;
+}
+.active-count {
+  color: #1aff6e;
+  font-size: 1.4em;
+  font-family: 'Cinzel', serif;
+  font-weight: bold;
 }
 
 /* CinematicRoster row animation classes — duration driven by CSS variables above */

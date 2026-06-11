@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 
 const CLASS_COLORS: Record<string, string> = {
   MAGE: '#3fc7eb', PALADIN: '#f48cba', WARRIOR: '#c69b3a',
@@ -8,7 +9,7 @@ const CLASS_COLORS: Record<string, string> = {
   ROGUE: '#fff468', WARLOCK: '#8788ee', SHAMAN: '#0070dd',
 }
 
-// Seconds per chip — controls apparent scroll speed for all sections
+// Seconds per chip — controls apparent scroll speed across all sections
 const SECONDS_PER_CHIP = 8
 
 export type RosterChar = {
@@ -23,7 +24,7 @@ export type RosterChar = {
 }
 
 function NameChip({ char }: { char: RosterChar }) {
-  const [hovered, setHovered] = useState(false)
+  const [tooltipPos, setTooltipPos] = useState<{ x: number; y: number } | null>(null)
   const classColor = CLASS_COLORS[char.class] ?? '#c9961a'
 
   const primaryProfs = (char.professions ?? []).filter((p) => p.is_primary).slice(0, 2)
@@ -31,64 +32,89 @@ function NameChip({ char }: { char: RosterChar }) {
     ? primaryProfs.map((p) => p.name).join(' · ')
     : 'No professions listed'
 
+  const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect()
+    setTooltipPos({
+      x: rect.left + rect.width / 2,
+      y: rect.top,
+    })
+  }
+
+  const handleMouseLeave = () => setTooltipPos(null)
+
+  const isHovered = tooltipPos !== null
+
   return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 8,
-        flexShrink: 0,
-        borderRadius: hovered ? 4 : 9999,
-        padding: hovered ? '10px 16px' : '8px 20px',
-        backgroundColor: hovered ? 'rgba(36,26,14,0.95)' : 'rgba(26,18,8,0.7)',
-        border: `1px solid rgba(61,46,21,${hovered ? 0.9 : 0.6})`,
-        height: hovered ? 'auto' : 52,
-        minHeight: 52,
-        width: hovered ? 230 : 'auto',
-        transition: 'all 0.25s ease',
-        zIndex: hovered ? 10 : 1,
-        position: 'relative',
-        cursor: 'default',
-        overflow: 'hidden',
-        alignSelf: 'center',
-      }}
-    >
-      <span
+    <>
+      <div
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         style={{
-          width: 8,
-          height: 8,
-          borderRadius: '50%',
-          backgroundColor: classColor,
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: 8,
           flexShrink: 0,
+          borderRadius: 9999,
+          padding: '8px 20px',
+          backgroundColor: 'rgba(26,18,8,0.7)',
+          border: `1px solid rgba(61,46,21,${isHovered ? 0.9 : 0.6})`,
+          height: 52,
+          cursor: 'default',
+          alignSelf: 'center',
+          transition: 'border-color 0.15s ease',
         }}
-      />
-      {hovered ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
-          <span style={{ fontFamily: "'Cinzel', serif", fontSize: '0.9rem', color: classColor, whiteSpace: 'nowrap' }}>
-            {char.name}
-          </span>
-          <span style={{ fontFamily: "'Crimson Pro', serif", fontSize: '0.75rem', color: '#f0e6c8', whiteSpace: 'nowrap' }}>
-            {char.class.charAt(0) + char.class.slice(1).toLowerCase()}
-            {char.race ? ` · ${char.race}` : ''}
-            {` · ${char.level}`}
-          </span>
-          {char.rank_name && (
-            <span style={{ fontSize: '0.7rem', color: '#8a7a5a', whiteSpace: 'nowrap' }}>
-              {char.rank_name}
-            </span>
-          )}
-          <span style={{ fontSize: '0.68rem', color: '#8a7a5a', whiteSpace: 'nowrap', fontStyle: 'italic' }}>
-            {profText}
-          </span>
-        </div>
-      ) : (
+      >
+        <span
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: '50%',
+            backgroundColor: classColor,
+            flexShrink: 0,
+          }}
+        />
         <span style={{ fontFamily: "'Cinzel', serif", fontSize: '0.85rem', color: classColor, whiteSpace: 'nowrap' }}>
           {char.name}
         </span>
+      </div>
+
+      {/* Tooltip rendered via portal to escape overflow:hidden containers */}
+      {tooltipPos && typeof document !== 'undefined' && createPortal(
+        <div
+          style={{
+            position: 'fixed',
+            left: tooltipPos.x,
+            top: tooltipPos.y - 8,
+            transform: 'translate(-50%, -100%)',
+            zIndex: 9999,
+            pointerEvents: 'none',
+            background: 'var(--be-bg-2)',
+            border: '1px solid rgba(201,150,26,0.3)',
+            borderRadius: '8px',
+            padding: '0.75rem 1rem',
+            minWidth: '180px',
+          }}
+        >
+          <p style={{ fontFamily: "'Cinzel', serif", fontSize: '0.9rem', color: classColor, marginBottom: 4, whiteSpace: 'nowrap' }}>
+            {char.name}
+          </p>
+          <p style={{ fontFamily: "'Crimson Pro', serif", fontSize: '0.8rem', color: '#f0e6c8', marginBottom: 2, whiteSpace: 'nowrap' }}>
+            {char.class.charAt(0) + char.class.slice(1).toLowerCase()}
+            {char.race ? ` · ${char.race}` : ''}
+            {` · ${char.level}`}
+          </p>
+          {char.rank_name && (
+            <p style={{ fontSize: '0.75rem', color: '#8a7a5a', marginBottom: 2, whiteSpace: 'nowrap' }}>
+              {char.rank_name}
+            </p>
+          )}
+          <p style={{ fontSize: '0.72rem', color: '#8a7a5a', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
+            {profText}
+          </p>
+        </div>,
+        document.body
       )}
-    </div>
+    </>
   )
 }
 
@@ -115,7 +141,6 @@ function RosterRow({
         style={{
           display: 'flex',
           gap: 16,
-          // Override the CSS-class duration with the content-proportional one
           animationDuration: `${duration}s`,
           animationPlayState: paused ? 'paused' : 'running',
           width: 'max-content',
@@ -143,7 +168,6 @@ export function CinematicRoster({
 
   if (chars.length === 0) return null
 
-  // Duration proportional to content length so apparent speed is consistent across sections
   const rowDuration = chars.length * SECONDS_PER_CHIP
 
   function rotated(offset: number): RosterChar[] {
