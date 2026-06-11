@@ -15,13 +15,21 @@ export type RosterChar = {
   rank_name: string | null
   status: string
   race?: string | null
+  last_online_days?: number | null
   professions?: { name: string; skill_level: number; is_primary: boolean }[]
 }
 
-function NameChip({ char }: { char: RosterChar }) {
+function NameChip({ char, variant }: { char: RosterChar; variant: 'active' | 'originals' }) {
   const [hovered, setHovered] = useState(false)
   const classColor = CLASS_COLORS[char.class] ?? '#c9961a'
-  const isReturned = char.status === 'returned'
+
+  // Returned = has a real last_online_days (not the 9999 placeholder)
+  const isReturned = (char.last_online_days ?? 9999) < 9999
+
+  // Originals section: dim MIA chars; active section: always full opacity
+  const chipOpacity = hovered ? 1 : (variant === 'originals' && !isReturned ? 0.35 : 1)
+  const nameColor = (variant === 'originals' && !isReturned && !hovered) ? '#8a7a5a' : classColor
+  const dotColor = (variant === 'originals' && !isReturned && !hovered) ? '#8a7a5a' : classColor
 
   const primaryProfs = (char.professions ?? []).filter((p) => p.is_primary).slice(0, 2)
   const profText = primaryProfs.length > 0
@@ -37,13 +45,11 @@ function NameChip({ char }: { char: RosterChar }) {
         alignItems: 'center',
         gap: 8,
         flexShrink: 0,
+        opacity: chipOpacity,
         borderRadius: hovered ? 4 : 9999,
         padding: hovered ? '10px 16px' : '8px 20px',
         backgroundColor: hovered ? 'rgba(36,26,14,0.95)' : 'rgba(26,18,8,0.7)',
-        border: isReturned
-          ? `1px solid rgba(26,255,110,${hovered ? 0.7 : 0.5})`
-          : `1px solid rgba(61,46,21,${hovered ? 0.9 : 0.6})`,
-        boxShadow: isReturned ? '0 0 8px rgba(26,255,110,0.4)' : 'none',
+        border: `1px solid rgba(61,46,21,${hovered ? 0.9 : 0.6})`,
         height: hovered ? 'auto' : 52,
         minHeight: 52,
         width: hovered ? 230 : 'auto',
@@ -60,7 +66,7 @@ function NameChip({ char }: { char: RosterChar }) {
           width: 8,
           height: 8,
           borderRadius: '50%',
-          backgroundColor: classColor,
+          backgroundColor: dotColor,
           flexShrink: 0,
         }}
       />
@@ -84,7 +90,7 @@ function NameChip({ char }: { char: RosterChar }) {
           </span>
         </div>
       ) : (
-        <span style={{ fontFamily: "'Cinzel', serif", fontSize: '0.85rem', color: classColor, whiteSpace: 'nowrap' }}>
+        <span style={{ fontFamily: "'Cinzel', serif", fontSize: '0.85rem', color: nameColor, whiteSpace: 'nowrap' }}>
           {char.name}
         </span>
       )}
@@ -95,30 +101,32 @@ function NameChip({ char }: { char: RosterChar }) {
 function RosterRow({
   chars,
   direction,
-  speedVar,
+  variant,
   paused,
 }: {
   chars: RosterChar[]
   direction: 'left' | 'right'
-  speedVar: string
+  variant: 'active' | 'originals'
   paused: boolean
 }) {
   const doubled = [...chars, ...chars]
+  // Animation speed is set via CSS class; only play-state needs to be inline
+  const rowClass = `cinematic-row-${direction}-${variant}`
 
   return (
     <div style={{ overflow: 'hidden', width: '100%', height: 68, display: 'flex', alignItems: 'center' }}>
       <div
+        className={rowClass}
         style={{
           display: 'flex',
           gap: 16,
-          animation: `${direction === 'left' ? 'scroll-left' : 'scroll-right'} ${speedVar} linear infinite`,
           animationPlayState: paused ? 'paused' : 'running',
           width: 'max-content',
           alignItems: 'center',
         }}
       >
         {doubled.map((char, i) => (
-          <NameChip key={`${char.name}-${i}`} char={char} />
+          <NameChip key={`${char.name}-${i}`} char={char} variant={variant} />
         ))}
       </div>
     </div>
@@ -137,10 +145,6 @@ export function CinematicRoster({
   const [paused, setPaused] = useState(false)
 
   if (chars.length === 0) return null
-
-  const speedVar = variant === 'active'
-    ? 'var(--scroll-speed-active)'
-    : 'var(--scroll-speed-originals)'
 
   function rotated(offset: number): RosterChar[] {
     const n = offset % chars.length
@@ -163,7 +167,7 @@ export function CinematicRoster({
           key={i}
           chars={row.chars}
           direction={row.direction}
-          speedVar={speedVar}
+          variant={variant}
           paused={paused}
         />
       ))}

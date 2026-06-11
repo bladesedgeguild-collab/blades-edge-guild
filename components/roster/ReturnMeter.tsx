@@ -3,21 +3,28 @@
 import { useEffect, useState } from 'react'
 
 const ORIGINAL_TOTAL = 187
+const GUILD_MAX = 200
 
 interface ReturnMeterProps {
-  totalRoster: number
-  returnedOriginal: number
-  newCount: number
+  totalRoster: number      // current active guildies (last_online_days < 9999)
+  returnedOriginal: number // original members who returned
+  newCount: number         // totalRoster - returnedOriginal
 }
 
 export function ReturnMeter({ totalRoster, returnedOriginal, newCount }: ReturnMeterProps) {
   const [width, setWidth] = useState(0)
-  const pct = Math.min((returnedOriginal / ORIGINAL_TOTAL) * 100, 100)
+
+  // Bar fills based on current guildies out of GUILD_MAX
+  const fillPct = Math.min((totalRoster / GUILD_MAX) * 100, 100)
+  // Where the green→gold split falls within the filled bar
+  const returnedPct = totalRoster > 0
+    ? Math.min((returnedOriginal / totalRoster) * 100, 100)
+    : 0
 
   useEffect(() => {
-    const t = setTimeout(() => setWidth(pct), 100)
+    const t = setTimeout(() => setWidth(fillPct), 100)
     return () => clearTimeout(t)
-  }, [pct])
+  }, [fillPct])
 
   const mia = ORIGINAL_TOTAL - returnedOriginal
 
@@ -53,15 +60,14 @@ export function ReturnMeter({ totalRoster, returnedOriginal, newCount }: ReturnM
         </div>
       </div>
 
-      {/* Progress bar */}
-      <div className="mb-1 flex justify-between items-baseline">
+      {/* Progress bar label */}
+      <div className="mb-1">
         <span className="text-xs" style={{ fontFamily: "'Cinzel', serif", color: '#c9961a' }}>
-          Original Members Returned
-        </span>
-        <span className="text-xs" style={{ color: '#8a7a5a' }}>
-          {Math.round(pct)}%
+          Active Blådes Edge Guildies
         </span>
       </div>
+
+      {/* Bar: fills to currentGuildies/200; green = returned, gold = new */}
       <div
         className="h-4 rounded-full overflow-hidden"
         style={{ backgroundColor: '#0d0b07' }}
@@ -70,8 +76,13 @@ export function ReturnMeter({ totalRoster, returnedOriginal, newCount }: ReturnM
           className="h-full rounded-full transition-all duration-1000 ease-out"
           style={{
             width: `${width}%`,
-            background: 'linear-gradient(90deg, #c9961a 0%, #1aff6e 100%)',
-            boxShadow: '0 0 12px rgba(26,255,110,0.5)',
+            background: `linear-gradient(to right,
+              #1aff6e 0%,
+              #1aff6e ${returnedPct}%,
+              #c9961a ${returnedPct}%,
+              #c9961a 100%
+            )`,
+            boxShadow: '0 0 12px rgba(26,255,110,0.4)',
           }}
         />
       </div>

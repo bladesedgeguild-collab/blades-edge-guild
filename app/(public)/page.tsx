@@ -1,7 +1,6 @@
-// Migration required before these counts work correctly:
+// Post-deploy SQL (Supabase editor):
 // ALTER TABLE public.characters ADD COLUMN IF NOT EXISTS in_original_roster boolean DEFAULT false;
 // UPDATE public.characters SET in_original_roster = true WHERE imported_from_grm = true;
-// Run in Supabase SQL editor after deploying.
 export const dynamic = 'force-dynamic'
 
 import { ReturnMeter } from '@/components/roster/ReturnMeter'
@@ -43,30 +42,24 @@ export default async function LandingPage() {
   const [
     totalResult,
     returnedCountResult,
-    newCountResult,
     miaCountResult,
     miaCharsResult,
     activeCharsResult,
     originalsResult,
   ] = await Promise.all([
-    // Total current guildies (all non-hidden)
+    // Current guildies: characters that appeared in a roster import (last_online_days < 9999)
     supabase
       .from('characters')
       .select('*', { count: 'exact', head: true })
+      .lt('last_online_days', 9999)
       .eq('hide_from_roster', false),
-    // Returned originals: in_original_roster=true AND status='returned'
+    // Returned originals: in original 275 AND appeared in a recent import
     supabase
       .from('characters')
       .select('*', { count: 'exact', head: true })
       .eq('in_original_roster', true)
-      .eq('status', 'returned'),
-    // New adventurers: not in original 275
-    supabase
-      .from('characters')
-      .select('*', { count: 'exact', head: true })
-      .eq('in_original_roster', false)
-      .eq('hide_from_roster', false),
-    // MIA count
+      .lt('last_online_days', 9999),
+    // MIA count (for right column sub-label)
     supabase
       .from('characters')
       .select('*', { count: 'exact', head: true })
@@ -80,7 +73,7 @@ export default async function LandingPage() {
       .neq('hide_from_roster', true)
       .order('name')
       .limit(60),
-    // Active this week — last_online_days <= 7, includes professions for hover
+    // Active This Week — online in last 7 days, with professions for hover
     supabase
       .from('characters')
       .select('name, class, race, level, rank_name, status, last_online_days, professions(name, skill_level, is_primary)')
@@ -88,43 +81,37 @@ export default async function LandingPage() {
       .eq('hide_from_roster', false)
       .order('last_online_days', { ascending: true })
       .limit(30),
-    // Original Blådes Edge Members: in_original_roster=true, status='returned'
+    // All original members — returned (low days) first, then MIA (9999)
     supabase
       .from('characters')
-      .select('name, class, race, level, rank_name, status, professions(name, skill_level, is_primary)')
+      .select('name, class, race, level, rank_name, last_online_days, professions(name, skill_level, is_primary)')
       .eq('in_original_roster', true)
-      .eq('status', 'returned')
       .eq('hide_from_roster', false)
-      .order('rank_index', { ascending: true }),
+      .order('last_online_days', { ascending: true }),
   ])
 
-  const totalRoster = totalResult.count ?? 0
-  const returnedOriginal = returnedCountResult.count ?? 0
-  const newCount = newCountResult.count ?? 0
+  const totalCurrentGuildies = totalResult.count ?? 0
+  const returnedCount = returnedCountResult.count ?? 0
+  // New adventurers = total current minus returned originals (always sums correctly)
+  const newAdventurers = Math.max(0, totalCurrentGuildies - returnedCount)
   const mia = miaCountResult.count ?? 0
 
-  // Left column — Answered the Call: original members who returned, Aaron 3× deprioritized
   type OrigChar = {
     name: string
     class: string
-    status: string
     race?: string | null
     level?: number
     rank_name?: string | null
+    last_online_days?: number | null
     professions?: { name: string; skill_level: number; is_primary: boolean }[]
   }
   const originalsData: OrigChar[] = (originalsResult.data ?? []) as OrigChar[]
 
-  const seenReturnedNames = new Set<string>()
-  const nonAaronReturned = originalsData.filter((c) => !AARON_CHARS.has(c.name) && !seenReturnedNames.has(c.name) && seenReturnedNames.add(c.name))
-  const aaronReturnedRaw = originalsData.filter((c) => AARON_CHARS.has(c.name))
-
-  const returnedEntries: NameEntry[] = [
-    ...nonAaronReturned,
-    ...nonAaronReturned,
-    ...nonAaronReturned,
-    ...aaronReturnedRaw,
-  ].map((c) => ({ name: c.name, color: CLASS_COLORS[(c.class as CharacterClass)] ?? '#1aff6e' }))
+  // Left column — Answered the Call: returned originals only, no duplication (keeps natural speed)
+  const seenNames = new Set<string>()
+  const returnedEntries: NameEntry[] = originalsData
+    .filter((c) => (c.last_online_days ?? 9999) < 9999 && !seenNames.has(c.name) && !!seenNames.add(c.name))
+    .map((c) => ({ name: c.name, color: CLASS_COLORS[(c.class as CharacterClass)] ?? '#1aff6e' }))
 
   // Right column — Still MIA
   const miaEntries: NameEntry[] = (miaCharsResult.data ?? [])
@@ -140,17 +127,20 @@ export default async function LandingPage() {
       rank_name: (c.rank_name as string | null) ?? null,
       status: c.status as string,
       race: (c.race as string | null) ?? null,
+      last_online_days: c.last_online_days as number | null,
       professions: (c.professions as RosterChar['professions']) ?? [],
     }))
 
-  // Original Blådes Edge Members — 3× non-Aaron, then Aaron's
+  // Original Blådes Edge Members — ALL 187 originals (returned bright, MIA dim)
+  // Aaron's chars deprioritized with 3× non-Aaron loop
   const originalsAll: RosterChar[] = originalsData.map((c) => ({
     name: c.name,
     class: c.class,
     level: c.level ?? 1,
     rank_name: c.rank_name ?? null,
-    status: c.status,
+    status: (c.last_online_days ?? 9999) < 9999 ? 'returned' : 'mia',
     race: c.race ?? null,
+    last_online_days: c.last_online_days ?? 9999,
     professions: c.professions ?? [],
   }))
   const nonAaronOriginals = originalsAll.filter((c) => !AARON_CHARS.has(c.name))
@@ -201,7 +191,11 @@ export default async function LandingPage() {
             padding: '20px 32px 24px',
           }}
         >
-          <ReturnMeter totalRoster={totalRoster} returnedOriginal={returnedOriginal} newCount={newCount} />
+          <ReturnMeter
+            totalRoster={totalCurrentGuildies}
+            returnedOriginal={returnedCount}
+            newCount={newAdventurers}
+          />
         </div>
 
         <div
@@ -249,7 +243,7 @@ export default async function LandingPage() {
               className="text-lg italic"
               style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
             >
-              187 adventurers strong. {returnedOriginal} have returned. The call has gone out.
+              187 adventurers strong. {returnedCount} have returned. The call has gone out.
             </p>
           </div>
 
@@ -277,7 +271,7 @@ export default async function LandingPage() {
                 className="text-xs mb-3"
                 style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
               >
-                {returnedOriginal} {returnedOriginal === 1 ? 'has' : 'have'} returned
+                {returnedCount} {returnedCount === 1 ? 'has' : 'have'} returned
               </p>
               <ScrollingNames
                 entries={returnedEntries}
@@ -336,7 +330,7 @@ export default async function LandingPage() {
           {/* Roster scroll sections */}
           <div className="mt-16 flex flex-col gap-14">
 
-            {/* Active This Week — 2 rows */}
+            {/* Active This Week — 2 rows, no green highlights */}
             {activeThisWeek.length > 0 && (
               <div>
                 <div className="text-center mb-6">
@@ -357,7 +351,7 @@ export default async function LandingPage() {
               </div>
             )}
 
-            {/* Original Blådes Edge Members — 3 rows */}
+            {/* Original Blådes Edge Members — 3 rows, returned bright / MIA dim */}
             {originalsScrollArray.length > 0 && (
               <div>
                 <div className="text-center mb-6">

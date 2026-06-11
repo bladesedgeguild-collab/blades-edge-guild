@@ -69,10 +69,9 @@
   --be-blood:  oklch(0.58 0.20 28);
   --be-radius: 4px;
 
-  /* Scroll row speeds — adjust to tune animation speed */
-  --scroll-speed-active: 400s;     /* Active This Week rows (halved from 800s) */
-  --scroll-speed-originals: 500s;  /* Original Members rows (halved from 1000s) */
-  --scroll-speed-answered: 20s;    /* Answered the Call sidebar */
+  /* Tune these to adjust horizontal scroll speed */
+  --scroll-active-week: 300s;   /* Active This Week rows */
+  --scroll-originals: 300s;     /* Original Members rows */
   --be-font-display: 'Cinzel', 'Cinzel Decorative', Georgia, serif;
   --be-font-body: 'Spectral', Georgia, serif;
   --be-font-ui: 'Inter', system-ui, sans-serif;
@@ -258,6 +257,12 @@
   from { transform: translateX(-50%); }
   to   { transform: translateX(0); }
 }
+
+/* CinematicRoster row animation classes — duration driven by CSS variables above */
+.cinematic-row-left-active    { animation: scroll-left  var(--scroll-active-week) linear infinite; }
+.cinematic-row-right-active   { animation: scroll-right var(--scroll-active-week) linear infinite; }
+.cinematic-row-left-originals  { animation: scroll-left  var(--scroll-originals)   linear infinite; }
+.cinematic-row-right-originals { animation: scroll-right var(--scroll-originals)   linear infinite; }
 
 /* Hide number input spinners (belt-and-suspenders) */
 input[type=number]::-webkit-inner-spin-button,
