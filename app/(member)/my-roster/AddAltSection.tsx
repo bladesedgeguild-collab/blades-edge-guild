@@ -223,7 +223,7 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
           style={{ position: 'fixed', inset: 0, zIndex: 100, backgroundColor: 'rgba(10,8,5,0.85)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}
           onClick={(e) => { if (e.target === e.currentTarget) closeModal() }}
         >
-          <div style={{ width: '100%', maxWidth: 500, backgroundColor: 'rgba(16,11,4,0.97)', border: '1px solid rgba(201,150,26,0.3)', borderRadius: 12, padding: '32px 32px 28px', position: 'relative', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div style={{ width: '100%', maxWidth: 500, backgroundColor: 'rgba(16,11,4,0.97)', border: '1px solid rgba(201,150,26,0.3)', borderRadius: 12, padding: '32px 32px 28px', position: 'relative', maxHeight: step !== 'search' ? '90vh' : undefined, overflowY: step !== 'search' ? 'auto' : 'visible' }}>
 
             <button onClick={closeModal} style={{ position: 'absolute', top: 16, right: 16, background: 'none', border: 'none', color: 'var(--be-iron-2)', fontSize: 20, cursor: 'pointer', lineHeight: 1, padding: 4 }} aria-label="Close">×</button>
 
@@ -248,7 +248,7 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
                     onBlur={(e) => { (e.target as HTMLInputElement).style.borderColor = 'var(--be-iron-3)' }}
                   />
                   {results.length > 0 && (
-                    <div onMouseDown={(e) => e.preventDefault()} style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 20, backgroundColor: 'var(--be-bg-0)', border: '1px solid var(--be-gold)', borderTop: 'none', borderRadius: '0 0 var(--be-radius) var(--be-radius)', overflow: 'hidden', maxHeight: 280, overflowY: 'auto' }}>
+                    <div onMouseDown={(e) => e.preventDefault()} style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 99999, backgroundColor: 'var(--be-bg-1)', border: '1px solid rgba(201,150,26,0.3)', borderRadius: 8, maxHeight: 320, overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
                       {results.map((char) => {
                         const color = CLASS_COLORS[char.class] ?? '#888'
                         return (
@@ -258,10 +258,11 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
                             onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent' }}
                           >
                             <span style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: 3, backgroundColor: color }} />
-                            <span style={{ marginLeft: 8, fontFamily: 'var(--be-font-display)', fontSize: '1rem', color: 'var(--be-gold)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{char.name}</span>
-                            <span style={{ fontFamily: 'var(--be-font-display)', fontSize: '0.85rem', color: 'var(--be-iron-2)', flexShrink: 0 }}>L{char.level}</span>
-                            <span style={{ fontFamily: 'var(--be-font-body)', fontSize: '0.85rem', fontWeight: 'bold', color, flexShrink: 0 }}>{char.class.charAt(0) + char.class.slice(1).toLowerCase().replace('_', ' ')}</span>
-                            {char.rank_name && <span style={{ fontSize: '0.75rem', color: 'var(--be-gold-2)', fontFamily: 'var(--be-font-display)', flexShrink: 0 }}>{char.rank_name}</span>}
+                            {/* Character name: use body font + textTransform:none to prevent ß→SS conversion */}
+                            <span style={{ marginLeft: 8, fontFamily: 'var(--be-font-body)', fontSize: '1rem', color: 'var(--be-gold)', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textTransform: 'none' }}>{char.name}</span>
+                            <span style={{ fontFamily: 'var(--be-font-display)', fontSize: '0.8rem', color: 'var(--be-iron-2)', flexShrink: 0 }}>L{char.level}</span>
+                            <span style={{ fontFamily: 'var(--be-font-body)', fontSize: '0.8rem', fontWeight: 'bold', color, flexShrink: 0 }}>{char.class.charAt(0) + char.class.slice(1).toLowerCase().replace('_', ' ')}</span>
+                            {char.rank_name && <span style={{ fontSize: '0.7rem', color: 'var(--be-gold-2)', fontFamily: 'var(--be-font-display)', letterSpacing: '0.06em', flexShrink: 0 }}>{char.rank_name}</span>}
                           </button>
                         )
                       })}
