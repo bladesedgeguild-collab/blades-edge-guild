@@ -5,28 +5,24 @@ import { useEffect, useState } from 'react'
 const ORIGINAL_TOTAL = 286
 
 interface ReturnMeterProps {
-  totalRoster: number      // current active guildies (last_online_days < 9999)
-  returnedOriginal: number // original members who returned
-  newCount: number         // totalRoster - returnedOriginal
+  totalRoster: number
+  returnedOriginal: number
+  newCount: number
 }
 
 export function ReturnMeter({ totalRoster, returnedOriginal, newCount }: ReturnMeterProps) {
-  const [animated, setAnimated] = useState(false)
+  const [width, setWidth] = useState(0)
 
-  // Bar fills to totalRoster / ORIGINAL_TOTAL (286 = full guild)
   const totalFill = Math.min((totalRoster / ORIGINAL_TOTAL) * 100, 100)
+  // returnedPct = percentage of the bar that is green (within the filled area)
   const returnedPct = totalRoster > 0
-    ? (returnedOriginal / totalRoster) * totalFill
+    ? (returnedOriginal / totalRoster) * 100
     : 0
-  const newPct = totalFill - returnedPct
 
   useEffect(() => {
-    const t = setTimeout(() => setAnimated(true), 100)
+    const t = setTimeout(() => setWidth(totalFill), 100)
     return () => clearTimeout(t)
-  }, [])
-
-  const displayReturnedPct = animated ? returnedPct : 0
-  const displayNewPct = animated ? newPct : 0
+  }, [totalFill])
 
   const mia = ORIGINAL_TOTAL - returnedOriginal
 
@@ -69,25 +65,14 @@ export function ReturnMeter({ totalRoster, returnedOriginal, newCount }: ReturnM
         </span>
       </div>
 
-      {/* Two-div bar: green = returned originals, gold = new adventurers */}
+      {/* Gradient bar: green (returned) blends into gold (new) */}
       <div className="meter-track">
         <div
+          className="meter-bar"
           style={{
-            width: `${displayReturnedPct}%`,
-            background: '#1aff6e',
-            height: '100%',
-            borderRadius: returnedPct > 0 ? '6px 0 0 6px' : '0',
-            transition: 'width 1s ease-out',
-          }}
-        />
-        <div
-          style={{
-            width: `${displayNewPct}%`,
-            background: '#c9961a',
-            height: '100%',
-            borderRadius: newPct > 0 ? (returnedPct > 0 ? '0 6px 6px 0' : '6px') : '0',
-            transition: 'width 1s ease-out',
-          }}
+            width: `${width}%`,
+            '--returned-pct': `${returnedPct}%`,
+          } as React.CSSProperties}
         />
       </div>
 

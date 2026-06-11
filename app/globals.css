@@ -258,14 +258,24 @@
   to   { transform: translateX(0); }
 }
 
-/* Return meter track */
+/* Return meter */
 .meter-track {
-  display: flex;
+  width: 100%;
   height: 14px;
   border-radius: 7px;
   background: var(--be-bg-3);
   overflow: hidden;
-  width: 100%;
+}
+.meter-bar {
+  height: 100%;
+  border-radius: 7px;
+  background: linear-gradient(
+    to right,
+    #1aff6e 0%,
+    #1aff6e var(--returned-pct, 50%),
+    #c9961a 100%
+  );
+  transition: width 1s ease-out;
 }
 
 /* CinematicRoster row animation classes — duration driven by CSS variables above */
