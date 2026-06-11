@@ -282,7 +282,7 @@ export default async function LandingPage() {
               </p>
               <ScrollingNames
                 entries={returnedEntries}
-                speed={20}
+                speed={40}
                 emptyMessage="Be the first to answer."
               />
             </div>

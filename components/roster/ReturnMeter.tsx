@@ -61,7 +61,7 @@ export function ReturnMeter({ totalRoster, returnedOriginal, newCount }: ReturnM
       {/* Progress bar label */}
       <div className="mb-1">
         <span className="text-xs" style={{ fontFamily: "'Cinzel', serif", color: '#c9961a' }}>
-          Active Blådes Edge Guildies
+          Current Milestone: 200 Active Guildies
         </span>
       </div>
 
@@ -73,9 +73,8 @@ export function ReturnMeter({ totalRoster, returnedOriginal, newCount }: ReturnM
             width: `${width}%`,
             background: `linear-gradient(to right,
               #1aff6e 0%,
-              #1aff6e ${Math.max(0, returnedPct - 4)}%,
-              #8adf6a ${returnedPct}%,
-              #d4a830 ${Math.min(100, returnedPct + 4)}%,
+              #1aff6e ${Math.max(0, returnedPct - 20)}%,
+              #c9961a ${Math.min(100, returnedPct + 20)}%,
               #c9961a 100%
             )`,
           }}

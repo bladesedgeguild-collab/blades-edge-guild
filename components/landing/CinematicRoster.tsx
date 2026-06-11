@@ -36,7 +36,7 @@ function NameChip({ char }: { char: RosterChar }) {
     const rect = e.currentTarget.getBoundingClientRect()
     setTooltipPos({
       x: rect.left + rect.width / 2,
-      y: rect.top,
+      y: rect.bottom,
     })
   }
 
@@ -78,39 +78,50 @@ function NameChip({ char }: { char: RosterChar }) {
         </span>
       </div>
 
-      {/* Tooltip rendered via portal to escape overflow:hidden containers */}
+      {/* Tooltip via portal — appears below chip, escapes overflow containers */}
       {tooltipPos && typeof document !== 'undefined' && createPortal(
         <div
           style={{
             position: 'fixed',
             left: tooltipPos.x,
-            top: tooltipPos.y - 8,
-            transform: 'translate(-50%, -100%)',
+            top: tooltipPos.y + 8,
+            transform: 'translateX(-50%)',
             zIndex: 9999,
             pointerEvents: 'none',
-            background: 'var(--be-bg-2)',
-            border: '1px solid rgba(201,150,26,0.3)',
-            borderRadius: '8px',
-            padding: '0.75rem 1rem',
-            minWidth: '180px',
+            background: 'var(--be-bg-1)',
+            border: '1px solid rgba(201,150,26,0.4)',
+            borderRadius: '16px',
+            padding: '1.25rem 1.5rem',
+            minWidth: '240px',
+            maxWidth: '300px',
+            boxShadow: '0 8px 32px rgba(0,0,0,0.5), 0 0 16px rgba(201,150,26,0.1)',
           }}
         >
-          <p style={{ fontFamily: "'Cinzel', serif", fontSize: '0.9rem', color: classColor, marginBottom: 4, whiteSpace: 'nowrap' }}>
+          {/* Name */}
+          <div style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: '1.4rem', color: classColor, marginBottom: '0.5rem', lineHeight: 1.2 }}>
             {char.name}
-          </p>
-          <p style={{ fontFamily: "'Crimson Pro', serif", fontSize: '0.8rem', color: '#f0e6c8', marginBottom: 2, whiteSpace: 'nowrap' }}>
-            {char.class.charAt(0) + char.class.slice(1).toLowerCase()}
-            {char.race ? ` · ${char.race}` : ''}
-            {` · ${char.level}`}
-          </p>
+          </div>
+
+          {/* Class · Race · Level */}
+          <div style={{ fontFamily: "'Cinzel', serif", fontSize: '0.85rem', color: 'var(--be-ink)', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: classColor, flexShrink: 0 }} />
+            {char.class} · {char.race ?? '—'} · Level {char.level}
+          </div>
+
+          {/* Rank */}
           {char.rank_name && (
-            <p style={{ fontSize: '0.75rem', color: '#8a7a5a', marginBottom: 2, whiteSpace: 'nowrap' }}>
+            <div style={{ fontFamily: "'Cinzel', serif", fontSize: '0.75rem', color: 'var(--be-gold)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '0.5rem' }}>
               {char.rank_name}
-            </p>
+            </div>
           )}
-          <p style={{ fontSize: '0.72rem', color: '#8a7a5a', fontStyle: 'italic', whiteSpace: 'nowrap' }}>
+
+          {/* Divider */}
+          <div style={{ borderTop: '1px solid rgba(201,150,26,0.2)', marginBottom: '0.5rem' }} />
+
+          {/* Professions */}
+          <div style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', fontSize: '0.85rem', color: 'var(--be-muted)' }}>
             {profText}
-          </p>
+          </div>
         </div>,
         document.body
       )}
