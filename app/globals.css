@@ -608,14 +608,14 @@ input[type=number] { -moz-appearance: textfield; }
   justify-content: center;
   z-index: 1000;
   padding: 5vh 1rem 2rem;
-  overflow-y: auto;
+  /* NO overflow constraint — page scrolls if modal is tall */
 }
 .alt-search-modal {
   position: relative;
   width: 100%;
   max-width: 580px;
-  max-height: 88vh;
-  overflow-y: auto;
+  /* NO max-height — grows to fit all results */
+  /* NO overflow — content determines height */
   background: rgba(16, 11, 4, 0.97);
   border: 1px solid rgba(201, 150, 26, 0.3);
   border-radius: 12px;
