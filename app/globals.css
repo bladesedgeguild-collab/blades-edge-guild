@@ -668,16 +668,18 @@ input[type=number] { -moz-appearance: textfield; }
   background: transparent;
 }
 
-/* ── Results two-column grid ── */
+/* ── Results dynamic-column grid (no max-height, no overflow) ── */
 .alt-results-grid {
-  display: flex;
-  gap: 0;
+  display: grid;
+  /* grid-template-columns set via inline style */
+  width: 100%;
 }
 .alt-results-col {
-  flex: 1;
+  display: flex;
+  flex-direction: column;
 }
-.two-col .alt-results-col:first-child {
-  border-right: 1px solid rgba(201, 150, 26, 0.1);
+.alt-results-col + .alt-results-col {
+  border-left: 1px solid rgba(201, 150, 26, 0.1);
 }
 
 /* ── Close warning ── */

@@ -179,10 +179,19 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
   const showNotInRoster = query.length >= 2 && !searching && results.length === 0
   const newFormClassColor = CLASS_COLORS[form.cls.toUpperCase()] ?? '#888'
 
-  // Two-column layout at 10+ results
-  const useColumns = results.length >= 10
-  const col1 = results.slice(0, Math.ceil(results.length / 2))
-  const col2 = results.slice(Math.ceil(results.length / 2))
+  // Dynamic columns: max 10 rows per column, up to 4 columns
+  const getColumns = (items: SearchChar[]) => {
+    const total = items.length
+    if (total === 0) return []
+    const numCols = Math.min(Math.ceil(total / 10), 4)
+    const perCol = Math.ceil(total / numCols)
+    const cols: SearchChar[][] = []
+    for (let i = 0; i < numCols; i++) {
+      cols.push(items.slice(i * perCol, (i + 1) * perCol))
+    }
+    return cols
+  }
+  const columns = getColumns(results)
 
   const renderResultRow = (char: SearchChar) => {
     const color = CLASS_COLORS[char.class] ?? '#888'
@@ -361,9 +370,15 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
 
                   {results.length > 0 && (
                     <div onMouseDown={(e) => e.preventDefault()} style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 99999, backgroundColor: 'var(--be-bg-1)', border: '1px solid rgba(201,150,26,0.3)', borderRadius: 8, boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
-                      <div className={`alt-results-grid ${useColumns ? 'two-col' : 'one-col'}`}>
-                        <div className="alt-results-col">{col1.map(renderResultRow)}</div>
-                        {useColumns && <div className="alt-results-col">{col2.map(renderResultRow)}</div>}
+                      <div
+                        className="alt-results-grid"
+                        style={{ gridTemplateColumns: `repeat(${columns.length}, 1fr)` }}
+                      >
+                        {columns.map((col, colIdx) => (
+                          <div key={colIdx} className="alt-results-col">
+                            {col.map(renderResultRow)}
+                          </div>
+                        ))}
                       </div>
                     </div>
                   )}
