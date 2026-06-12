@@ -26,9 +26,9 @@ type AltChar = {
 
 function altProfessions(profs: { name: string; is_primary: boolean }[]): string {
   const primary = profs.filter(p => p.is_primary).slice(0, 2)
-  const p1 = primary[0]?.name ?? 'Profession 1 TBD'
-  const p2 = primary[1]?.name ?? 'Profession 2 TBD'
-  return `${p1} · ${p2}`
+  const p1 = primary[0]?.name ?? 'Prof 1 TBD'
+  const p2 = primary[1]?.name ?? 'Prof 2 TBD'
+  return `${p1}  ${p2}`
 }
 
 type SearchChar = {
