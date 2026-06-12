@@ -563,7 +563,7 @@ input[type=number] { -moz-appearance: textfield; }
 /* ── My Roster — Body grid ── */
 .roster-body {
   display: grid;
-  grid-template-columns: 2fr 3fr;
+  grid-template-columns: 280px 1fr;
   gap: 1.5rem;
   align-items: start;
 }
@@ -843,17 +843,19 @@ input[type=number] { -moz-appearance: textfield; }
   font-family: 'Cinzel', serif;
   font-size: 0.95rem;
   font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;   /* allow wrap if truly needed */
+  overflow: visible;
+  text-overflow: unset;
+  word-break: normal;
   text-transform: none; /* NEVER uppercase — ß becomes SS under text-transform */
 }
 
 .alt-card-sub {
   font-family: 'Spectral', serif;
   font-style: italic;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   color: rgba(138, 122, 90, 0.7);
+  white-space: nowrap;
 }
 
 .alt-card-professions {
