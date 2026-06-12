@@ -806,7 +806,20 @@ input[type=number] { -moz-appearance: textfield; }
   flex-shrink: 0;
 }
 
-/* ── My Roster — Alt cards ── */
+/* ── My Roster — Alt cards two-column grid ── */
+.alts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  padding: 0 40px 20px;
+}
+@media (max-width: 768px) {
+  .alts-grid {
+    grid-template-columns: 1fr;
+    padding: 0 20px 16px;
+  }
+}
+
 .alt-card {
   background: var(--be-bg-2);
   border: 1px solid rgba(201, 150, 26, 0.15);
@@ -815,6 +828,32 @@ input[type=number] { -moz-appearance: textfield; }
   display: flex;
   justify-content: space-between;
   align-items: center;
+  min-width: 0;
+}
+
+.alt-card-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.alt-card-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.95rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: none; /* NEVER uppercase — ß becomes SS under text-transform */
+}
+
+.alt-card-sub {
+  font-family: 'Spectral', serif;
+  font-style: italic;
+  font-size: 0.78rem;
+  color: rgba(138, 122, 90, 0.7);
 }
 
 .alt-card-professions {
@@ -822,7 +861,7 @@ input[type=number] { -moz-appearance: textfield; }
   font-size: 0.7rem;
   letter-spacing: 0.12em;
   color: rgba(138, 122, 90, 0.55);
-  text-transform: uppercase;
+  /* NO text-transform — professions can contain special characters */
   white-space: nowrap;
   flex-shrink: 0;
   margin-left: 12px;

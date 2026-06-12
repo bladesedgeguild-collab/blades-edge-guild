@@ -52,7 +52,7 @@ export default async function MyRosterPage() {
       .select('id, name, class, race, level, rank_name, professions(name, skill_level, is_primary)')
       .eq('claimed_by', user?.id ?? '')
       .neq('id', profile.claimed_character_id)
-      .order('name', { ascending: true })
+      .order('level', { ascending: false })
     alts = (altData ?? []) as unknown as AltChar[]
   }
 

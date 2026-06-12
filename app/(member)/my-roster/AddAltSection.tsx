@@ -256,22 +256,23 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
           </button>
         </div>
 
-        {/* Alt cards */}
+        {/* Alt cards — two-column grid */}
         {alts.length > 0 && (
-          <div className="alts-tile-cards" style={{ padding: '0 40px 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+          <div className="alts-grid">
             {alts.map((alt) => {
               const color = CLASS_COLORS[alt.class] ?? '#888'
               return (
                 <div key={alt.id} className="alt-card" style={{ borderLeft: `4px solid ${color}` }}>
-                  <div style={{ minWidth: 0 }}>
-                    <p style={{ fontFamily: 'var(--be-font-display)', fontSize: '1rem', color, margin: '0 0 4px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  <div className="alt-card-left">
+                    {/* textTransform: none is critical — prevents Cinzel from converting ß→SS */}
+                    <span className="alt-card-name" style={{ color, textTransform: 'none' }}>
                       {alt.name}
-                    </p>
-                    <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'rgba(138,122,90,0.7)', fontSize: '0.8rem', margin: 0 }}>
+                    </span>
+                    <span className="alt-card-sub">
                       {[alt.class.charAt(0) + alt.class.slice(1).toLowerCase().replace('_', ' '), alt.race, `Level ${alt.level}`].filter(Boolean).join(' · ')}
-                    </p>
+                    </span>
                   </div>
-                  <span className="alt-card-professions">{altProfessions(alt.professions)}</span>
+                  <div className="alt-card-professions">{altProfessions(alt.professions)}</div>
                 </div>
               )
             })}
