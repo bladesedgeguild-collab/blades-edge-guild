@@ -213,10 +213,10 @@ export default async function DashboardPage() {
           <div style={{ position: 'absolute', bottom: 0, left: 0, right: '30%', padding: 24 }}>
             <p style={{ ...eyebrow, color: 'var(--be-portal)' }}>Current Campaign</p>
             <h2 style={{ fontFamily: 'var(--be-font-display)', fontSize: '1.5rem', color: '#f0e6c8', margin: '0 0 10px', lineHeight: 1.2 }}>
-              The Dark Portal Holds
+              Welcome, New Guildies!
             </h2>
             <p style={{ fontFamily: "'Spectral', serif", fontSize: '0.9rem', color: 'rgba(138,122,90,0.8)', margin: '0 0 18px', lineHeight: 1.5 }}>
-              Burning Crusade Classic is open. Karazhan progression underway. Dungeons run daily. Sign-ups open in the Hall.
+              The guild is in heavy recruitment mode and reactivating old guildies before the name change. Our goal is 200+ active members — enough to have guildies online at nearly all times, day or night. The more the merrier. Spread the word.
             </p>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <Link href="/dungeons" style={{
