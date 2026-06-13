@@ -145,7 +145,7 @@ function CharFormFields({ form, errors, onChange, onSubmit, submitLabel }: {
           onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = 'rgba(201,150,26,0.7)' }}
           onBlur={(e) => {
             if (form.name.length > 0) {
-              const cap = form.name.charAt(0).toUpperCase() + form.name.slice(1)
+              const cap = form.name.replace(/^[a-z]/, (c) => c.toUpperCase())
               if (cap !== form.name) onChange({ ...form, name: cap })
             }
             ;(e.target as HTMLInputElement).style.borderColor = nameHasError ? 'rgba(255,107,107,0.6)' : 'rgba(61,46,21,0.6)'
@@ -640,7 +640,7 @@ export default function OnboardingPage() {
                   </div>
                   <div>
                     <p style={{ fontSize: 10, letterSpacing: '0.12em', color: 'var(--be-ink-4)', fontFamily: 'var(--be-font-display)', marginBottom: 2 }}>PROFESSIONS</p>
-                    <p style={{ fontSize: 13, color: 'var(--be-ink-3)', fontFamily: 'var(--be-font-body)', fontStyle: 'italic' }}>To Be Determined</p>
+                    <p style={{ fontSize: 13, color: 'var(--be-ink-3)', fontFamily: 'var(--be-font-body)', fontStyle: 'italic' }}>Prof 1 TBD  Prof 2 TBD</p>
                   </div>
                 </div>
               </div>

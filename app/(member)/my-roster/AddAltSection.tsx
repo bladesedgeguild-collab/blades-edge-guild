@@ -430,7 +430,7 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
                       onFocus={(e) => { (e.target as HTMLInputElement).style.borderColor = 'rgba(201,150,26,0.7)' }}
                       onBlur={(e) => {
                         if (form.name.length > 0) {
-                          const cap = form.name.charAt(0).toUpperCase() + form.name.slice(1)
+                          const cap = form.name.replace(/^[a-z]/, (c) => c.toUpperCase())
                           if (cap !== form.name) setForm({ ...form, name: cap })
                         }
                         ;(e.target as HTMLInputElement).style.borderColor = nameHasError ? 'rgba(255,107,107,0.6)' : 'rgba(61,46,21,0.6)'
