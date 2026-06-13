@@ -218,7 +218,7 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
           {char.name.charAt(0)}
         </div>
         <div className="alt-result-info">
-          <span className="alt-result-name" style={{ color, filter: selected ? 'brightness(0.55)' : 'none' }}>
+          <span className="alt-result-name" style={{ color, filter: selected ? 'brightness(0.55)' : 'none', textTransform: 'none', fontVariant: 'normal', fontVariantCaps: 'normal', fontVariantLigatures: 'none', WebkitFontFeatureSettings: '"case" 0', fontFeatureSettings: '"case" 0' }}>
             {char.name}
           </span>
           <span className="alt-result-meta" style={{ color: selected ? '#5a3a08' : 'var(--be-muted)' }}>
@@ -261,11 +261,11 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
           <div className="alts-grid">
             {alts.map((alt) => {
               const color = CLASS_COLORS[alt.class] ?? '#888'
+              console.log('Alt name from DB:', alt.name, 'charCodes:', [...alt.name].map(c => c.charCodeAt(0)))
               return (
                 <div key={alt.id} className="alt-card" style={{ borderLeft: `4px solid ${color}` }}>
                   <div className="alt-card-left">
-                    {/* textTransform: none is critical — prevents Cinzel from converting ß→SS */}
-                    <span className="alt-card-name" data-character-name style={{ color, textTransform: 'none' }}>
+                    <span className="alt-card-name" data-character-name style={{ color, textTransform: 'none', fontVariant: 'normal', fontVariantCaps: 'normal', fontVariantLigatures: 'none', WebkitFontFeatureSettings: '"case" 0', fontFeatureSettings: '"case" 0' }}>
                       {alt.name}
                     </span>
                     <span className="alt-card-sub">
@@ -347,7 +347,7 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
                         style={{ borderColor: CLASS_COLORS[char.class] ?? '#c9961a' }}
                       >
                         <GuildShieldCheck size={14} color={CLASS_COLORS[char.class] ?? '#c9961a'} />
-                        <span style={{ color: CLASS_COLORS[char.class] ?? '#c9961a' }}>{char.name}</span>
+                        <span style={{ color: CLASS_COLORS[char.class] ?? '#c9961a', textTransform: 'none', fontVariant: 'normal', fontVariantCaps: 'normal', fontVariantLigatures: 'none', WebkitFontFeatureSettings: '"case" 0', fontFeatureSettings: '"case" 0' }}>{char.name}</span>
                         <button
                           className="alt-selected-remove"
                           onClick={() => toggleSelect(char)}
@@ -492,7 +492,7 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
                 <h2 style={{ fontFamily: 'var(--be-font-display)', fontSize: 20, color: 'var(--be-ink)', margin: '0 0 16px' }}>Add this alt?</h2>
                 <div style={{ background: 'linear-gradient(135deg, var(--be-bg-1) 0%, var(--be-bg-2) 100%)', border: '1px solid var(--be-iron-3)', borderLeft: `4px solid ${newFormClassColor}`, borderRadius: 'var(--be-radius)', padding: 20, marginBottom: 20 }}>
                   <p style={{ fontFamily: 'var(--be-font-display)', fontSize: 10, letterSpacing: '0.15em', color: newFormClassColor, marginBottom: 4 }}>{form.cls.toUpperCase()}</p>
-                  <h3 style={{ fontFamily: 'var(--be-font-display)', fontSize: 36, color: 'var(--be-ink)', margin: '0 0 4px', lineHeight: 1 }}>{form.name}</h3>
+                  <h3 style={{ fontFamily: 'var(--be-font-display)', fontSize: 36, color: 'var(--be-ink)', margin: '0 0 4px', lineHeight: 1, textTransform: 'none', fontVariant: 'normal', fontVariantCaps: 'normal', fontVariantLigatures: 'none', WebkitFontFeatureSettings: '"case" 0', fontFeatureSettings: '"case" 0' }}>{form.name}</h3>
                   <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'var(--be-ink-3)', fontSize: 14, margin: 0 }}>Level {form.level} · {form.race} · Fresh Recruit</p>
                 </div>
                 <div style={{ display: 'flex', gap: 10 }}>
