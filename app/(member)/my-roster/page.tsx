@@ -84,7 +84,7 @@ export default async function MyRosterPage() {
     { label: 'Joined',      value: mainChar.joined_guild_at ? new Date(mainChar.joined_guild_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—' },
   ]
 
-  const vLabel: CSSProperties = { fontFamily: 'var(--be-font-display)', fontSize: '0.62rem', letterSpacing: '0.14em', textTransform: 'uppercase', color: 'rgba(138,122,90,0.55)', margin: 0 }
+  const vLabel: CSSProperties = { fontFamily: 'var(--be-font-display)', fontSize: '0.62rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(138,122,90,0.55)', margin: 0, minWidth: '90px', maxWidth: '90px', flexShrink: 0 }
   const vValue: CSSProperties = { fontFamily: "'Spectral', serif", fontSize: '0.92rem', color: '#c4b490', margin: 0 }
 
   return (
@@ -104,7 +104,7 @@ export default async function MyRosterPage() {
             <p className="roster-hero-class" style={{ fontFamily: 'var(--be-font-display)', fontSize: '1rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'rgba(138,122,90,0.6)', margin: '0 0 6px' }}>
               {mainChar.class}
             </p>
-            <h1 className="character-name roster-hero-name" style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: 'clamp(2.2rem, 4vw, 4rem)', color: charColor, lineHeight: 1.05, margin: 0 }}>
+            <h1 className="character-name roster-hero-name" data-character-name style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: 'clamp(2.2rem, 4vw, 4rem)', color: charColor, lineHeight: 1.05, margin: 0 }}>
               {mainChar.name}
             </h1>
           </div>
@@ -155,7 +155,7 @@ export default async function MyRosterPage() {
                   </span>
                 ) : row.professions ? (
                   <span style={{ ...vValue, color: row.value ? '#c9961a' : 'rgba(138,122,90,0.5)', fontStyle: row.value ? 'normal' : 'italic' }}>
-                    {row.value ?? 'Profession 1 TBD · Profession 2 TBD'}
+                    {row.value ?? 'Prof 1 TBD  Prof 2 TBD'}
                   </span>
                 ) : (
                   <span style={vValue}>{row.value ?? '—'}</span>

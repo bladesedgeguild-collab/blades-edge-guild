@@ -265,7 +265,7 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
                 <div key={alt.id} className="alt-card" style={{ borderLeft: `4px solid ${color}` }}>
                   <div className="alt-card-left">
                     {/* textTransform: none is critical — prevents Cinzel from converting ß→SS */}
-                    <span className="alt-card-name" style={{ color, textTransform: 'none' }}>
+                    <span className="alt-card-name" data-character-name style={{ color, textTransform: 'none' }}>
                       {alt.name}
                     </span>
                     <span className="alt-card-sub">

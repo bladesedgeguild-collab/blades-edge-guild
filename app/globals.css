@@ -494,10 +494,11 @@ input[type=number] { -moz-appearance: textfield; }
    Never apply text-transform to these elements — ß becomes "SS" under uppercase. */
 .character-name,
 .guild-name,
+.alt-card-name,
 [data-character-name] {
   font-variant-ligatures: none;
   font-variant: normal;
-  text-transform: none;
+  text-transform: none !important;
 }
 
 /* Dashboard utility classes */
@@ -563,7 +564,7 @@ input[type=number] { -moz-appearance: textfield; }
 /* ── My Roster — Body grid ── */
 .roster-body {
   display: grid;
-  grid-template-columns: 280px 1fr;
+  grid-template-columns: 300px 1fr;
   gap: 1.5rem;
   align-items: start;
 }
