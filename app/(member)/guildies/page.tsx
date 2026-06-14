@@ -14,7 +14,7 @@ export default async function GuildiesPage() {
       .eq('hide_from_roster', false),
     supabase
       .from('characters')
-      .select('id, name, class, race, level, rank_name, rank_index, in_original_roster, last_online_days, professions(name)')
+      .select('id, name, class, race, level, rank_name, rank_index, in_original_roster, last_online_days, professions(name, skill_level)')
       .eq('in_original_roster', true)
       .eq('last_online_days', 9999)
       .eq('hide_from_roster', false),

@@ -15,26 +15,33 @@ const CLASS_COLORS: Record<string, string> = {
 const RANK_DISPLAY_MAP: Record<string, string> = {
   'Ally Emissary':   'Officer',
   'Grand Marshal':   'Officer',
-  'Event Warden':    'Officer Alt',
+  'Event Warden':    'Officer',
   'Vanguard Elite':  'Vanguard Elite',
   'Exalted Hero':    'Veteran',
   'Revered Champ':   'Member',
-  'Honored Veteran': 'Trusted Ally',
+  'Honored Veteran': 'Member',
   'Trusted Ally':    'Trusted Ally',
   'Fresh Recruit':   'Fresh Recruit',
   'Guild Master':    'Guild Master',
-  'Officer':         'Officer',
   'GM Alt':          'GM Alt',
+  'Officer':         'Officer',
   'Officer Alt':     'Officer Alt',
   'Recruiter':       'Recruiter',
   'Veteran':         'Veteran',
   'Member':          'Member',
 }
 
-const RANK_OPTIONS = [
-  'Guild Master', 'GM Alt', 'Officer', 'Officer Alt',
-  'Vanguard Elite', 'Recruiter', 'Veteran', 'Member',
-  'Trusted Ally', 'Fresh Recruit',
+const RANK_SUBMENU_OPTIONS = [
+  'Guild Master',
+  'GM Alt',
+  'Officer',
+  'Officer Alt',
+  'Vanguard Elite',
+  'Recruiter',
+  'Veteran',
+  'Member',
+  'Trusted Ally',
+  'Fresh Recruit',
 ]
 
 function displayRank(rankName: string): string {
@@ -50,7 +57,7 @@ export type RosterChar = {
 export type MiaChar = {
   id: string; name: string; class: string; race: string | null
   level: number; rank_name: string | null; rank_index: number | null
-  professions: { name: string }[]
+  professions: { name: string; skill_level?: number | null }[]
 }
 
 // Legacy type aliases
@@ -62,7 +69,7 @@ type MergedChar = RosterChar & { isClaimed: boolean }
 type AnyChar = {
   level: number; rank_index: number | null; class: string
   race: string | null; rank_name: string | null
-  professions: { name: string; skill_level?: number }[]
+  professions: { name: string; skill_level?: number | null }[]
 }
 
 type SortKey = 'level' | 'rank' | 'class' | 'race' | 'profession'
@@ -153,7 +160,7 @@ function getSubmenuValues(key: SortKey, members: AnyChar[]): string[] {
       const presentNormalized = new Set(
         members.map(m => m.rank_name ? displayRank(m.rank_name) : '').filter(Boolean)
       )
-      return RANK_OPTIONS.filter(r => presentNormalized.has(r))
+      return RANK_SUBMENU_OPTIONS.filter(r => presentNormalized.has(r))
     }
     case 'profession':
       return [...new Set(
@@ -307,7 +314,7 @@ export function GuildiesClient({
         {sortedMerged.map(char => {
           const art   = char.isClaimed ? getCharacterArt(char.race, char.class) : null
           const color = CLASS_COLORS[char.class] ?? '#8a7a5a'
-          const profs = char.professions.filter(p => p.is_primary).map(p => p.name)
+          const profs = char.professions.filter(p => p.is_primary).map(p => `${p.skill_level} ${p.name}`)
           return (
             <div key={char.id} className="guildie-row" style={{ opacity: char.isClaimed ? 1 : 0.55 }}>
               <div className="guildie-art">
@@ -402,7 +409,7 @@ export function GuildiesClient({
                 </div>
                 <div className="guildie-prof-col">
                   {char.professions.length > 0
-                    ? char.professions.slice(0, 2).map(p => p.name).join('  ')
+                    ? char.professions.slice(0, 2).map(p => p.skill_level ? `${p.skill_level} ${p.name}` : p.name).join('  ')
                     : <span style={{ fontStyle: 'italic' }}>—</span>}
                 </div>
               </div>
