@@ -64,6 +64,7 @@ export function NavMobileMenu({ isLoggedIn, isOfficer, displayName, charColor, a
             <>
               <Link href="/dashboard" className="nav-mobile-link" onClick={() => setOpen(false)}>Hall</Link>
               <Link href="/my-roster" className="nav-mobile-link" onClick={() => setOpen(false)}>My Roster</Link>
+              <Link href="/guildies" className="nav-mobile-link" onClick={() => setOpen(false)}>Guildies</Link>
               <span className="nav-mobile-link" style={{ color: '#3d2e15', cursor: 'not-allowed' }}>Dungeons</span>
               {isOfficer && (
                 <Link href="/officers" className="nav-mobile-link" onClick={() => setOpen(false)}>Officers</Link>
