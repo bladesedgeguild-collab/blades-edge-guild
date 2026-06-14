@@ -1281,17 +1281,14 @@ input[type=number] { -moz-appearance: textfield; }
   color: var(--be-gold);
 }
 .unclaimed-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 1px 7px;
-  border: 1px solid rgba(138,122,90,0.4);
-  background: rgba(138,122,90,0.08);
   font-family: 'Cinzel', serif;
-  font-size: 0.55rem;
+  font-size: 0.65rem;
   letter-spacing: 0.1em;
+  color: var(--be-muted);
+  border: 1px solid rgba(138,122,90,0.3);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
   text-transform: uppercase;
-  color: rgba(138,122,90,0.8);
-  border-radius: 2px;
   white-space: nowrap;
 }
 

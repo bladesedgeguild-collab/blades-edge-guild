@@ -3,12 +3,42 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCharacterArt } from '@/lib/character-art'
+import { AddAltModal } from '@/components/AddAltModal'
 
 const CLASS_COLORS: Record<string, string> = {
   MAGE: '#3fc7eb', PALADIN: '#f48cba', WARRIOR: '#c69b3a',
   PRIEST: '#ffffff', DRUID: '#ff7c0a', HUNTER: '#aad372',
   ROGUE: '#fff468', WARLOCK: '#8788ee', SHAMAN: '#0070dd',
   DEATH_KNIGHT: '#c41e3a', MONK: '#00ff98', DEMON_HUNTER: '#a330c9',
+}
+
+const RANK_DISPLAY_MAP: Record<string, string> = {
+  'Ally Emissary':   'Officer',
+  'Grand Marshal':   'Officer',
+  'Event Warden':    'Officer Alt',
+  'Vanguard Elite':  'Vanguard Elite',
+  'Exalted Hero':    'Veteran',
+  'Revered Champ':   'Member',
+  'Honored Veteran': 'Trusted Ally',
+  'Trusted Ally':    'Trusted Ally',
+  'Fresh Recruit':   'Fresh Recruit',
+  'Guild Master':    'Guild Master',
+  'Officer':         'Officer',
+  'GM Alt':          'GM Alt',
+  'Officer Alt':     'Officer Alt',
+  'Recruiter':       'Recruiter',
+  'Veteran':         'Veteran',
+  'Member':          'Member',
+}
+
+const RANK_OPTIONS = [
+  'Guild Master', 'GM Alt', 'Officer', 'Officer Alt',
+  'Vanguard Elite', 'Recruiter', 'Veteran', 'Member',
+  'Trusted Ally', 'Fresh Recruit',
+]
+
+function displayRank(rankName: string): string {
+  return RANK_DISPLAY_MAP[rankName] ?? rankName
 }
 
 export type RosterChar = {
@@ -23,14 +53,16 @@ export type MiaChar = {
   professions: { name: string }[]
 }
 
-// Keep legacy exports for any lingering import sites
-export type ActiveChar   = RosterChar
+// Legacy type aliases
+export type ActiveChar    = RosterChar
 export type UnclaimedChar = RosterChar
+
+type MergedChar = RosterChar & { isClaimed: boolean }
 
 type AnyChar = {
   level: number; rank_index: number | null; class: string
   race: string | null; rank_name: string | null
-  professions: { name: string }[]
+  professions: { name: string; skill_level?: number }[]
 }
 
 type SortKey = 'level' | 'rank' | 'class' | 'race' | 'profession'
@@ -90,17 +122,20 @@ const SORTS: { key: SortKey; label: string; color: string; bgTint: string; icon:
   { key: 'profession', label: 'Craft', color: '#ff7c0a', bgTint: 'rgba(255,124,10,0.05)',  icon: <HammerIcon />,        hasSubmenu: true  },
 ]
 
-function sortChars<T extends AnyChar>(chars: T[], key: SortKey): T[] {
+function sortChars<T extends AnyChar>(chars: T[], key: SortKey, filter?: string | null): T[] {
   return [...chars].sort((a, b) => {
     switch (key) {
-      case 'level':      return b.level - a.level
-      case 'rank':       return (a.rank_index ?? 9999) - (b.rank_index ?? 9999)
-      case 'class':      return a.class.localeCompare(b.class)
-      case 'race':       return (a.race ?? 'zzz').localeCompare(b.race ?? 'zzz')
+      case 'level':  return b.level - a.level
+      case 'rank':   return (a.rank_index ?? 9999) - (b.rank_index ?? 9999)
+      case 'class':  return a.class.localeCompare(b.class) || b.level - a.level
+      case 'race':   return (a.race ?? 'zzz').localeCompare(b.race ?? 'zzz') || b.level - a.level
       case 'profession': {
-        const pa = a.professions?.[0]?.name ?? 'zzz'
-        const pb = b.professions?.[0]?.name ?? 'zzz'
-        return pa.localeCompare(pb)
+        const getSkill = (c: T): number => {
+          if (filter) return c.professions?.find(p => p.name === filter)?.skill_level ?? 0
+          const skills = c.professions?.map(p => p.skill_level ?? 0) ?? []
+          return skills.length > 0 ? Math.max(...skills) : 0
+        }
+        return getSkill(b) - getSkill(a) || b.level - a.level
       }
     }
   })
@@ -111,15 +146,14 @@ function getSubmenuValues(key: SortKey, members: AnyChar[]): string[] {
     case 'class':
       return [...new Set(members.map(m => m.class))].sort()
     case 'race':
-      return [...new Set(members.map(m => m.race).filter((r): r is string => r !== null))].sort()
+      return [...new Set(
+        members.map(m => m.race === 'NightElf' ? 'Night Elf' : m.race).filter((r): r is string => r !== null)
+      )].sort()
     case 'rank': {
-      const rankMap = new Map<string, number>()
-      members.forEach(m => {
-        if (m.rank_name && !rankMap.has(m.rank_name)) {
-          rankMap.set(m.rank_name, m.rank_index ?? 9)
-        }
-      })
-      return [...rankMap.keys()].sort((a, b) => (rankMap.get(a) ?? 9) - (rankMap.get(b) ?? 9))
+      const presentNormalized = new Set(
+        members.map(m => m.rank_name ? displayRank(m.rank_name) : '').filter(Boolean)
+      )
+      return RANK_OPTIONS.filter(r => presentNormalized.has(r))
     }
     case 'profession':
       return [...new Set(
@@ -134,8 +168,8 @@ function applyFilter<T extends AnyChar>(list: T[], sort: SortKey, filter: string
   if (!filter) return list
   switch (sort) {
     case 'class':      return list.filter(c => c.class === filter)
-    case 'race':       return list.filter(c => c.race === filter)
-    case 'rank':       return list.filter(c => c.rank_name === filter)
+    case 'race':       return list.filter(c => (c.race === 'NightElf' ? 'Night Elf' : c.race) === filter)
+    case 'rank':       return list.filter(c => c.rank_name && displayRank(c.rank_name) === filter)
     case 'profession': return list.filter(c => c.professions?.some(p => p.name === filter))
     default:           return list
   }
@@ -158,14 +192,25 @@ export function GuildiesClient({
   const [activeSort, setActiveSort] = useState<SortKey>('level')
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
   const [openSubmenu, setOpenSubmenu] = useState<SortKey | null>(null)
+  const [showAddAltModal, setShowAddAltModal] = useState(false)
   const router = useRouter()
 
-  const allMembers = [...claimed, ...unclaimedActive, ...miaOriginals] as AnyChar[]
+  const mergedActive: MergedChar[] = [
+    ...claimed.map(c => ({ ...c, isClaimed: true  as const })),
+    ...unclaimedActive.map(c => ({ ...c, isClaimed: false as const })),
+  ]
+
+  const allMembers = [...mergedActive, ...miaOriginals] as AnyChar[]
   const activeSortDef = SORTS.find(s => s.key === activeSort)!
 
-  const sortedClaimed    = applyFilter(sortChars(claimed, activeSort), activeSort, activeFilter)
-  const sortedUnclaimed  = applyFilter(sortChars(unclaimedActive, activeSort), activeSort, activeFilter)
-  const sortedMia        = applyFilter(sortChars(miaOriginals, activeSort), activeSort, activeFilter)
+  const sortedMerged = applyFilter(
+    sortChars(mergedActive, activeSort, activeFilter),
+    activeSort, activeFilter
+  )
+  const sortedMia = applyFilter(
+    sortChars(miaOriginals, activeSort, activeFilter),
+    activeSort, activeFilter
+  )
 
   const totalActive = claimed.length + unclaimedActive.length
 
@@ -248,9 +293,8 @@ export function GuildiesClient({
         })}
       </div>
 
-      {/* Active Guild Members */}
+      {/* Active Guild Members — merged single list */}
       <div style={{ background: activeSortDef.bgTint, borderRadius: 12, transition: 'background 400ms ease', border: '1px solid rgba(61,46,21,0.4)', overflow: 'hidden' }}>
-        {/* Column header */}
         <div className="guildie-row guildie-header">
           <div />
           <div>Name</div>
@@ -260,37 +304,41 @@ export function GuildiesClient({
           <div>Professions</div>
         </div>
 
-        {/* Claimed — full color with art */}
-        {sortedClaimed.map(char => {
-          const art   = getCharacterArt(char.race, char.class)
+        {sortedMerged.map(char => {
+          const art   = char.isClaimed ? getCharacterArt(char.race, char.class) : null
           const color = CLASS_COLORS[char.class] ?? '#8a7a5a'
           const profs = char.professions.filter(p => p.is_primary).map(p => p.name)
           return (
-            <div key={char.id} className="guildie-row">
+            <div key={char.id} className="guildie-row" style={{ opacity: char.isClaimed ? 1 : 0.55 }}>
               <div className="guildie-art">
-                {art && (
+                {char.isClaimed && art ? (
                   <>
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={art.female} className="guildie-art-fig" alt="" />
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={art.male}   className="guildie-art-fig" alt="" />
                   </>
+                ) : (
+                  <div style={{ width: 64 }} />
                 )}
               </div>
               <div className="guildie-name-col">
-                <span data-character-name style={{ color, fontFamily: 'Cinzel, serif', textTransform: 'none', fontVariant: 'normal' }}>
+                <span data-character-name style={{ color: char.isClaimed ? color : 'var(--be-muted)', fontFamily: 'Cinzel, serif', textTransform: 'none', fontVariant: 'normal' }}>
                   {char.name}
                 </span>
-                <span className="guildie-sub">{char.race}</span>
+                <span className="guildie-sub">{char.race === 'NightElf' ? 'Night Elf' : char.race}</span>
               </div>
               <div className="guildie-class-col">
                 <span style={{ color }}>● {classLabel(char.class)}</span>
               </div>
               <div className="guildie-level-col">
-                <span style={{ color: 'var(--be-gold)', fontFamily: 'Cinzel, serif' }}>{char.level}</span>
+                <span style={{ color: char.isClaimed ? 'var(--be-gold)' : undefined, fontFamily: 'Cinzel, serif' }}>{char.level}</span>
               </div>
               <div className="guildie-rank-col">
-                {char.rank_name && <span className="rank-badge">{char.rank_name}</span>}
+                {char.isClaimed
+                  ? char.rank_name && <span className="rank-badge">{displayRank(char.rank_name)}</span>
+                  : <span className="unclaimed-badge">Unclaimed</span>
+                }
               </div>
               <div className="guildie-prof-col">
                 {profs.length > 0
@@ -301,41 +349,7 @@ export function GuildiesClient({
           )
         })}
 
-        {/* Unclaimed active — faded, no art */}
-        {sortedUnclaimed.map(char => {
-          const color = CLASS_COLORS[char.class] ?? '#8a7a5a'
-          const profs = char.professions.filter(p => p.is_primary).map(p => p.name)
-          return (
-            <div key={char.id} className="guildie-row" style={{ opacity: 0.4 }}>
-              <div style={{ width: 64 }} />
-              <div className="guildie-name-col">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <span data-character-name style={{ color: 'var(--be-muted)', fontFamily: 'Cinzel, serif', textTransform: 'none', fontVariant: 'normal' }}>
-                    {char.name}
-                  </span>
-                  <span className="unclaimed-badge">Unclaimed</span>
-                </div>
-                <span className="guildie-sub">{char.race}</span>
-              </div>
-              <div className="guildie-class-col">
-                <span style={{ color }}>● {classLabel(char.class)}</span>
-              </div>
-              <div className="guildie-level-col">
-                <span style={{ fontFamily: 'Cinzel, serif' }}>{char.level}</span>
-              </div>
-              <div className="guildie-rank-col">
-                {char.rank_name && <span className="rank-badge">{char.rank_name}</span>}
-              </div>
-              <div className="guildie-prof-col">
-                {profs.length > 0
-                  ? profs.join('  ')
-                  : <span style={{ fontStyle: 'italic' }}>—</span>}
-              </div>
-            </div>
-          )
-        })}
-
-        {sortedClaimed.length === 0 && sortedUnclaimed.length === 0 && (
+        {sortedMerged.length === 0 && (
           <div style={{ padding: '3rem', textAlign: 'center', fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'var(--be-muted)' }}>
             No active members match this filter.
           </div>
@@ -348,10 +362,17 @@ export function GuildiesClient({
           <span className="guildie-claim-title">Is one of these your alt?</span>
           <span className="guildie-claim-sub">Claim unclaimed characters and add them to your roster.</span>
         </div>
-        <button className="guildie-claim-btn" onClick={() => router.push('/my-roster')}>
-          Add Alts on My Roster →
+        <button className="guildie-claim-btn" onClick={() => setShowAddAltModal(true)}>
+          Claim your alt — add it to your roster
         </button>
       </div>
+
+      {showAddAltModal && (
+        <AddAltModal
+          onClose={() => setShowAddAltModal(false)}
+          onSuccess={() => { setShowAddAltModal(false); router.refresh() }}
+        />
+      )}
 
       {/* Original Members — Still MIA */}
       <div style={{ marginTop: '2.5rem' }}>
@@ -368,7 +389,7 @@ export function GuildiesClient({
                   <span data-character-name style={{ color: 'var(--be-muted)', fontFamily: 'Cinzel, serif', textTransform: 'none', fontVariant: 'normal' }}>
                     {char.name}
                   </span>
-                  <span className="guildie-sub">{char.race}</span>
+                  <span className="guildie-sub">{char.race === 'NightElf' ? 'Night Elf' : char.race}</span>
                 </div>
                 <div className="guildie-class-col">
                   <span style={{ color }}>● {classLabel(char.class)}</span>
@@ -377,7 +398,7 @@ export function GuildiesClient({
                   <span style={{ fontFamily: 'Cinzel, serif' }}>{char.level}</span>
                 </div>
                 <div className="guildie-rank-col">
-                  {char.rank_name && <span className="rank-badge">{char.rank_name}</span>}
+                  {char.rank_name && <span className="rank-badge">{displayRank(char.rank_name)}</span>}
                 </div>
                 <div className="guildie-prof-col">
                   {char.professions.length > 0
