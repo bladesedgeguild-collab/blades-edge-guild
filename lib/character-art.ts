@@ -1,28 +1,27 @@
 const RACE_MAP: Record<string, string> = {
   'Night Elf': 'NightElf',
   'NightElf': 'NightElf',
+  'night elf': 'NightElf',
   'Draenei': 'Draenei',
+  'draenei': 'Draenei',
   'Dwarf': 'Dwarf',
+  'dwarf': 'Dwarf',
   'Gnome': 'Gnome',
+  'gnome': 'Gnome',
   'Human': 'Human',
+  'human': 'Human',
 }
 
-// Files use title-case class names, except Warlock → Lock
 const CLASS_MAP: Record<string, string> = {
-  'Warlock': 'Lock',
-  'Hunter': 'Hunter',
-  'Mage': 'Mage',
-  'Paladin': 'Paladin',
-  'Priest': 'Priest',
-  'Rogue': 'Rogue',
-  'Warrior': 'Warrior',
-  'Shaman': 'Shaman',
-  'Druid': 'Druid',
-}
-
-// Handles both DB-uppercase ('WARRIOR') and form title-case ('Warrior') inputs
-function toTitleCase(s: string): string {
-  return s.charAt(0).toUpperCase() + s.slice(1).toLowerCase()
+  'DRUID': 'Druid',    'Druid': 'Druid',
+  'MAGE': 'Mage',      'Mage': 'Mage',
+  'WARRIOR': 'Warrior','Warrior': 'Warrior',
+  'PALADIN': 'Paladin','Paladin': 'Paladin',
+  'PRIEST': 'Priest',  'Priest': 'Priest',
+  'HUNTER': 'Hunter',  'Hunter': 'Hunter',
+  'ROGUE': 'Rogue',    'Rogue': 'Rogue',
+  'WARLOCK': 'Lock',   'Warlock': 'Lock',
+  'SHAMAN': 'Shaman',  'Shaman': 'Shaman',
 }
 
 export function getCharacterArt(
@@ -32,7 +31,7 @@ export function getCharacterArt(
   if (!race || !characterClass) return null
   const racePart = RACE_MAP[race]
   if (!racePart) return null
-  const classPart = CLASS_MAP[toTitleCase(characterClass)]
+  const classPart = CLASS_MAP[characterClass]
   if (!classPart) return null
   return {
     male: `/images/characters/${racePart}_${classPart}_M.png`,

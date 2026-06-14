@@ -11,21 +11,31 @@ const CLASS_COLORS: Record<string, string> = {
   DEATH_KNIGHT: '#c41e3a', MONK: '#00ff98', DEMON_HUNTER: '#a330c9',
 }
 
-export type ActiveChar = {
+export type RosterChar = {
   id: string; name: string; class: string; race: string | null
   level: number; rank_name: string | null; rank_index: number | null
   professions: { name: string; skill_level: number; is_primary: boolean }[]
 }
 
-export type UnclaimedChar = {
+export type MiaChar = {
   id: string; name: string; class: string; race: string | null
   level: number; rank_name: string | null; rank_index: number | null
   professions: { name: string }[]
 }
 
+// Keep legacy exports for any lingering import sites
+export type ActiveChar   = RosterChar
+export type UnclaimedChar = RosterChar
+
+type AnyChar = {
+  level: number; rank_index: number | null; class: string
+  race: string | null; rank_name: string | null
+  professions: { name: string }[]
+}
+
 type SortKey = 'level' | 'rank' | 'class' | 'race' | 'profession'
 
-// ── Icons ──────────────────────────────────────────────────
+// ── Icons ───────────────────────────────────────────────────
 const CrossedSwordsIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
     <line x1="2" y1="2" x2="16" y2="16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -35,7 +45,6 @@ const CrossedSwordsIcon = () => (
     <circle cx="9" cy="9" r="1.5" fill="currentColor"/>
   </svg>
 )
-
 const CrownIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
     <path d="M2 13 L4 6 L9 10 L14 4 L16 6 L16 13 Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" fill="none"/>
@@ -45,7 +54,6 @@ const CrownIcon = () => (
     <circle cx="9" cy="10" r="1" fill="currentColor"/>
   </svg>
 )
-
 const ArcaneOrbIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
     <circle cx="9" cy="9" r="5" stroke="currentColor" strokeWidth="1.5"/>
@@ -56,7 +64,6 @@ const ArcaneOrbIcon = () => (
     <line x1="14" y1="9" x2="17" y2="9" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
   </svg>
 )
-
 const HelmIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
     <path d="M4 10 Q4 4 9 3 Q14 4 14 10 L14 14 Q14 15 13 15 L5 15 Q4 15 4 14 Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" fill="none"/>
@@ -66,7 +73,6 @@ const HelmIcon = () => (
     <line x1="12" y1="15" x2="12" y2="17" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round"/>
   </svg>
 )
-
 const HammerIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
     <rect x="8" y="2" width="6" height="4" rx="1" stroke="currentColor" strokeWidth="1.5" fill="none"/>
@@ -75,18 +81,16 @@ const HammerIcon = () => (
   </svg>
 )
 
-// ── Sort config ─────────────────────────────────────────────
-const SORTS: { key: SortKey; label: string; color: string; bgTint: string; icon: React.ReactNode }[] = [
-  { key: 'level',      label: 'Level', color: '#c9961a', bgTint: 'rgba(201,150,26,0.06)',  icon: <CrossedSwordsIcon /> },
-  { key: 'rank',       label: 'Rank',  color: '#e8c96a', bgTint: 'rgba(232,201,106,0.06)', icon: <CrownIcon /> },
-  { key: 'class',      label: 'Class', color: '#3fc7eb', bgTint: 'rgba(63,199,235,0.05)',  icon: <ArcaneOrbIcon /> },
-  { key: 'race',       label: 'Race',  color: '#aad372', bgTint: 'rgba(170,211,114,0.05)', icon: <HelmIcon /> },
-  { key: 'profession', label: 'Craft', color: '#ff7c0a', bgTint: 'rgba(255,124,10,0.05)',  icon: <HammerIcon /> },
+// ── Sort config ──────────────────────────────────────────────
+const SORTS: { key: SortKey; label: string; color: string; bgTint: string; icon: React.ReactNode; hasSubmenu: boolean }[] = [
+  { key: 'level',      label: 'Level', color: '#c9961a', bgTint: 'rgba(201,150,26,0.06)',  icon: <CrossedSwordsIcon />, hasSubmenu: false },
+  { key: 'rank',       label: 'Rank',  color: '#e8c96a', bgTint: 'rgba(232,201,106,0.06)', icon: <CrownIcon />,         hasSubmenu: true  },
+  { key: 'class',      label: 'Class', color: '#3fc7eb', bgTint: 'rgba(63,199,235,0.05)',  icon: <ArcaneOrbIcon />,     hasSubmenu: true  },
+  { key: 'race',       label: 'Race',  color: '#aad372', bgTint: 'rgba(170,211,114,0.05)', icon: <HelmIcon />,          hasSubmenu: true  },
+  { key: 'profession', label: 'Craft', color: '#ff7c0a', bgTint: 'rgba(255,124,10,0.05)',  icon: <HammerIcon />,        hasSubmenu: true  },
 ]
 
-function sortChars<T extends { level: number; rank_index: number | null; class: string; race: string | null; professions: { name: string }[] }>(
-  chars: T[], key: SortKey
-): T[] {
+function sortChars<T extends AnyChar>(chars: T[], key: SortKey): T[] {
   return [...chars].sort((a, b) => {
     switch (key) {
       case 'level':      return b.level - a.level
@@ -102,18 +106,68 @@ function sortChars<T extends { level: number; rank_index: number | null; class: 
   })
 }
 
+function getSubmenuValues(key: SortKey, members: AnyChar[]): string[] {
+  switch (key) {
+    case 'class':
+      return [...new Set(members.map(m => m.class))].sort()
+    case 'race':
+      return [...new Set(members.map(m => m.race).filter((r): r is string => r !== null))].sort()
+    case 'rank': {
+      const rankMap = new Map<string, number>()
+      members.forEach(m => {
+        if (m.rank_name && !rankMap.has(m.rank_name)) {
+          rankMap.set(m.rank_name, m.rank_index ?? 9)
+        }
+      })
+      return [...rankMap.keys()].sort((a, b) => (rankMap.get(a) ?? 9) - (rankMap.get(b) ?? 9))
+    }
+    case 'profession':
+      return [...new Set(
+        members.flatMap(m => m.professions?.map(p => p.name) ?? [])
+      )].sort()
+    default:
+      return []
+  }
+}
+
+function applyFilter<T extends AnyChar>(list: T[], sort: SortKey, filter: string | null): T[] {
+  if (!filter) return list
+  switch (sort) {
+    case 'class':      return list.filter(c => c.class === filter)
+    case 'race':       return list.filter(c => c.race === filter)
+    case 'rank':       return list.filter(c => c.rank_name === filter)
+    case 'profession': return list.filter(c => c.professions?.some(p => p.name === filter))
+    default:           return list
+  }
+}
+
 function classLabel(cls: string) {
   return cls.charAt(0) + cls.slice(1).toLowerCase().replace('_', ' ')
 }
 
-// ── Component ───────────────────────────────────────────────
-export function GuildiesClient({ active, unclaimed }: { active: ActiveChar[]; unclaimed: UnclaimedChar[] }) {
+// ── Component ────────────────────────────────────────────────
+export function GuildiesClient({
+  claimed,
+  unclaimedActive,
+  miaOriginals,
+}: {
+  claimed: RosterChar[]
+  unclaimedActive: RosterChar[]
+  miaOriginals: MiaChar[]
+}) {
   const [activeSort, setActiveSort] = useState<SortKey>('level')
+  const [activeFilter, setActiveFilter] = useState<string | null>(null)
+  const [openSubmenu, setOpenSubmenu] = useState<SortKey | null>(null)
   const router = useRouter()
 
-  const sorted          = sortChars(active, activeSort)
-  const sortedUnclaimed = sortChars(unclaimed, activeSort)
-  const activeSortDef   = SORTS.find(s => s.key === activeSort)!
+  const allMembers = [...claimed, ...unclaimedActive, ...miaOriginals] as AnyChar[]
+  const activeSortDef = SORTS.find(s => s.key === activeSort)!
+
+  const sortedClaimed    = applyFilter(sortChars(claimed, activeSort), activeSort, activeFilter)
+  const sortedUnclaimed  = applyFilter(sortChars(unclaimedActive, activeSort), activeSort, activeFilter)
+  const sortedMia        = applyFilter(sortChars(miaOriginals, activeSort), activeSort, activeFilter)
+
+  const totalActive = claimed.length + unclaimedActive.length
 
   return (
     <div style={{ maxWidth: 1200, margin: '0 auto', padding: '2rem 1.5rem' }}>
@@ -127,39 +181,74 @@ export function GuildiesClient({ active, unclaimed }: { active: ActiveChar[]; un
           Guildies
         </h1>
         <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'rgba(138,122,90,0.65)', fontSize: '1rem', margin: 0 }}>
-          {active.length} active members · {unclaimed.length} unclaimed
+          {totalActive} active members · {claimed.length} registered · {miaOriginals.length} MIA originals
         </p>
       </div>
 
       {/* Sort buttons */}
       <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-        {SORTS.map(sort => (
-          <button
-            key={sort.key}
-            onClick={() => setActiveSort(sort.key)}
-            style={{
-              background: activeSort === sort.key ? sort.color + '22' : 'var(--be-bg-2)',
-              border: `1px solid ${activeSort === sort.key ? sort.color : 'rgba(201,150,26,0.2)'}`,
-              color: activeSort === sort.key ? sort.color : 'var(--be-muted)',
-              borderRadius: '10px',
-              padding: '0.65rem 1.25rem',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              fontFamily: 'Cinzel, serif',
-              fontSize: '0.8rem',
-              letterSpacing: '0.1em',
-              cursor: 'pointer',
-              transition: 'all 200ms ease',
-            }}
-          >
-            {sort.icon}
-            {sort.label}
-          </button>
-        ))}
+        {SORTS.map(sort => {
+          const isActive = activeSort === sort.key
+          const submenuValues = sort.hasSubmenu ? getSubmenuValues(sort.key, allMembers) : []
+          return (
+            <div key={sort.key} className="sort-btn-wrapper">
+              <button
+                className={`sort-btn${isActive ? ' sort-btn-active' : ''}`}
+                style={isActive ? {
+                  background: sort.color + '22',
+                  border: `1px solid ${sort.color}`,
+                  color: sort.color,
+                } : undefined}
+                onClick={() => {
+                  if (!sort.hasSubmenu) {
+                    setActiveSort(sort.key)
+                    setOpenSubmenu(null)
+                    if (activeSort !== sort.key) setActiveFilter(null)
+                  } else {
+                    setActiveSort(sort.key)
+                    setOpenSubmenu(openSubmenu === sort.key ? null : sort.key)
+                    if (activeSort !== sort.key) setActiveFilter(null)
+                  }
+                }}
+              >
+                {sort.icon}
+                {sort.label}
+                {activeFilter && isActive && (
+                  <span className="sort-filter-badge">: {activeFilter}</span>
+                )}
+                {sort.hasSubmenu && (
+                  <span style={{ fontSize: '0.6rem', marginLeft: '0.15rem' }}>▾</span>
+                )}
+              </button>
+
+              {sort.hasSubmenu && openSubmenu === sort.key && (
+                <div className="sort-submenu">
+                  <button
+                    className={`submenu-item${activeFilter === null ? ' active' : ''}`}
+                    onClick={() => { setActiveFilter(null); setOpenSubmenu(null) }}
+                  >
+                    All {sort.label}s
+                  </button>
+                  {submenuValues.map(value => (
+                    <button
+                      key={value}
+                      className={`submenu-item${activeFilter === value ? ' active' : ''}`}
+                      onClick={() => {
+                        setActiveFilter(activeFilter === value ? null : value)
+                        setOpenSubmenu(null)
+                      }}
+                    >
+                      {value}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
       </div>
 
-      {/* Active roster */}
+      {/* Active Guild Members */}
       <div style={{ background: activeSortDef.bgTint, borderRadius: 12, transition: 'background 400ms ease', border: '1px solid rgba(61,46,21,0.4)', overflow: 'hidden' }}>
         {/* Column header */}
         <div className="guildie-row guildie-header">
@@ -171,7 +260,8 @@ export function GuildiesClient({ active, unclaimed }: { active: ActiveChar[]; un
           <div>Professions</div>
         </div>
 
-        {sorted.map(char => {
+        {/* Claimed — full color with art */}
+        {sortedClaimed.map(char => {
           const art   = getCharacterArt(char.race, char.class)
           const color = CLASS_COLORS[char.class] ?? '#8a7a5a'
           const profs = char.professions.filter(p => p.is_primary).map(p => p.name)
@@ -211,9 +301,43 @@ export function GuildiesClient({ active, unclaimed }: { active: ActiveChar[]; un
           )
         })}
 
-        {sorted.length === 0 && (
+        {/* Unclaimed active — faded, no art */}
+        {sortedUnclaimed.map(char => {
+          const color = CLASS_COLORS[char.class] ?? '#8a7a5a'
+          const profs = char.professions.filter(p => p.is_primary).map(p => p.name)
+          return (
+            <div key={char.id} className="guildie-row" style={{ opacity: 0.4 }}>
+              <div style={{ width: 64 }} />
+              <div className="guildie-name-col">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <span data-character-name style={{ color: 'var(--be-muted)', fontFamily: 'Cinzel, serif', textTransform: 'none', fontVariant: 'normal' }}>
+                    {char.name}
+                  </span>
+                  <span className="unclaimed-badge">Unclaimed</span>
+                </div>
+                <span className="guildie-sub">{char.race}</span>
+              </div>
+              <div className="guildie-class-col">
+                <span style={{ color }}>● {classLabel(char.class)}</span>
+              </div>
+              <div className="guildie-level-col">
+                <span style={{ fontFamily: 'Cinzel, serif' }}>{char.level}</span>
+              </div>
+              <div className="guildie-rank-col">
+                {char.rank_name && <span className="rank-badge">{char.rank_name}</span>}
+              </div>
+              <div className="guildie-prof-col">
+                {profs.length > 0
+                  ? profs.join('  ')
+                  : <span style={{ fontStyle: 'italic' }}>—</span>}
+              </div>
+            </div>
+          )
+        })}
+
+        {sortedClaimed.length === 0 && sortedUnclaimed.length === 0 && (
           <div style={{ padding: '3rem', textAlign: 'center', fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'var(--be-muted)' }}>
-            No active members yet.
+            No active members match this filter.
           </div>
         )}
       </div>
@@ -229,13 +353,13 @@ export function GuildiesClient({ active, unclaimed }: { active: ActiveChar[]; un
         </button>
       </div>
 
-      {/* Unclaimed section */}
+      {/* Original Members — Still MIA */}
       <div style={{ marginTop: '2.5rem' }}>
         <p style={{ fontFamily: 'Cinzel, serif', fontSize: '0.65rem', letterSpacing: '0.2em', color: 'rgba(201,150,26,0.45)', margin: '0 0 1rem', textTransform: 'uppercase' }}>
-          Unclaimed Characters &amp; Original Members
+          Original Members — Still MIA
         </p>
         <div style={{ background: activeSortDef.bgTint, borderRadius: 12, transition: 'background 400ms ease', border: '1px solid rgba(61,46,21,0.3)', overflow: 'hidden', opacity: 0.35 }}>
-          {sortedUnclaimed.map(char => {
+          {sortedMia.map(char => {
             const color = CLASS_COLORS[char.class] ?? '#8a7a5a'
             return (
               <div key={char.id} className="guildie-row">
@@ -263,9 +387,9 @@ export function GuildiesClient({ active, unclaimed }: { active: ActiveChar[]; un
               </div>
             )
           })}
-          {sortedUnclaimed.length === 0 && (
+          {sortedMia.length === 0 && (
             <div style={{ padding: '3rem', textAlign: 'center', fontFamily: "'Spectral', serif", fontStyle: 'italic' }}>
-              All characters have been claimed.
+              {miaOriginals.length === 0 ? 'All original members have returned!' : 'No members match this filter.'}
             </div>
           )}
         </div>
