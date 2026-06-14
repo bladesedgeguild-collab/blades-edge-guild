@@ -16,10 +16,14 @@ type AltChar = {
   professions: { name: string; skill_level: number; is_primary: boolean }[]
 }
 
-function altProfessions(profs: { name: string; is_primary: boolean }[]): string {
+function altProfessions(profs: { name: string; skill_level: number; is_primary: boolean }[]): string {
   const primary = profs.filter(p => p.is_primary).slice(0, 2)
-  const p1 = primary[0]?.name ?? 'Prof 1 TBD'
-  const p2 = primary[1]?.name ?? 'Prof 2 TBD'
+  const p1 = primary[0]
+    ? `${primary[0].skill_level} ${primary[0].name}`
+    : 'Prof 1 TBD'
+  const p2 = primary[1]
+    ? `${primary[1].skill_level} ${primary[1].name}`
+    : 'Prof 2 TBD'
   return `${p1}  ${p2}`
 }
 

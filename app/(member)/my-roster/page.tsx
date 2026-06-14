@@ -79,7 +79,7 @@ export default async function MyRosterPage() {
     { label: 'Race',        value: mainChar.race ?? '—' },
     { label: 'Class',       value: classLabel,                                       classDot: true },
     { label: 'Level',       value: String(mainChar.level) },
-    { label: 'Professions', value: primaryProfs.map((p) => p.name).join(' · ') || null, professions: true },
+    { label: 'Professions', value: primaryProfs.map((p) => `${p.skill_level} ${p.name}`).join('  ') || null, professions: true },
     { label: 'Guild Rank',  value: mainChar.rank_name,                               pill: true },
     { label: 'Joined',      value: mainChar.joined_guild_at ? new Date(mainChar.joined_guild_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—' },
   ]
