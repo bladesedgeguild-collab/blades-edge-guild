@@ -4,11 +4,12 @@ import './recruit.css'
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 
-// ── Constants ────────────────────────────────────────────────────────────────
+// ── Constants ─────────────────────────────────────────────────────────────────
 
 const DISCORD_URL = 'https://discord.gg/B9fEz7AC6T'
 const AUTH_URL = '/login'
 const MAX_SCORE = 12
+const LETTERS = ['A', 'B', 'C', 'D']
 
 const CYCLING_IMAGES = [
   '/images/Summon_toBlastedLands.jpg',
@@ -36,104 +37,113 @@ const Q4_EVIDENCE = [
 ]
 
 const PERKS = [
-  { icon: '✦', bold: 'Free welcome bags', desc: ' — Four 10-slot bags, on the house, the moment you join.' },
-  { icon: '✦', bold: 'Lock summons anywhere', desc: ' — Never run to a flight path again. Our locks have you.' },
-  { icon: '✦', bold: 'GRATS-friendly fam', desc: ' — Helpful chat, real friends, zero toxicity.' },
-  { icon: '✦', bold: 'Big, active guild', desc: " — Someone's always online for dungeons & groups." },
+  { title: 'Free Bags', desc: 'Four 10-slot bags, on the house, the moment you join.' },
+  { title: 'Lock Summons', desc: 'Never run to a flight path again. Our locks have you.' },
+  { title: 'GRATS Fam', desc: 'Helpful chat, real friends, zero toxicity.' },
+  { title: 'Active Guild', desc: "Someone's always online for dungeons & groups." },
 ]
 
-// ── Types ────────────────────────────────────────────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────────
 
 type BgMode = 'cycling' | 'summon' | 'perks' | 'shattrath'
 type Screen = 'intro' | 'quiz' | 'result'
-type Letter = 'A' | 'B' | 'C'
 
-interface Answer {
-  letter: Letter
-  text: string
-  score: number
+interface RawAnswer {
+  t: string
+  s: number
 }
 
 interface Question {
-  id: number
   eyebrow: string
-  text: string
-  answers: Answer[]
+  q: string
+  a: RawAnswer[]
   background: BgMode
 }
 
-// ── Quiz data ─────────────────────────────────────────────────────────────────
+// ── Quiz data (exact wording from design) ────────────────────────────────────
 
 const QUESTIONS: Question[] = [
   {
-    id: 1,
-    eyebrow: 'Question 1 of 6',
-    text: 'What calls you back to Azeroth?',
-    answers: [
-      { letter: 'A', text: "My old guild fam — I heard they're rebuilding and I had to answer the call.", score: 2 },
-      { letter: 'B', text: 'The world, the lore, the rush of Classic. I\'m hooked again.', score: 1 },
-      { letter: 'C', text: "My roommate started playing and now I'm reinstalling at midnight.", score: 0 },
+    eyebrow: 'The Climb',
+    q: 'What kind of leveling experience are you after in TBC?',
+    a: [
+      { t: 'Chill solo — with group help when I want it', s: 2 },
+      { t: 'Social all the way — GRATS spam & guild chat', s: 2 },
+      { t: 'Hardcore. Race to 70, no stops', s: 1 },
     ],
     background: 'cycling',
   },
   {
-    id: 2,
-    eyebrow: 'Question 2 of 6',
-    text: 'You finally hit 70. First thing you do?',
-    answers: [
-      { letter: 'A', text: "Check guild chat — see who needs a dungeon run. Community first.", score: 2 },
-      { letter: 'B', text: "Max professions, sort my gear, then I'm ready for anything.", score: 1 },
-      { letter: 'C', text: 'Log off immediately and celebrate. The journey was the destination.', score: 0 },
+    eyebrow: 'The Hall',
+    q: 'Guild chat should feel like…',
+    a: [
+      { t: 'Toxic tryhard energy', s: 0 },
+      { t: 'Fam-friendly & always helpful', s: 2 },
+      { t: 'Mostly quiet — leave me be', s: 1 },
     ],
     background: 'cycling',
   },
   {
-    id: 3,
-    eyebrow: 'Question 3 of 6',
-    text: "Your guild warlock opens a ritual. You're in Winterspring.",
-    answers: [
-      { letter: 'A', text: "Already clicking Accept before they finish casting. Locks are sacred.", score: 2 },
-      { letter: 'B', text: "Accept gratefully — every summon saves a 10-minute flight.", score: 1 },
-      { letter: 'C', text: "Decline politely. You don't want to trouble anyone. You'll fly.", score: 0 },
+    eyebrow: 'The Call',
+    q: 'A guildmate needs a summon to a flight path. You…',
+    a: [
+      { t: '"Figure it out yourself, buddy."', s: 0 },
+      { t: '"I got you — our locks are ready."', s: 2 },
     ],
     background: 'summon',
   },
   {
-    id: 4,
-    eyebrow: 'Question 4 of 6',
-    text: 'A guildie just dropped free 10-slot bags in the bank for everyone.',
-    answers: [
-      { letter: 'A', text: 'Grab the bags + spam GRATS in guild chat. This is guild life.', score: 2 },
-      { letter: 'B', text: 'Quietly take one and whisper them a sincere thank-you.', score: 1 },
-      { letter: 'C', text: 'Leave them for someone who needs them more.', score: 0 },
+    eyebrow: 'The Spoils',
+    q: "What's the biggest perk of a guild?",
+    a: [
+      { t: 'Free bags + mats, day one', s: 2 },
+      { t: 'Dungeon groups & real friends', s: 2 },
+      { t: 'Big, organized raids', s: 2 },
     ],
     background: 'perks',
   },
   {
-    id: 5,
-    eyebrow: 'Question 5 of 6',
-    text: 'Someone in guild chat asks a question you know the answer to.',
-    answers: [
-      { letter: 'A', text: 'Type out the full walkthrough — bonus tips included. You love this.', score: 2 },
-      { letter: 'B', text: 'Drop a quick answer and a Wowhead link. Done.', score: 1 },
-      { letter: 'C', text: 'Stay quiet. Someone else will get it.', score: 0 },
+    eyebrow: 'The Balance',
+    q: 'Real life comes first?',
+    a: [
+      { t: 'Yes — casual is perfect. Real Life > WoW time.', s: 2 },
+      { t: 'No — No life outside of WoW. "How do you kill, that which has no life?"', s: 1 },
     ],
     background: 'cycling',
   },
   {
-    id: 6,
-    eyebrow: 'Question 6 of 6',
-    text: 'A stranger in Shattrath City notices your <Blådes Edge> tag.',
-    answers: [
-      { letter: 'A', text: 'You light up. You pitch the guild. You might just recruit them.', score: 2 },
-      { letter: 'B', text: '"Great guild, great people. Worth checking out."', score: 1 },
-      { letter: 'C', text: '"Some guild lol." You let your gear do the talking.', score: 0 },
+    eyebrow: 'The Banner',
+    q: 'Does the guild name tag matter to you?',
+    a: [
+      { t: 'Yes — I want to rep ⟨Blådes Edge⟩', s: 2 },
+      { t: 'Not really, honestly (And no worries if you choose this!)', s: 1 },
     ],
     background: 'shattrath',
   },
 ]
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+// ── Result tiers (exact wording from design) ─────────────────────────────────
+
+function getResult(score: number) {
+  const ratio = score / MAX_SCORE
+  if (ratio >= 0.78) return {
+    tier: 'True Blade',
+    name: 'Welcome Home.',
+    body: "You're one of us. The oath knows it — fam-friendly, helpful, here for the long haul. Grab your free bags and let's ride to 70 together.",
+  }
+  if (ratio >= 0.50) return {
+    tier: 'Promising Edge',
+    name: 'The Edge Is Calling.',
+    body: "You've got the spark. Sharpen it with the fam — we'll cover the bags, the summons, and the groups. You bring the good vibes.",
+  }
+  return {
+    tier: 'Wandering Soul',
+    name: 'Every Blade Was Once Unforged.',
+    body: "Maybe you've wandered Azeroth solo long enough. The hall is warm, the chat is kind, and the door is open whenever you're ready to belong.",
+  }
+}
+
+// ── Ember helpers ─────────────────────────────────────────────────────────────
 
 function makeEmbers(count: number) {
   return Array.from({ length: count }, (_, i) => {
@@ -151,14 +161,7 @@ function makeEmbers(count: number) {
   })
 }
 
-function getTier(score: number) {
-  const ratio = score / MAX_SCORE
-  if (ratio >= 0.78) return { label: 'True Blade', tagline: 'Welcome home.', color: '#c9961a' }
-  if (ratio >= 0.50) return { label: 'Promising Edge', tagline: 'The edge is calling.', color: '#aad372' }
-  return { label: 'Wandering Soul', tagline: 'Every blade was once unforged.', color: '#8a7a5a' }
-}
-
-// ── Main component ────────────────────────────────────────────────────────────
+// ── Main component ─────────────────────────────────────────────────────────────
 
 export function RecruitPage() {
   const [screen, setScreen] = useState<Screen>('intro')
@@ -169,23 +172,33 @@ export function RecruitPage() {
   const [bgStep, setBgStep] = useState(0)
   const [showPrev, setShowPrev] = useState(false)
 
-  // Result match bar
+  // Evidence images (JS-driven, not CSS animations)
+  const [evidenceCount, setEvidenceCount] = useState(0)
+
+  // Result reveal
+  const [sealDone, setSealDone] = useState(false)
   const [barPct, setBarPct] = useState(0)
 
   const embers = useMemo(() => makeEmbers(26), [])
 
   const currentQ = QUESTIONS[qIdx]
-  const bgMode: BgMode = screen !== 'quiz' ? 'cycling' : (currentQ?.background ?? 'cycling')
+
+  // Result uses last question's background (Q6 = shattrath)
+  const bgMode: BgMode =
+    screen === 'result' ? 'shattrath' :
+    screen !== 'quiz' ? 'cycling' :
+    (currentQ?.background ?? 'cycling')
+
   const isPinned = bgMode !== 'cycling'
 
-  // Cycling timer — pauses when pinned
+  // Cycling timer — pauses while pinned
   useEffect(() => {
     if (isPinned) return
     const id = setInterval(() => setBgStep(s => s + 1), 9500)
     return () => clearInterval(id)
   }, [isPinned])
 
-  // Show previous image briefly after step change (for crossfade)
+  // Crossfade: brief previous-image overlay after each step
   useEffect(() => {
     if (bgStep === 0) return
     setShowPrev(true)
@@ -193,14 +206,35 @@ export function RecruitPage() {
     return () => clearTimeout(id)
   }, [bgStep])
 
-  // Animate match bar after result screen mounts
+  // Evidence stagger: one image fades in at a time via is-on class
   useEffect(() => {
-    if (screen !== 'result') { setBarPct(0); return }
-    const totalScore = scores.reduce((s, v) => s + v, 0)
-    const pct = Math.round((totalScore / MAX_SCORE) * 100)
-    const id = setTimeout(() => setBarPct(pct), 120)
+    const isEvidence = bgMode === 'summon' || bgMode === 'perks'
+    if (!isEvidence) {
+      setEvidenceCount(0)
+      return
+    }
+    const total = bgMode === 'summon' ? Q3_EVIDENCE.length : Q4_EVIDENCE.length
+    if (evidenceCount >= total) return
+    const delay = evidenceCount === 0 ? 400 : 600
+    const id = setTimeout(() => setEvidenceCount(c => c + 1), delay)
     return () => clearTimeout(id)
-  }, [screen, scores])
+  }, [bgMode, evidenceCount])
+
+  // Result: seal → content reveal
+  useEffect(() => {
+    if (screen !== 'result') { setSealDone(false); return }
+    const id = setTimeout(() => setSealDone(true), 1400)
+    return () => clearTimeout(id)
+  }, [screen])
+
+  // Result: match bar fills after text appears
+  useEffect(() => {
+    if (!sealDone) { setBarPct(0); return }
+    const total = scores.reduce((s, v) => s + v, 0)
+    const pct = Math.round((total / MAX_SCORE) * 100)
+    const id = setTimeout(() => setBarPct(pct), 300)
+    return () => clearTimeout(id)
+  }, [sealDone, scores])
 
   function startQuiz() {
     setQIdx(0)
@@ -221,84 +255,59 @@ export function RecruitPage() {
   function retake() {
     setQIdx(0)
     setScores([])
+    setSealDone(false)
     setBarPct(0)
     setScreen('intro')
   }
 
   async function handleShare() {
-    const totalScore = scores.reduce((s, v) => s + v, 0)
-    const pct = Math.round((totalScore / MAX_SCORE) * 100)
-    const tier = getTier(totalScore)
-    const text = `I scored ${pct}% on the Blådes Edge Oath Quiz — ${tier.label}! ${tier.tagline}`
+    const total = scores.reduce((s, v) => s + v, 0)
+    const pct = Math.round((total / MAX_SCORE) * 100)
+    const res = getResult(total)
+    const text = `I scored ${pct}% on the Blådes Edge Oath Quiz — ${res.tier}. ${res.name}`
     const url = window.location.href
     if (typeof navigator !== 'undefined' && navigator.share) {
-      try {
-        await navigator.share({ title: 'Blådes Edge Oath Quiz', text, url })
-      } catch {
-        // User cancelled share
-      }
+      try { await navigator.share({ title: 'Blådes Edge Oath Quiz', text, url }) } catch { /* cancelled */ }
     } else {
-      try {
-        await navigator.clipboard.writeText(`${text} ${url}`)
-      } catch {
-        // Clipboard unavailable
-      }
+      try { await navigator.clipboard.writeText(`${text} ${url}`) } catch { /* unavailable */ }
     }
   }
 
-  // Derived background indices
   const curCycleIdx = bgStep % CYCLING_IMAGES.length
   const prevCycleIdx = (bgStep - 1 + CYCLING_IMAGES.length) % CYCLING_IMAGES.length
-
-  // Result values
   const totalScore = scores.reduce((s, v) => s + v, 0)
-  const tier = getTier(totalScore)
+  const result = getResult(totalScore)
 
   return (
     <div className="rc-page">
 
-      {/* ── Background layer ── */}
+      {/* ── Background ── */}
       <div className="rc-bg-layer">
         {bgMode === 'cycling' && (
           <>
             {showPrev && bgStep > 0 && (
-              <div
-                key={`prev-${bgStep}`}
-                className="rc-bg-prev"
-                style={{ backgroundImage: `url(${CYCLING_IMAGES[prevCycleIdx]})` }}
-              />
+              <div key={`prev-${bgStep}`} className="rc-bg-prev"
+                style={{ backgroundImage: `url(${CYCLING_IMAGES[prevCycleIdx]})` }} />
             )}
-            <div
-              key={`cur-${bgStep}`}
-              className="rc-bg-cur"
-              style={{ backgroundImage: `url(${CYCLING_IMAGES[curCycleIdx]})` }}
-            />
+            <div key={`cur-${bgStep}`} className="rc-bg-cur"
+              style={{ backgroundImage: `url(${CYCLING_IMAGES[curCycleIdx]})` }} />
           </>
         )}
         {bgMode === 'summon' && (
-          <div
-            className="rc-bg-pinned"
-            style={{ backgroundImage: `url(/images/Summon_toBlastedLands.jpg)` }}
-          />
+          <div className="rc-bg-pinned" style={{ backgroundImage: 'url(/images/Summon_toBlastedLands.jpg)' }} />
         )}
         {bgMode === 'perks' && (
-          <div
-            className="rc-bg-pinned"
-            style={{ backgroundImage: `url(/images/guild-photo.jpg)` }}
-          />
+          <div className="rc-bg-pinned" style={{ backgroundImage: 'url(/images/guild-photo.jpg)' }} />
         )}
         {bgMode === 'shattrath' && (
-          <div
-            className="rc-bg-pinned"
-            style={{ backgroundImage: `url(/images/GuildiesInShattrath.jpg)` }}
-          />
+          <div className="rc-bg-pinned" style={{ backgroundImage: 'url(/images/GuildiesInShattrath.jpg)' }} />
         )}
       </div>
 
       {/* ── Overlay ── */}
       <div className="rc-overlay" />
 
-      {/* ── Ember particles ── */}
+      {/* ── Embers ── */}
       <div className="rc-embers">
         {embers.map((e) => (
           <span
@@ -319,110 +328,160 @@ export function RecruitPage() {
         ))}
       </div>
 
-      {/* ── Evidence images (Q3 — summon) ── */}
+      {/* ── Evidence: Q3 summon ── */}
       {bgMode === 'summon' && (
-        <div key="evidence-summon" className="rc-evidence-wrap">
+        <div className="rc-evidence-wrap">
           {Q3_EVIDENCE.map((src, i) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={i}
-              src={src}
-              alt=""
-              className={`rc-evidence-img rc-ev-green rc-ev-pos-${i} rc-ev-in-${i}`}
-            />
+            <div key={i} className={`rc-evi rc-evi-summon rc-ev-pos-${i}${i < evidenceCount ? ' is-on' : ''}`}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={src} alt="" />
+            </div>
           ))}
         </div>
       )}
 
-      {/* ── Evidence images (Q4 — perks) ── */}
+      {/* ── Evidence: Q4 perks ── */}
       {bgMode === 'perks' && (
-        <div key="evidence-perks" className="rc-evidence-wrap">
+        <div className="rc-evidence-wrap">
           {Q4_EVIDENCE.map((src, i) => (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              key={i}
-              src={src}
-              alt=""
-              className={`rc-evidence-img rc-ev-gold rc-ev-pos-${i} rc-ev-in-${i}`}
-            />
+            <div key={i} className={`rc-evi rc-evi-recruit rc-ev-pos-${i}${i < evidenceCount ? ' is-on' : ''}`}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={src} alt="" />
+            </div>
           ))}
         </div>
       )}
 
-      {/* ── Content ── */}
-      <div className="rc-content">
+      {/* ═══ INTRO ═══ */}
+      {screen === 'intro' && (
+        <div style={{
+          position: 'relative',
+          zIndex: 10,
+          width: '100%',
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '2rem 1.5rem',
+          textAlign: 'center',
+          overflowY: 'auto',
+        }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/images/guild-crest.png" alt="Blådes Edge" style={{ width: 96, height: 96, marginBottom: 20, objectFit: 'contain' }} />
 
-        {/* ═══ INTRO SCREEN ═══ */}
-        {screen === 'intro' && (
-          <div className="rc-card">
-            <span className="rc-intro-eyebrow">Oath Quiz</span>
-            <h1 className="rc-intro-title">Answer the Call</h1>
-            <p className="rc-intro-desc">
-              Blådes Edge is reforming on Dreamscythe. The veterans are returning.
-              The call has gone out. Six questions stand between you and your place in the ranks.
-              Are you Blådes Edge material? Let&apos;s find out.
-            </p>
+          <span style={{ fontFamily: "'Cinzel', serif", fontSize: '0.75rem', letterSpacing: '0.25em', color: 'var(--be-gold)', marginBottom: 16, display: 'block' }}>
+            — BLÅDES EDGE · TBC CLASSIC —
+          </span>
+
+          <h1 style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: 'clamp(3.5rem, 10vw, 7rem)', lineHeight: 1.0, color: '#f0e6c8', marginBottom: 24 }}>
+            Answer<br />
+            <span style={{ color: 'var(--be-gold)' }}>the</span><br />
+            Call
+          </h1>
+
+          <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', fontSize: '1.1rem', color: 'rgba(240,230,200,0.85)', maxWidth: 360, lineHeight: 1.6, marginBottom: 40 }}>
+            Take the Oath. Six questions, sixty seconds — and find out if your blade belongs with ours.
+          </p>
+
+          <button onClick={startQuiz} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
             <div className="rc-seal-wrap">
-              <div className="rc-seal-ring-wrap">
-                <div className="rc-seal-ring" />
-                <div className="rc-seal-ring-2" />
+              <div className="rc-seal-circle">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/images/guild-crest.png" alt="Blådes Edge crest" className="rc-seal-img" />
+                <img src="/images/guild-crest.png" className="rc-seal-crest" alt="" />
+                <div className="rc-seal-pulse" />
               </div>
-              <button className="rc-begin-btn" onClick={startQuiz}>
-                Begin the Oath
-              </button>
+              <div style={{ fontFamily: "'Cinzel', serif", fontSize: '0.9rem', letterSpacing: '0.2em', color: 'var(--be-gold)', marginTop: 12 }}>
+                BEGIN THE OATH
+              </div>
+              <div style={{ fontFamily: "'Cinzel', serif", fontSize: '0.65rem', letterSpacing: '0.2em', color: 'rgba(201,150,26,0.6)', marginTop: 4 }}>
+                PRESS THE SEAL
+              </div>
             </div>
+          </button>
+
+          <div className="rc-meta-chip" style={{ marginTop: 32 }}>
+            <b>~60 SEC</b> · 6 QUESTIONS · NO SIGNUP TO START
           </div>
-        )}
+        </div>
+      )}
 
-        {/* ═══ QUIZ SCREEN ═══ */}
-        {screen === 'quiz' && currentQ && (
+      {/* ═══ QUIZ ═══ */}
+      {screen === 'quiz' && currentQ && (
+        <div className="rc-quiz-content">
           <div className="rc-card">
-            {/* Progress bar */}
-            <div className="rc-progress">
-              {QUESTIONS.map((_, i) => (
-                <div
-                  key={i}
-                  className={`rc-progress-seg${i < qIdx ? ' rc-progress-filled' : ''}`}
-                />
-              ))}
+            <div className="rc-progress-row">
+              <div className="rc-progress">
+                {QUESTIONS.map((_, i) => (
+                  <div key={i} className={`rc-progress-seg${i < qIdx ? ' rc-progress-filled' : ''}`} />
+                ))}
+              </div>
+              <span className="rc-q-count"><b>{qIdx + 1}</b>/{QUESTIONS.length}</span>
             </div>
 
-            <span className="rc-eyebrow">{currentQ.eyebrow}</span>
-            <h2 className="rc-question">{currentQ.text}</h2>
+            <span className="rc-q-eyebrow">{currentQ.eyebrow}</span>
+            <h2 className="rc-question">{currentQ.q}</h2>
 
             <div className="rc-answers">
-              {currentQ.answers.map((ans) => (
-                <button
-                  key={ans.letter}
-                  className="rc-answer-btn"
-                  onClick={() => selectAnswer(ans.score)}
-                >
-                  <span className="rc-letter-badge">{ans.letter}</span>
-                  <span>{ans.text}</span>
+              {currentQ.a.map((ans, i) => (
+                <button key={i} className="rc-answer-btn" onClick={() => selectAnswer(ans.s)}>
+                  <span className="rc-letter-badge">{LETTERS[i]}</span>
+                  <span>{ans.t}</span>
                 </button>
               ))}
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* ═══ RESULT SCREEN ═══ */}
-        {screen === 'result' && (
-          <div className="rc-card">
-            {/* Wax seal stamp */}
+      {/* ═══ RESULT ═══ */}
+      {screen === 'result' && (
+        <div style={{
+          position: 'relative',
+          zIndex: 10,
+          width: '100%',
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          padding: '4rem 1.5rem 3rem',
+          textAlign: 'center',
+          overflowY: 'auto',
+        }}>
+          {/* Seal stamps in first */}
+          <div
+            className="rc-result-seal"
+            style={{ animation: 'be-stamp 0.6s cubic-bezier(.17,.67,.35,1.2) both' }}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/guild-crest.png" alt="Blådes Edge crest" className="rc-seal-img-result" />
+            <img src="/images/guild-crest.png" style={{ width: 100, height: 100, objectFit: 'contain' }} alt="Blådes Edge" />
+          </div>
 
-            {/* Tier + tagline */}
-            <div className="rc-result-header">
-              <div className="rc-result-tier" style={{ color: tier.color }}>{tier.label}</div>
-              <div className="rc-result-tagline">{tier.tagline}</div>
+          {/* Content fades in after seal lands */}
+          <div style={{
+            opacity: sealDone ? 1 : 0,
+            transition: 'opacity 0.8s ease',
+            width: '100%',
+            maxWidth: 540,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+          }}>
+            <div style={{ fontFamily: "'Cinzel', serif", fontSize: '0.75rem', letterSpacing: '0.25em', color: 'var(--be-gold)', marginBottom: 12 }}>
+              — {result.tier} —
             </div>
 
+            <h1 style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', color: '#f0e6c8', marginBottom: 16, lineHeight: 1.1 }}>
+              {result.name}
+            </h1>
+
+            <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', fontSize: '1.05rem', color: 'rgba(240,230,200,0.85)', maxWidth: 480, lineHeight: 1.7, marginBottom: 28 }}>
+              {result.body}
+            </p>
+
             {/* Match bar */}
-            <div className="rc-match-wrap">
-              <div className="rc-match-label-row">
+            <div style={{ width: '100%', marginBottom: 28 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                 <span className="rc-match-label">Guild Match</span>
                 <span className="rc-match-pct">{barPct}%</span>
               </div>
@@ -431,21 +490,18 @@ export function RecruitPage() {
               </div>
             </div>
 
-            {/* Perks */}
-            <div className="rc-perks">
+            {/* Perks 2×2 */}
+            <div className="rc-result-perks">
               {PERKS.map((p, i) => (
-                <div key={i} className="rc-perk">
-                  <span className="rc-perk-bullet">{p.icon}</span>
-                  <span>
-                    <strong style={{ color: '#c9961a' }}>{p.bold}</strong>
-                    {p.desc}
-                  </span>
+                <div key={i} className="rc-perk-card">
+                  <span className="rc-perk-name">{p.title}</span>
+                  <span className="rc-perk-body">{p.desc}</span>
                 </div>
               ))}
             </div>
 
             {/* CTAs */}
-            <div className="rc-cta-row">
+            <div className="rc-cta-row" style={{ width: '100%' }}>
               <a className="rc-cta-discord" href={DISCORD_URL} target="_blank" rel="noopener noreferrer">
                 <svg width="18" height="14" viewBox="0 0 24 18" fill="currentColor" aria-hidden="true">
                   <path d="M20.317 1.492A19.825 19.825 0 0 0 15.885.096a.074.074 0 0 0-.079.037c-.34.608-.72 1.4-.986 2.025a18.3 18.3 0 0 0-5.64 0 12.974 12.974 0 0 0-1-2.025.077.077 0 0 0-.079-.037 19.78 19.78 0 0 0-4.432 1.396.07.07 0 0 0-.032.027C.533 6.093-.32 10.56.099 14.97a.082.082 0 0 0 .031.056 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.1 13.1 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/>
@@ -462,17 +518,13 @@ export function RecruitPage() {
             </p>
 
             <div className="rc-tools-row">
-              <button className="rc-tool-btn" onClick={handleShare}>
-                ⤳ Share my result
-              </button>
-              <button className="rc-tool-btn" onClick={retake}>
-                ↺ Retake the oath
-              </button>
+              <button className="rc-tool-btn" onClick={handleShare}>⤳ Share my result</button>
+              <button className="rc-tool-btn" onClick={retake}>↺ Retake the oath</button>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-      </div>
     </div>
   )
 }
