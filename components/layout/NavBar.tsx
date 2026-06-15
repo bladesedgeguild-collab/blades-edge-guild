@@ -134,6 +134,13 @@ export async function NavBar() {
               >
                 Roster
               </Link>
+              <Link
+                href="/recruit"
+                className="text-sm transition-colors hover:text-[#c9961a]"
+                style={{ fontFamily: "'Cinzel', serif", color: '#1aff6e' }}
+              >
+                Join
+              </Link>
               <span
                 className="text-sm cursor-not-allowed relative group"
                 style={{ fontFamily: "'Cinzel', serif", color: '#3d2e15' }}

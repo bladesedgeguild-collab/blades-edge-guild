@@ -1,0 +1,520 @@
+/* recruit.css — /recruit page only */
+
+/* ── Full-page container ── */
+.rc-page {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ── Background ── */
+.rc-bg-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  background: #0a0602;
+}
+
+.rc-bg-cur {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  animation: rc-ken-burns 9.5s ease-in-out both;
+}
+
+.rc-bg-prev {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  animation: rc-fadeout 1.5s ease both;
+}
+
+.rc-bg-pinned {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+}
+
+.rc-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 6, 2, 0.52);
+  z-index: 1;
+}
+
+/* ── Embers layer ── */
+.rc-embers {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* ── Content area ── */
+.rc-content {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+/* ── Quiz card ── */
+.rc-card {
+  width: 100%;
+  max-width: 560px;
+  background: rgba(10, 6, 2, 0.88);
+  border: 1px solid rgba(201, 150, 26, 0.35);
+  border-radius: 12px;
+  padding: 2rem 2.5rem;
+  position: relative;
+}
+
+@media (max-width: 480px) {
+  .rc-card {
+    padding: 1.5rem 1rem;
+  }
+}
+
+/* ── Progress bar ── */
+.rc-progress {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 1.5rem;
+}
+
+.rc-progress-seg {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(201, 150, 26, 0.18);
+  transition: background 0.4s ease;
+}
+
+.rc-progress-filled {
+  background: #c9961a;
+}
+
+/* ── Question eyebrow ── */
+.rc-eyebrow {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  font-variant: small-caps;
+  color: #8a7a5a;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+/* ── Question text ── */
+.rc-question {
+  font-family: 'Cinzel', serif;
+  font-size: 1.35rem;
+  color: #f0e6c8;
+  line-height: 1.45;
+  margin-bottom: 1.5rem;
+}
+
+/* ── Answer buttons ── */
+.rc-answers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.rc-answer-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  width: 100%;
+  min-height: 48px;
+  padding: 0.75rem 1rem;
+  background: rgba(10, 6, 2, 0.55);
+  border: 1px solid rgba(201, 150, 26, 0.18);
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.2s ease, background 0.2s ease;
+  font-family: 'Spectral', serif;
+  font-size: 0.95rem;
+  color: #f0e6c8;
+  line-height: 1.45;
+}
+
+.rc-answer-btn:hover {
+  border-color: rgba(201, 150, 26, 0.65);
+  background: rgba(201, 150, 26, 0.07);
+}
+
+.rc-letter-badge {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(201, 150, 26, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Cinzel', serif;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #c9961a;
+}
+
+/* ── Intro screen ── */
+.rc-intro-eyebrow {
+  display: block;
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: #8a7a5a;
+  text-align: center;
+  margin-bottom: 0.75rem;
+}
+
+.rc-intro-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(1.8rem, 5vw, 3rem);
+  color: #c9961a;
+  text-align: center;
+  line-height: 1.2;
+  margin-bottom: 1.25rem;
+}
+
+.rc-intro-desc {
+  font-family: 'Spectral', serif;
+  font-size: 1rem;
+  font-style: italic;
+  color: #8a7a5a;
+  text-align: center;
+  line-height: 1.65;
+  margin-bottom: 2rem;
+}
+
+/* ── Wax seal ── */
+.rc-seal-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.rc-seal-ring-wrap {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.rc-seal-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 2px solid rgba(201, 150, 26, 0.55);
+  animation: rc-pulse-ring 2s ease-in-out infinite both;
+}
+
+.rc-seal-ring-2 {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 1px solid rgba(201, 150, 26, 0.22);
+  animation: rc-pulse-ring 2s ease-in-out 0.65s infinite both;
+}
+
+.rc-seal-img {
+  width: 90px;
+  height: 90px;
+  object-fit: contain;
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 0 14px rgba(201, 150, 26, 0.5));
+}
+
+.rc-seal-img-result {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto 1.25rem;
+  opacity: 0;
+  animation: be-stamp 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.3s both;
+  filter: drop-shadow(0 0 14px rgba(201, 150, 26, 0.5));
+}
+
+.rc-begin-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #f0e6c8;
+  background: rgba(201, 150, 26, 0.1);
+  border: 1px solid rgba(201, 150, 26, 0.5);
+  border-radius: 6px;
+  padding: 0.75rem 2.25rem;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.rc-begin-btn:hover {
+  background: rgba(201, 150, 26, 0.2);
+  border-color: #c9961a;
+}
+
+/* ── Result screen ── */
+.rc-result-header {
+  text-align: center;
+  margin-bottom: 1.25rem;
+}
+
+.rc-result-tier {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 1.5rem;
+  color: #c9961a;
+  margin-bottom: 0.25rem;
+}
+
+.rc-result-tagline {
+  font-family: 'Spectral', serif;
+  font-size: 1.05rem;
+  font-style: italic;
+  color: #f0e6c8;
+}
+
+.rc-match-wrap {
+  margin-bottom: 1.5rem;
+}
+
+.rc-match-label-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.rc-match-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #8a7a5a;
+}
+
+.rc-match-pct {
+  font-family: 'Cinzel', serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  color: #c9961a;
+}
+
+.rc-match-track {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  background: rgba(201, 150, 26, 0.15);
+  overflow: hidden;
+}
+
+.rc-match-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(to right, #7a5c10, #c9961a);
+  transition: width 1.2s ease-out;
+}
+
+/* ── Perks list ── */
+.rc-perks {
+  border-top: 1px solid rgba(201, 150, 26, 0.2);
+  padding-top: 1rem;
+  margin-bottom: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.rc-perk {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  font-family: 'Spectral', serif;
+  font-size: 0.9rem;
+  color: #f0e6c8;
+  line-height: 1.45;
+}
+
+.rc-perk-bullet {
+  color: #c9961a;
+  flex-shrink: 0;
+  margin-top: 1px;
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+/* ── CTA area ── */
+.rc-cta-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+}
+
+.rc-cta-discord {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: #5865F2;
+  color: #ffffff;
+  font-family: 'Cinzel', serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.rc-cta-discord:hover {
+  background: #4752c4;
+  color: #ffffff;
+}
+
+.rc-cta-register {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid rgba(201, 150, 26, 0.55);
+  color: #c9961a;
+  font-family: 'Cinzel', serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.rc-cta-register:hover {
+  border-color: #c9961a;
+  background: rgba(201, 150, 26, 0.08);
+  color: #c9961a;
+}
+
+.rc-cta-note {
+  font-family: 'Spectral', serif;
+  font-size: 0.8rem;
+  font-style: italic;
+  color: #8a7a5a;
+  text-align: center;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.rc-tools-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.rc-tool-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #8a7a5a;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: color 0.2s ease;
+}
+
+.rc-tool-btn:hover {
+  color: #c9961a;
+}
+
+/* ── Evidence images ── */
+.rc-evidence-wrap {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.rc-evidence-img {
+  position: absolute;
+  width: 18vw;
+  max-width: 200px;
+  min-width: 120px;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 6px;
+  opacity: 0;
+}
+
+.rc-ev-green {
+  box-shadow: 0 0 0 2px #1aff6e, 0 4px 20px rgba(26, 255, 110, 0.35);
+}
+
+.rc-ev-gold {
+  box-shadow: 0 0 0 2px #c9961a, 0 4px 20px rgba(201, 150, 26, 0.35);
+}
+
+/* Clock positions around the centered card */
+.rc-ev-pos-0 { top: 7%;    left: 2%; }
+.rc-ev-pos-1 { top: 7%;    right: 2%; }
+.rc-ev-pos-2 { bottom: 9%; right: 2%; }
+.rc-ev-pos-3 { bottom: 9%; left: 2%; }
+.rc-ev-pos-4 { top: 42%;   left: 1%; transform: translateY(-50%); }
+
+/* Staggered fade-in delays */
+.rc-ev-in-0 { animation: rc-ev-fadein 0.7s ease 0.4s both; }
+.rc-ev-in-1 { animation: rc-ev-fadein 0.7s ease 1.0s both; }
+.rc-ev-in-2 { animation: rc-ev-fadein 0.7s ease 1.6s both; }
+.rc-ev-in-3 { animation: rc-ev-fadein 0.7s ease 2.2s both; }
+.rc-ev-in-4 { animation: rc-ev-fadein 0.7s ease 2.8s both; }
+
+@media (max-width: 767px) {
+  .rc-evidence-wrap { display: none; }
+}
+
+/* ── Keyframes ── */
+@keyframes rc-ken-burns {
+  from { transform: scale(1); }
+  to   { transform: scale(1.08); }
+}
+
+@keyframes rc-fadeout {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes rc-pulse-ring {
+  0%, 100% { opacity: 0.55; transform: scale(0.96); }
+  50%       { opacity: 1;    transform: scale(1.05); }
+}
+
+@keyframes rc-ev-fadein {
+  from { opacity: 0; transform: scale(0.9) translateY(6px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}

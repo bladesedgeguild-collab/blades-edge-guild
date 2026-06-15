@@ -297,7 +297,7 @@ export default async function LandingPage() {
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src="/images/guild-photo.png"
+                  src="/images/guild-photo.jpg"
                   alt="Blådes Edge guild portrait — EST. 2023"
                   className="w-full block"
                 />

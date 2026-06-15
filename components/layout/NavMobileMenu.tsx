@@ -93,6 +93,7 @@ export function NavMobileMenu({ isLoggedIn, isOfficer, displayName, charColor, a
             <>
               <Link href="/" className="nav-mobile-link" onClick={() => setOpen(false)}>Home</Link>
               <Link href="/roster" className="nav-mobile-link" onClick={() => setOpen(false)}>Roster</Link>
+              <Link href="/recruit" className="nav-mobile-link" style={{ color: '#1aff6e' }} onClick={() => setOpen(false)}>Join</Link>
               <span className="nav-mobile-link" style={{ color: '#3d2e15', cursor: 'not-allowed' }}>Dungeons</span>
               <Link href="/login" className="nav-mobile-link" style={{ color: '#c9961a' }} onClick={() => setOpen(false)}>Login</Link>
             </>

@@ -1,368 +1,216 @@
-# TASK: Full mobile responsive overhaul
+# TASK: Build /recruit page — Answer the Call Oath Quiz
 
-## Breakpoints to use throughout
-- Mobile: < 768px
-- Tablet: 768px–1024px  
-- Desktop: > 1024px
+## Overview
+Port the Claude Design "Answer the Call" quiz into the Next.js site as a
+proper page at /recruit. All logic, questions, scoring, and component
+structure is provided below — adapt from the handoff JSX.
 
-All existing desktop layouts must remain unchanged.
-All changes are additive media queries only.
+The handoff code lives at:
+- /tmp/recruiting_handoff/blades-edge-recruiting-hype-quiz/project/recruit-app.jsx
+- /tmp/recruiting_handoff/blades-edge-recruiting-hype-quiz/project/recruit-quiz.jsx
 
----
-
-## 1 — Navbar: hamburger menu on mobile
-
-On mobile, collapse the nav links into a hamburger menu.
-
-```tsx
-// Add hamburger state
-const [menuOpen, setMenuOpen] = useState(false);
-```
-
-Desktop nav (> 768px): unchanged — horizontal links + user dropdown.
-
-Mobile nav (< 768px):
-- Show guild name/logo on left
-- Show hamburger icon (3 lines) on right
-- Tapping hamburger opens a full-width dropdown panel below the navbar
-- Panel shows all nav links stacked vertically + user dropdown items
-- Tapping any link closes the menu
-- Tapping outside closes the menu
-
-```css
-@media (max-width: 768px) {
-  .nav-links { display: none; }
-  .nav-user-dropdown { display: none; }
-  .nav-hamburger { display: flex; }
-  
-  .nav-mobile-menu {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: var(--be-bg-1);
-    border-bottom: 1px solid rgba(201, 150, 26, 0.2);
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    z-index: 100;
-  }
-  
-  .nav-mobile-link {
-    font-family: 'Cinzel', serif;
-    font-size: 1rem;
-    color: var(--be-ink);
-    padding: 0.85rem 1rem;
-    border-bottom: 1px solid rgba(201, 150, 26, 0.08);
-    text-decoration: none;
-    display: block;
-  }
-  
-  .nav-mobile-link:last-child { border-bottom: none; }
-  
-  .nav-mobile-user {
-    padding: 0.75rem 1rem;
-    color: var(--be-gold);
-    font-family: 'Cinzel', serif;
-    font-size: 0.85rem;
-    letter-spacing: 0.08em;
-    border-top: 1px solid rgba(201, 150, 26, 0.15);
-    margin-top: 0.5rem;
-  }
-}
-```
-
-Hamburger icon: three gold lines, 24px, tapping toggles open/close.
-Show an X icon when open.
+Read both files fully before building. They contain the complete component
+tree, quiz data, scoring logic, and background behavior. Port them to TSX.
 
 ---
 
-## 2 — Onboarding: fits on screen without scrolling
+## File structure to create
 
-### Search step
-```css
-@media (max-width: 768px) {
-  .onboarding-panel {
-    min-height: 100svh;
-    padding: 1.5rem 1.25rem;
-    border-radius: 0;
-    margin: 0;
-    width: 100%;
-  }
-  
-  .onboarding-guild-crest {
-    width: 64px;
-    height: 64px;
-    margin-bottom: 1rem;
-  }
-}
 ```
-
-### New character form
-Stack all form fields vertically, full width.
-Race and Class dropdowns full width.
-Level input full width.
-
-```css
-@media (max-width: 768px) {
-  .new-char-form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  
-  .new-char-form select,
-  .new-char-form input {
-    width: 100%;
-    font-size: 1rem; /* prevent iOS zoom on focus */
-    padding: 0.75rem 1rem;
-  }
-}
-```
-
-### Character confirm card
-Full width, compact padding.
-
-### Step indicator dots
-Keep centered, same size.
-
----
-
-## 3 — Oath cinematic: mobile layout
-
-```css
-@media (max-width: 768px) {
-  .figure-column { display: none; }
-  .oath-center-content {
-    width: 100%;
-    padding: 1.5rem 1.25rem;
-  }
-  
-  .oath-name {
-    font-size: clamp(2rem, 8vw, 3.5rem);
-  }
-  
-  .oath-button-slot {
-    padding-bottom: 2rem;
-  }
-}
-```
-
-Seal centered, name centered, class line centered, Continue button full width.
-No character art on mobile.
-
----
-
-## 4 — Hall page: stacked columns
-
-```css
-@media (max-width: 768px) {
-  /* Main content grid: campaign banner + stats */
-  .hall-main-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
-  }
-  
-  /* Campaign banner full width */
-  .hall-campaign-banner {
-    width: 100%;
-    border-radius: 8px;
-  }
-  
-  /* Stats tiles side by side on mobile */
-  .hall-stats-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-  }
-  
-  /* Hall feed + Upcoming stack vertically */
-  .hall-bottom-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    padding: 0 1rem 1rem;
-  }
-  
-  /* Welcome greeting */
-  .hall-greeting-name {
-    font-size: clamp(2rem, 7vw, 3rem);
-  }
-  
-  .hall-greeting-sub {
-    font-size: 0.85rem;
-  }
-}
+app/(public)/recruit/
+  page.tsx          ← server component, metadata, imports RecruitPage
+  RecruitPage.tsx   ← 'use client' — full quiz app
+  recruit.css       ← all quiz-specific styles (import in RecruitPage.tsx)
 ```
 
 ---
 
-## 5 — My Roster page: stacked mobile layout
+## Image paths
 
-### Hero section
-```css
-@media (max-width: 768px) {
-  .roster-hero {
-    position: relative;
-    padding: 1.25rem;
-    min-height: auto;
-    overflow: hidden;
-  }
-  
-  /* Character art: smaller, behind text, bottom-right */
-  .roster-hero-art {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    opacity: 0.25;  /* ghost behind text on mobile */
-    pointer-events: none;
-  }
-  
-  .roster-hero-fig {
-    height: 120px;
-  }
-  
-  /* Name scales with viewport */
-  .roster-hero-name {
-    font-size: clamp(1.8rem, 7vw, 3rem);
-    position: relative;
-    z-index: 1;
-  }
-  
-  .roster-hero-class {
-    font-size: 0.85rem;
-    position: relative;
-    z-index: 1;
-  }
-}
+All images are in /public/images/. Update every asset path from
+`assets/filename.png` to `/images/filename.jpg` or `.png` as appropriate.
+
+Image filename mapping (handoff name → actual file in /public/images/):
 ```
-
-### Vitals + Alts: stack vertically
-```css
-@media (max-width: 768px) {
-  .roster-body {
-    grid-template-columns: 1fr;  /* override the 2-col desktop grid */
-    padding: 1rem;
-    gap: 1rem;
-  }
-}
-```
-
-### Add Alt button: full width on mobile
-```css
-@media (max-width: 768px) {
-  .add-alt-btn {
-    max-width: 100%;
-    width: 100%;
-    border-radius: 8px;
-  }
-  
-  /* Scale figures down slightly */
-  .alt-fig-1 { height: 90px; }
-  .alt-fig-2 { height: 118px; }
-  .alt-fig-3 { height: 145px; }
-  .alt-fig-4 { height: 128px; }
-  .alt-fig-5 { height: 96px; }
-  
-  .alt-btn-figures { height: 155px; }
-}
+art-summon-blastedlands  → Summon_toBlastedLands.jpg
+art-summon-maraudon      → Summon_toMaraudon.jpg
+art-summon-maraudon2     → Summon_toMaraudon2.jpg
+art-summon-stormwind     → Summon_toStormwind.jpg
+art-summon-winterspring  → Summon_toWinterspring.jpg
+art-shattrath            → GuildiesInShattrath.jpg
+art-bags                 → Recruiting_TophBagsFullofBags.jpg
+art-toph-darkshire       → Recruiting_TophinDarkshire.jpg
+art-toph-kharanos        → Recruiting_TophInKharanos.jpg
+art-guildies             → guild-photo.jpg
+guild-crest              → guild-crest.png
+hero-portal              → hero-portal.png
 ```
 
 ---
 
-## 6 — Settings page: mobile
+## Background slideshow behavior (IMPORTANT — differs from handoff)
 
-```css
-@media (max-width: 768px) {
-  .settings-section {
-    padding: 1.25rem;
-    border-radius: 8px;
-  }
-  
-  .settings-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-  
-  .settings-btn-secondary,
-  .settings-btn-discord,
-  .settings-btn-danger {
-    width: 100%;
-    padding: 0.75rem;
-    text-align: center;
-  }
-}
+### Default cycling (Intro, Q1, Q2, Q5)
+Cycle through these images in order, starting with Blasted Lands:
+1. /images/Summon_toBlastedLands.jpg
+2. /images/Summon_toMaraudon.jpg
+3. /images/Summon_toMaraudon2.jpg
+4. /images/Summon_toStormwind.jpg
+5. /images/Summon_toWinterspring.jpg
+6. /images/Recruiting_TophinDarkshire.jpg
+7. /images/Recruiting_TophInKharanos.jpg
+
+Each image uses Ken Burns effect: slow zoom from 100% → 108% scale
+over the display duration (8s), with a fade transition between images.
+Duration per image: 8s visible + 1.5s crossfade.
+
+### Q3 — Summon question
+Pin /images/Summon_toBlastedLands.jpg as full background.
+Floating evidence images fade in one by one at clock positions:
+Order: Summon_toMaraudon2.jpg, Summon_toStormwind.jpg,
+       Summon_toBlastedLands.jpg, Summon_toWinterspring.jpg,
+       Summon_toMaraudon.jpg
+Border glow color: #1aff6e (portal green)
+Images stay on screen until user answers (do not cycle out).
+
+### Q4 — Guild perks question
+Pin /images/guild-photo.jpg as full background.
+Floating evidence images fade in one by one at clock positions:
+Order (start with bags first):
+  Recruiting_TophBagsFullofBags.jpg, Recruiting_TophinDarkshire.jpg,
+  Recruiting_TophInKharanos.jpg, GuildiesInShattrath.jpg
+Border glow color: #c9961a (gold)
+Images stay on screen until user answers.
+
+### Q6 — Guild name tag question
+Pin /images/GuildiesInShattrath.jpg as full background only.
+No floating evidence images.
+
+### Background overlay
+Use a warm dark overlay: rgba(10, 6, 2, 0.52) — dark enough to read
+text but light enough to enjoy the images underneath.
+
+### Ember particles
+Always present over the background, same as oath cinematic.
+Use the EmberField component from the handoff (26 embers).
+Embers appear on top of background images but behind the quiz card.
+
+---
+
+## Real URLs (replace handoff placeholders)
+
+```ts
+const DISCORD_URL = 'https://discord.gg/B9fEz7AC6T'; // use real invite link if known, 
+const AUTH_URL = '/login';  // links to the site login/onboarding
 ```
 
 ---
 
-## 7 — Global mobile typography + spacing
+## Quiz card styling
 
-```css
-@media (max-width: 768px) {
-  /* Prevent horizontal scroll */
-  body {
-    overflow-x: hidden;
-  }
-  
-  /* Base font size slightly larger for readability */
-  body {
-    font-size: 16px;
-  }
-  
-  /* All inputs 16px minimum to prevent iOS auto-zoom */
-  input, select, textarea {
-    font-size: 16px !important;
-  }
-  
-  /* Page container padding tighter on mobile */
-  .page-container {
-    padding: 0 1rem;
-    max-width: 100%;
-  }
-  
-  /* Headings scale down */
-  h1 { font-size: clamp(1.8rem, 6vw, 2.5rem); }
-  h2 { font-size: clamp(1.4rem, 5vw, 2rem); }
-}
-```
+The quiz card (question box) sits centered on screen.
+Background: rgba(10, 6, 2, 0.88) — nearly opaque dark
+Border: 1px solid rgba(201, 150, 26, 0.35) — gold tint
+Border radius: 12px
+Max width: 560px
+Padding: 2rem 2.5rem
+
+Progress bar at top: gold filled segments, one per question.
+Question eyebrow: Cinzel, small caps, --be-muted color
+Question text: Cinzel Decorative or Cinzel, 1.4rem, --be-ink
+Answer buttons: full width, dark bg, gold border on hover,
+  letter badge (A/B/C) in gold circle on left.
 
 ---
 
-## 8 — Landing page: basic mobile check
+## Wax seal component
 
-The landing page has its own full-bleed design. Check these specific items:
-- Hero text readable on small screen
-- Return meter full width
-- Login CTA buttons stack vertically on mobile
-- Roster scrolling rows still animate (may need reduced speed on mobile)
-- Guild photo section stacks sensibly
-
-If any of these are clearly broken, fix them. If they already work acceptably, leave them.
+Use the guild-crest.png in a styled circular container with:
+- Pulsing ring animation on the start button
+- Stamp-in animation on the result screen (same be-stamp style as oath cinematic)
+- animation-fill-mode: both on all keyframe animations (NEVER 'forwards')
 
 ---
 
-## Verification — test on 390px wide (iPhone) and 768px (tablet)
+## Scoring and results (from handoff — use exactly)
 
-1. Navbar shows hamburger, tapping opens menu with all links
-2. Tapping a link closes the menu
-3. Onboarding search screen fits without scrolling
-4. New character form fields are full width and usable
-5. Oath cinematic: seal centered, no character art, name fits
-6. Hall page: stats side by side, feed and upcoming stacked
-7. My Roster: hero name readable, character art ghosted behind text
-8. Vitals and alts stack vertically
-9. Add Alt button full width with scaled figures
-10. Settings rows stack vertically with full-width buttons
-11. No horizontal scroll on any page
-12. No text overflowing containers
+MAX_SCORE = sum of max answer score per question = 12
+
+True Blade:    score/MAX >= 0.78  → "Welcome home."
+Promising Edge: score/MAX >= 0.50 → "The edge is calling."
+Wandering Soul: score/MAX < 0.50  → "Every blade was once unforged."
+
+Match % shown as animated fill bar on result screen.
+
+Perks shown on ALL results:
+1. Free welcome bags — Four 10-slot bags, on the house, the moment you join.
+2. Lock summons anywhere — Never run to a flight path again. Our locks have you.
+3. GRATS-friendly fam — Helpful chat, real friends, zero toxicity.
+4. Big, active guild — Someone's always online for dungeons & groups.
+
+---
+
+## Result screen CTAs
+
+Primary button (Discord blue #5865F2): "Join on Discord" → DISCORD_URL
+Secondary button (gold border): "Register & Claim Character" → AUTH_URL
+Note below: "A recruiter will invite you in-game — register now so your spot is ready."
+Tools row: "⤳ Share my result" (web share API or clipboard) | "↺ Retake the oath"
+
+---
+
+## Also: replace guild-photo.png with guild-photo.jpg on landing page
+
+The handoff includes guild-photo.jpg (1.1MB vs 3.37MB PNG).
+Copy /public/images/guild-photo.jpg to replace guild-photo.png
+and update the landing page image src from guild-photo.png to guild-photo.jpg.
+
+---
+
+## Navbar / accessibility
+
+Add a "Join" or "Recruit" link to the public navbar (landing page nav)
+pointing to /recruit. This page is public — no auth required.
+
+---
+
+## Mobile
+
+Quiz card: full width with 1rem padding on mobile
+Answer buttons: minimum 48px height, large touch targets
+Floating evidence images: hide on mobile (< 768px) — too crowded
+Background images: still visible, Ken Burns still active
+
+---
+
+## CSS notes
+
+Port all .rc-* and .be-* classes from the handoff into recruit.css.
+The .be-ember class already exists in globals.css — reuse it.
+The be-stamp keyframe already exists — reuse it for result seal animation.
+DO NOT duplicate existing global CSS. Import recruit.css locally.
+
+---
+
+## Verification
+
+1. /recruit loads — shows "ANSWER THE CALL" hero with wax seal button
+2. Clicking the seal starts quiz at Q1
+3. Background cycles through summon + toph images with Ken Burns
+4. Q3 shows pinned Blasted Lands BG + summon images fading in around card
+5. Q4 shows guild-photo.jpg BG + recruiting images fading in, bags FIRST
+6. Q6 shows only GuildiesInShattrath.jpg
+7. Completing quiz shows result with wax seal stamp animation
+8. Match % bar animates in
+9. Discord and Register buttons work
+10. Share button uses web share or copies to clipboard
+11. Retake works
+12. Ember particles visible on background at all times
+13. Mobile: quiz playable, evidence images hidden
+14. Landing page guild-photo.png → .jpg (smaller file, same look)
 
 ## Do not touch
-- All desktop layouts (> 768px) — media queries are additive only
-- Oath cinematic desktop animation — only hide figures on mobile
-- animation-fill-mode: both on all animations
-- Any API routes or data fetching
+- Oath cinematic (be-stamp keyframe — reuse but never modify)
+- animation-fill-mode: both on ALL animations — never 'forwards'
+- Existing global CSS beyond the guild-photo filename change
+- Any other existing pages

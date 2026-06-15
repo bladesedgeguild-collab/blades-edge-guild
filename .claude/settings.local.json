@@ -1,22 +1,11 @@
 {
   "permissions": {
     "allow": [
-      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\aking\\\\blades-edge-guild\\\\app\" -Recurse -File | ForEach-Object { $_.FullName })",
-      "Bash(npm run *)",
-      "Bash(git add *)",
-      "Bash(git commit -m ' *)",
-      "Bash(git push *)",
-      "*",
-      "Bash(node -e \"const d = require\\('./blades_edge_roster.json'\\); const keys = Object.keys\\(d\\); console.log\\('Top-level keys:', keys\\); if\\(d.characters\\) { const c = d.characters[0]; console.log\\('First char:', JSON.stringify\\(c, null, 2\\)\\); console.log\\('Total:', d.characters.length\\); } else if\\(Array.isArray\\(d\\)\\) { console.log\\('Array len:', d.length\\); console.log\\('First:', JSON.stringify\\(d[0], null, 2\\)\\); }\")",
-      "Bash(node *)",
-      "Bash(git commit *)",
-      "Bash(npx tsx *)",
-      "PowerShell(Rename-Item *)",
-      "Bash(dir C:\\\\Users\\\\aking\\\\blades-edge-guild\\\\public\\\\images\\\\characters\\\\NightElf* *)",
-      "Bash(powershell -command \"Get-Content app/globals.css | Select-Object -Last 80\")",
-      "Bash(powershell -command \"Get-Content app/globals.css | Measure-Object -Line\")",
-      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\aking\\\\blades-edge-guild\" -Force)",
-      "Bash(Select-Object Name, FullName)"
+      "Bash(*)",
+      "PowerShell(*)",
+      "Edit(*)",
+      "Write(*)",
+      "Read(*)"
     ]
   }
 }
