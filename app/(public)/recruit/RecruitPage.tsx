@@ -175,15 +175,14 @@ export function RecruitPage() {
   // Evidence images (JS-driven, not CSS animations)
   const [evidenceCount, setEvidenceCount] = useState(0)
 
-  // Result reveal
-  const [sealDone, setSealDone] = useState(false)
+  // Fix 10: Two-phase result reveal
+  const [phase, setPhase] = useState<'seal' | 'reveal'>('seal')
   const [barPct, setBarPct] = useState(0)
 
   const embers = useMemo(() => makeEmbers(26), [])
 
   const currentQ = QUESTIONS[qIdx]
 
-  // Result uses last question's background (Q6 = shattrath)
   const bgMode: BgMode =
     screen === 'result' ? 'shattrath' :
     screen !== 'quiz' ? 'cycling' :
@@ -191,18 +190,18 @@ export function RecruitPage() {
 
   const isPinned = bgMode !== 'cycling'
 
-  // Cycling timer — pauses while pinned
+  // Fix 2: Cycling timer 14000ms
   useEffect(() => {
     if (isPinned) return
-    const id = setInterval(() => setBgStep(s => s + 1), 9500)
+    const id = setInterval(() => setBgStep(s => s + 1), 14000)
     return () => clearInterval(id)
   }, [isPinned])
 
-  // Crossfade: brief previous-image overlay after each step
+  // Fix 2: Crossfade showPrev 3500ms
   useEffect(() => {
     if (bgStep === 0) return
     setShowPrev(true)
-    const id = setTimeout(() => setShowPrev(false), 1800)
+    const id = setTimeout(() => setShowPrev(false), 3500)
     return () => clearTimeout(id)
   }, [bgStep])
 
@@ -220,26 +219,33 @@ export function RecruitPage() {
     return () => clearTimeout(id)
   }, [bgMode, evidenceCount])
 
-  // Result: seal → content reveal
+  // Fix 10: Phase timer — seal → reveal after 1500ms
   useEffect(() => {
-    if (screen !== 'result') { setSealDone(false); return }
-    const id = setTimeout(() => setSealDone(true), 1400)
+    if (screen !== 'result') { setPhase('seal'); return }
+    const id = setTimeout(() => setPhase('reveal'), 1500)
     return () => clearTimeout(id)
   }, [screen])
 
-  // Result: match bar fills after text appears
+  // Match bar fills after reveal
   useEffect(() => {
-    if (!sealDone) { setBarPct(0); return }
+    if (phase !== 'reveal') { setBarPct(0); return }
     const total = scores.reduce((s, v) => s + v, 0)
     const pct = Math.round((total / MAX_SCORE) * 100)
     const id = setTimeout(() => setBarPct(pct), 300)
     return () => clearTimeout(id)
-  }, [sealDone, scores])
+  }, [phase, scores])
 
   function startQuiz() {
     setQIdx(0)
     setScores([])
     setScreen('quiz')
+  }
+
+  // Fix 8: Back function
+  function back() {
+    if (qIdx === 0) return
+    setScores(s => s.slice(0, -1))
+    setQIdx(i => i - 1)
   }
 
   function selectAnswer(score: number) {
@@ -255,7 +261,7 @@ export function RecruitPage() {
   function retake() {
     setQIdx(0)
     setScores([])
-    setSealDone(false)
+    setPhase('seal')
     setBarPct(0)
     setScreen('intro')
   }
@@ -367,6 +373,7 @@ export function RecruitPage() {
           textAlign: 'center',
           overflowY: 'auto',
         }}>
+          {/* Fix 1: Crest on transparent bg */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src="/images/guild-crest.png" alt="Blådes Edge" style={{ width: 96, height: 96, marginBottom: 20, objectFit: 'contain' }} />
 
@@ -380,23 +387,23 @@ export function RecruitPage() {
             Call
           </h1>
 
-          <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', fontSize: '1.1rem', color: 'rgba(240,230,200,0.85)', maxWidth: 360, lineHeight: 1.6, marginBottom: 40 }}>
-            Take the Oath. Six questions, sixty seconds — and find out if your blade belongs with ours.
+          {/* Fix 3: No em dash, .rc-sub class for larger font */}
+          <p className="rc-sub">
+            Take the Oath. Six questions, sixty seconds. Find out if your blade belongs with ours.
           </p>
 
-          <button onClick={startQuiz} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}>
+          {/* Fix 12: 200px seal, dark red gradient, double pulse ring */}
+          <button onClick={startQuiz} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 40 }}>
             <div className="rc-seal-wrap">
               <div className="rc-seal-circle">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/images/guild-crest.png" className="rc-seal-crest" alt="" />
+                <img src="/images/guild-crest.png" alt="" />
                 <div className="rc-seal-pulse" />
+                <div className="rc-seal-pulse rc-seal-pulse-2" />
               </div>
-              <div style={{ fontFamily: "'Cinzel', serif", fontSize: '0.9rem', letterSpacing: '0.2em', color: 'var(--be-gold)', marginTop: 12 }}>
-                BEGIN THE OATH
-              </div>
-              <div style={{ fontFamily: "'Cinzel', serif", fontSize: '0.65rem', letterSpacing: '0.2em', color: 'rgba(201,150,26,0.6)', marginTop: 4 }}>
-                PRESS THE SEAL
-              </div>
+              {/* Fix 4: White bold labels */}
+              <div className="rc-seal-label">BEGIN THE OATH</div>
+              <div className="rc-seal-sublabel">PRESS THE SEAL</div>
             </div>
           </button>
 
@@ -410,10 +417,11 @@ export function RecruitPage() {
       {screen === 'quiz' && currentQ && (
         <div className="rc-quiz-content">
           <div className="rc-card">
+            {/* Fix 7: i <= qIdx shows current pip; renamed classes */}
             <div className="rc-progress-row">
               <div className="rc-progress">
                 {QUESTIONS.map((_, i) => (
-                  <div key={i} className={`rc-progress-seg${i < qIdx ? ' rc-progress-filled' : ''}`} />
+                  <div key={i} className={`rc-progress-pip${i <= qIdx ? ' is-active' : ''}`} />
                 ))}
               </div>
               <span className="rc-q-count"><b>{qIdx + 1}</b>/{QUESTIONS.length}</span>
@@ -430,99 +438,86 @@ export function RecruitPage() {
                 </button>
               ))}
             </div>
+
+            {/* Fix 8: Back button — visible always, disabled on Q1 */}
+            <button
+              type="button"
+              className="rc-quiz-back"
+              onClick={back}
+              disabled={qIdx === 0}
+            >
+              ‹ Back
+            </button>
           </div>
         </div>
       )}
 
       {/* ═══ RESULT ═══ */}
       {screen === 'result' && (
-        <div style={{
-          position: 'relative',
-          zIndex: 10,
-          width: '100%',
-          minHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          padding: '4rem 1.5rem 3rem',
-          textAlign: 'center',
-          overflowY: 'auto',
-        }}>
-          {/* Seal stamps in first */}
-          <div
-            className="rc-result-seal"
-            style={{ animation: 'be-stamp 0.6s cubic-bezier(.17,.67,.35,1.2) both' }}
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/guild-crest.png" style={{ width: 100, height: 100, objectFit: 'contain' }} alt="Blådes Edge" />
+        <>
+          {/* Fix 10: Seal stamps center screen, then slides up */}
+          <div className={`rc-result-seal-wrap ${phase}`}>
+            <div className="rc-result-seal-circle">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/images/guild-crest.png" alt="Blådes Edge" />
+            </div>
           </div>
 
-          {/* Content fades in after seal lands */}
-          <div style={{
-            opacity: sealDone ? 1 : 0,
-            transition: 'opacity 0.8s ease',
-            width: '100%',
-            maxWidth: 540,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-          }}>
-            <div style={{ fontFamily: "'Cinzel', serif", fontSize: '0.75rem', letterSpacing: '0.25em', color: 'var(--be-gold)', marginBottom: 12 }}>
-              — {result.tier} —
-            </div>
+          {/* Fix 10: Content fades in after seal slides up */}
+          {phase === 'reveal' && (
+            <div className="rc-result-content" style={{ animation: 'rc-fade-up 0.7s ease both' }}>
+              {/* Fix 11: Larger fonts via CSS classes */}
+              <div className="rc-result-tier">— {result.tier} —</div>
 
-            <h1 style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: 'clamp(2.5rem, 6vw, 4.5rem)', color: '#f0e6c8', marginBottom: 16, lineHeight: 1.1 }}>
-              {result.name}
-            </h1>
+              <h1 className="rc-result-name">{result.name}</h1>
 
-            <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', fontSize: '1.05rem', color: 'rgba(240,230,200,0.85)', maxWidth: 480, lineHeight: 1.7, marginBottom: 28 }}>
-              {result.body}
-            </p>
+              <p className="rc-result-body">{result.body}</p>
 
-            {/* Match bar */}
-            <div style={{ width: '100%', marginBottom: 28 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                <span className="rc-match-label">Guild Match</span>
-                <span className="rc-match-pct">{barPct}%</span>
-              </div>
-              <div className="rc-match-track">
-                <div className="rc-match-fill" style={{ width: `${barPct}%` }} />
-              </div>
-            </div>
-
-            {/* Perks 2×2 */}
-            <div className="rc-result-perks">
-              {PERKS.map((p, i) => (
-                <div key={i} className="rc-perk-card">
-                  <span className="rc-perk-name">{p.title}</span>
-                  <span className="rc-perk-body">{p.desc}</span>
+              {/* Match bar */}
+              <div style={{ width: '100%', maxWidth: 480, marginBottom: 28 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                  <span className="rc-match-label">Guild Match</span>
+                  <span className="rc-match-pct">{barPct}%</span>
                 </div>
-              ))}
-            </div>
+                <div className="rc-match-track">
+                  <div className="rc-match-fill" style={{ width: `${barPct}%` }} />
+                </div>
+              </div>
 
-            {/* CTAs */}
-            <div className="rc-cta-row" style={{ width: '100%' }}>
-              <a className="rc-cta-discord" href={DISCORD_URL} target="_blank" rel="noopener noreferrer">
-                <svg width="18" height="14" viewBox="0 0 24 18" fill="currentColor" aria-hidden="true">
-                  <path d="M20.317 1.492A19.825 19.825 0 0 0 15.885.096a.074.074 0 0 0-.079.037c-.34.608-.72 1.4-.986 2.025a18.3 18.3 0 0 0-5.64 0 12.974 12.974 0 0 0-1-2.025.077.077 0 0 0-.079-.037 19.78 19.78 0 0 0-4.432 1.396.07.07 0 0 0-.032.027C.533 6.093-.32 10.56.099 14.97a.082.082 0 0 0 .031.056 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.1 13.1 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/>
-                </svg>
-                Join on Discord
-              </a>
-              <Link className="rc-cta-register" href={AUTH_URL}>
-                Register &amp; Claim Character
-              </Link>
-            </div>
+              {/* Perks 2×2 */}
+              <div className="rc-result-perks" style={{ maxWidth: 480, width: '100%' }}>
+                {PERKS.map((p, i) => (
+                  <div key={i} className="rc-perk-card">
+                    <span className="rc-perk-name">{p.title}</span>
+                    <span className="rc-perk-body">{p.desc}</span>
+                  </div>
+                ))}
+              </div>
 
-            <p className="rc-cta-note">
-              A recruiter will invite you in-game — register now so your spot is ready.
-            </p>
+              {/* CTAs */}
+              <div className="rc-cta-row" style={{ width: '100%', maxWidth: 480 }}>
+                <a className="rc-cta-discord" href={DISCORD_URL} target="_blank" rel="noopener noreferrer">
+                  <svg width="18" height="14" viewBox="0 0 24 18" fill="currentColor" aria-hidden="true">
+                    <path d="M20.317 1.492A19.825 19.825 0 0 0 15.885.096a.074.074 0 0 0-.079.037c-.34.608-.72 1.4-.986 2.025a18.3 18.3 0 0 0-5.64 0 12.974 12.974 0 0 0-1-2.025.077.077 0 0 0-.079-.037 19.78 19.78 0 0 0-4.432 1.396.07.07 0 0 0-.032.027C.533 6.093-.32 10.56.099 14.97a.082.082 0 0 0 .031.056 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.1 13.1 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.3 12.3 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/>
+                  </svg>
+                  Join on Discord
+                </a>
+                <Link className="rc-cta-register" href={AUTH_URL}>
+                  Register &amp; Claim Character
+                </Link>
+              </div>
 
-            <div className="rc-tools-row">
-              <button className="rc-tool-btn" onClick={handleShare}>⤳ Share my result</button>
-              <button className="rc-tool-btn" onClick={retake}>↺ Retake the oath</button>
+              <p className="rc-cta-note">
+                A recruiter will invite you in-game — register now so your spot is ready.
+              </p>
+
+              <div className="rc-tools-row">
+                <button className="rc-tool-btn" onClick={handleShare}>⤳ Share my result</button>
+                <button className="rc-tool-btn" onClick={retake}>↺ Retake the oath</button>
+              </div>
             </div>
-          </div>
-        </div>
+          )}
+        </>
       )}
 
     </div>
