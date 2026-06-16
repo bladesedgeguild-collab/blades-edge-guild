@@ -46,6 +46,11 @@
   inset: 0;
   background: rgba(10, 6, 2, 0.52);
   z-index: 1;
+  transition: background 0.6s ease;
+}
+
+.rc-overlay.is-result {
+  background: rgba(8, 4, 1, 0.72);
 }
 
 /* ── Embers ── */
@@ -66,8 +71,8 @@
 
 .rc-seal-circle {
   position: relative;
-  width: 200px;
-  height: 200px;
+  width: 220px;
+  height: 220px;
   border-radius: 50%;
   background: radial-gradient(circle, #7a2a0a 0%, #3d1205 60%, #1a0800 100%);
   display: flex;
@@ -90,11 +95,25 @@
 }
 
 .rc-seal-circle img {
-  width: 130px;
-  height: 130px;
   object-fit: contain;
   position: relative;
   z-index: 1;
+}
+
+/* Fix 3: Guild crest — knock out black bg with blend mode */
+.rc-crest-img {
+  mix-blend-mode: screen;
+  filter: brightness(1.1);
+}
+
+.rc-intro-crest {
+  width: 160px;
+  height: 160px;
+}
+
+.rc-result-crest {
+  width: 240px;
+  height: 240px;
 }
 
 /* Fix 12: Expanding pulse rings */
@@ -241,7 +260,9 @@
   color: #f0e6c8;
   line-height: 1.35;
   text-align: center;
-  margin-bottom: 1.5rem;
+  text-wrap: balance;
+  max-width: 480px;
+  margin: 0 auto 1.5rem;
 }
 
 /* ── Answer buttons (Fix 6) ── */
@@ -322,11 +343,11 @@
 
 .rc-evi {
   position: fixed;
-  width: clamp(320px, 38vw, 580px);
+  width: clamp(380px, 42vw, 640px);
   border-radius: 10px;
   overflow: hidden;
   opacity: 0;
-  transition: opacity 1.4s ease;
+  transition: opacity 1.6s ease;
   pointer-events: none;
   z-index: 5;
 }
@@ -339,8 +360,8 @@
   display: block;
 }
 
-.rc-evi-summon { box-shadow: 0 0 0 3px #1aff6e, 0 0 24px rgba(26, 255, 110, 0.4); }
-.rc-evi-recruit { box-shadow: 0 0 0 3px #c9961a, 0 0 24px rgba(201, 150, 26, 0.4); }
+.rc-evi-summon { box-shadow: 0 0 0 3px #1aff6e, 0 0 28px rgba(26, 255, 110, 0.45); }
+.rc-evi-recruit { box-shadow: 0 0 0 3px #c9961a, 0 0 28px rgba(201, 150, 26, 0.5); }
 
 .rc-ev-pos-0 { top: 7%;    left: 2%; }
 .rc-ev-pos-1 { top: 7%;    right: 2%; }
@@ -349,7 +370,7 @@
 .rc-ev-pos-4 { top: 42%;   left: 1%; transform: translateY(-50%); }
 
 @media (min-width: 768px) and (max-width: 1199px) {
-  .rc-evi { width: clamp(160px, 22vw, 320px); }
+  .rc-evi { width: clamp(220px, 28vw, 400px); }
 }
 
 @media (max-width: 767px) {
@@ -376,8 +397,8 @@
 }
 
 .rc-result-seal-circle {
-  width: 200px;
-  height: 200px;
+  width: 300px;
+  height: 300px;
   border-radius: 50%;
   background: radial-gradient(circle, #7a2a0a 0%, #3d1205 60%, #1a0800 100%);
   display: flex;
@@ -390,8 +411,6 @@
 }
 
 .rc-result-seal-circle img {
-  width: 130px;
-  height: 130px;
   object-fit: contain;
 }
 
@@ -431,9 +450,10 @@
   font-style: italic;
   font-size: clamp(1.1rem, 2vw, 1.35rem);
   color: rgba(240, 230, 200, 0.85);
-  max-width: 480px;
-  line-height: 1.7;
-  margin-bottom: 28px;
+  max-width: 360px;
+  line-height: 1.75;
+  margin: 0 auto 28px;
+  text-wrap: balance;
 }
 
 /* ── Match bar ── */

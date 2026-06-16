@@ -36,6 +36,14 @@ const Q4_EVIDENCE = [
   '/images/GuildiesInShattrath.jpg',
 ]
 
+// Clock positions for Q4 evidence images (viewport-relative, applied inline)
+const Q4_POSITIONS: React.CSSProperties[] = [
+  { top: '12%', right: '1%' },
+  { bottom: '3%', left: '50%', transform: 'translateX(-50%)' },
+  { top: '12%', left: '1%' },
+  { top: '2%', left: '22%' },
+]
+
 const PERKS = [
   { title: 'Free Bags', desc: 'Four 10-slot bags, on the house, the moment you join.' },
   { title: 'Lock Summons', desc: 'Never run to a flight path again. Our locks have you.' },
@@ -311,7 +319,7 @@ export function RecruitPage() {
       </div>
 
       {/* ── Overlay ── */}
-      <div className="rc-overlay" />
+      <div className={`rc-overlay${screen === 'result' ? ' is-result' : ''}`} />
 
       {/* ── Embers ── */}
       <div className="rc-embers">
@@ -350,7 +358,8 @@ export function RecruitPage() {
       {bgMode === 'perks' && (
         <div className="rc-evidence-wrap">
           {Q4_EVIDENCE.map((src, i) => (
-            <div key={i} className={`rc-evi rc-evi-recruit rc-ev-pos-${i}${i < evidenceCount ? ' is-on' : ''}`}>
+            <div key={i} className={`rc-evi rc-evi-recruit${i < evidenceCount ? ' is-on' : ''}`}
+              style={Q4_POSITIONS[i]}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={src} alt="" />
             </div>
@@ -397,7 +406,7 @@ export function RecruitPage() {
             <div className="rc-seal-wrap">
               <div className="rc-seal-circle">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/images/guild-crest.png" alt="" />
+                <img src="/images/guild-crest.png" alt="" className="rc-crest-img rc-intro-crest" />
                 <div className="rc-seal-pulse" />
                 <div className="rc-seal-pulse rc-seal-pulse-2" />
               </div>
@@ -459,7 +468,7 @@ export function RecruitPage() {
           <div className={`rc-result-seal-wrap ${phase}`}>
             <div className="rc-result-seal-circle">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/guild-crest.png" alt="Blådes Edge" />
+              <img src="/images/guild-crest.png" alt="Blådes Edge" className="rc-crest-img rc-result-crest" />
             </div>
           </div>
 
