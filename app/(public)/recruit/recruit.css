@@ -95,15 +95,15 @@
 }
 
 .rc-seal-circle img {
-  object-fit: contain;
+  object-fit: cover;
+  border-radius: 50%;
   position: relative;
   z-index: 1;
 }
 
-/* Fix 3: Guild crest — knock out black bg with blend mode */
 .rc-crest-img {
-  mix-blend-mode: screen;
-  filter: brightness(1.1);
+  border-radius: 50%;
+  object-fit: cover;
 }
 
 .rc-intro-crest {
@@ -411,7 +411,8 @@
 }
 
 .rc-result-seal-circle img {
-  object-fit: contain;
+  object-fit: cover;
+  border-radius: 50%;
 }
 
 /* Fix 10: Result content fades in below the seal */

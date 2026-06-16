@@ -384,7 +384,7 @@ export function RecruitPage() {
         }}>
           {/* Fix 1: Crest on transparent bg */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/guild-crest.png" alt="Blådes Edge" style={{ width: 96, height: 96, marginBottom: 20, objectFit: 'contain' }} />
+          <img src="/images/guild-crest.png" alt="Blådes Edge" style={{ width: 96, height: 96, marginBottom: 20, objectFit: 'cover', borderRadius: '50%' }} />
 
           <span style={{ fontFamily: "'Cinzel', serif", fontSize: '0.75rem', letterSpacing: '0.25em', color: 'var(--be-gold)', marginBottom: 16, display: 'block' }}>
             — BLÅDES EDGE · TBC CLASSIC —
