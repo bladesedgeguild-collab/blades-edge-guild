@@ -441,9 +441,6 @@ export function RecruitPage() {
           textAlign: 'center',
           overflowY: 'auto',
         }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/guild-crest_Alpha.png" alt="Blådes Edge" style={{ width: 96, height: 96, marginBottom: 20, objectFit: 'contain' }} />
-
           <span style={{ fontFamily: "'Cinzel', serif", fontSize: '0.75rem', letterSpacing: '0.25em', color: 'var(--be-gold)', marginBottom: 16, display: 'block' }}>
             — BLÅDES EDGE · TBC CLASSIC —
           </span>
@@ -454,28 +451,24 @@ export function RecruitPage() {
             Call
           </h1>
 
-          {/* Fix 1: forced 2-line break */}
           <p className="rc-sub">
             <span style={{ display: 'block' }}>Take the Oath. Six questions, sixty seconds.</span>
             <span style={{ display: 'block' }}>Find out if your blade belongs with ours.</span>
           </p>
 
-          <button onClick={startQuiz} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 40 }}>
-            <div className="rc-seal-wrap">
-              <div style={{ position: 'relative', display: 'inline-block' }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src="/images/guild-crest_Alpha.png"
-                  alt=""
-                  className="rc-intro-crest"
-                  style={{ width: 140, height: 140, display: 'block' }}
-                />
-                <div className="rc-seal-ring rc-seal-ring-1" />
-                <div className="rc-seal-ring rc-seal-ring-2" />
-              </div>
-              <div className="rc-seal-label">BEGIN THE OATH</div>
-              <div className="rc-seal-sublabel">PRESS THE SEAL</div>
+          <button className="rc-seal-btn" onClick={startQuiz} style={{ marginTop: 40 }}>
+            <div style={{ position: 'relative', display: 'inline-block' }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/images/guild-crest_Alpha.png"
+                alt=""
+                className="rc-seal-crest"
+              />
+              <div className="rc-seal-ring rc-seal-ring-1" />
+              <div className="rc-seal-ring rc-seal-ring-2" />
             </div>
+            <div className="rc-seal-label">BEGIN THE OATH</div>
+            <div className="rc-seal-sublabel">PRESS THE SEAL</div>
           </button>
 
           <div className="rc-meta-chip" style={{ marginTop: 32 }}>
@@ -528,18 +521,16 @@ export function RecruitPage() {
             </div>
           </div>
 
-          {/* GM quote + speaking image — bottom-right corner */}
+          {/* GM corner — withScroll PNG flush to bottom-right */}
           <div className="rc-gm-corner">
-            <div className="rc-gm-images">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                key={AVATAR_PER_Q[qIdx]}
-                src={AVATAR_PER_Q[qIdx]}
-                className="rc-gm-img"
-                alt=""
-              />
-            </div>
-            <div className="rc-gm-quote-wrap">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              key={AVATAR_PER_Q[qIdx]}
+              src={AVATAR_PER_Q[qIdx]}
+              className="rc-gm-corner-img"
+              alt=""
+            />
+            <div className="rc-gm-quote-overlay">
               <blockquote className="rc-gm-quote">
                 &ldquo;{GM_QUOTES[qIdx]}&rdquo;
               </blockquote>
@@ -650,18 +641,17 @@ export function RecruitPage() {
         </>
       )}
 
-      {/* Perk hover preview — fixed center, large */}
+      {/* Perk hover preview — fixed near top, centered horizontally */}
       {hoveredPerk && (
         <div
           style={{
             position: 'fixed',
-            top: '50%',
             left: '50%',
-            transform: 'translate(-50%, -50%)',
+            top: '8%',
+            transform: 'translateX(-50%)',
             zIndex: 9999,
             pointerEvents: 'none',
-            width: 'min(85vw, 85vh)',
-            maxWidth: 960,
+            width: 'min(80vw, 700px)',
             borderRadius: 12,
             overflow: 'hidden',
             boxShadow: '0 24px 80px rgba(0,0,0,0.85)',
