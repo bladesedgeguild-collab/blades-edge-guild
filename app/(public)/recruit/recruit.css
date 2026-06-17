@@ -123,23 +123,20 @@
   height: 240px;
 }
 
-/* Tight wrapper so pulse rings are sized relative to crest image */
-.rc-crest-wrap {
-  position: relative;
-  display: inline-flex;
-}
-
-/* Expanding pulse rings — hugs crest image edge */
-.rc-seal-pulse {
+/* Tight pulse rings — sized relative to the img, not a container */
+.rc-seal-ring {
   position: absolute;
-  inset: -8px;
+  inset: -6px;
   border-radius: 50%;
-  border: 1.5px solid rgba(201, 150, 26, 0.6);
-  animation: rc-pulse 2.4s ease-out infinite both;
+  border: 1.5px solid rgba(201, 150, 26, 0.55);
+  animation: rc-pulse 2.5s ease-out infinite;
+  animation-fill-mode: both;
+  pointer-events: none;
 }
 
-.rc-seal-pulse-2 {
-  animation-delay: 1.1s;
+.rc-seal-ring-2 {
+  animation-delay: 1.25s;
+  border-color: rgba(201, 150, 26, 0.3);
 }
 
 /* Fix 4: Seal labels — white, bold, larger */
@@ -450,22 +447,16 @@
 }
 
 .rc-gm-images {
-  position: relative;
-  width: 280px;
-  height: 400px;
+  width: clamp(220px, 22vw, 340px);
+  height: auto;
   flex-shrink: 0;
 }
 
 .rc-gm-img {
-  position: absolute;
-  bottom: 0;
-  left: 0;
   width: 100%;
   height: auto;
   object-fit: contain;
-  mix-blend-mode: screen;
-  filter: brightness(1.15) contrast(1.05);
-  animation: rc-fade-in 0.8s ease both;
+  animation: rc-fade-in 0.6s ease both;
   animation-fill-mode: both;
 }
 
@@ -784,8 +775,8 @@
 }
 
 @keyframes rc-pulse {
-  0%   { transform: scale(1);    opacity: 0.7; }
-  100% { transform: scale(1.25); opacity: 0; }
+  0%   { transform: scale(1);   opacity: 0.7; }
+  100% { transform: scale(1.3); opacity: 0; }
 }
 
 /* Fix 10: Result seal animations */

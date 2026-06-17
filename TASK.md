@@ -1,119 +1,89 @@
-# TASK: /recruit — Ken Burns fix, text wrapping, AvatarOdys, glow ring, perk hover images
+# TASK: /recruit — crest ring fix, withScroll images, Q3 position, result hover size
 
 ---
 
-## Fix 1 — Intro subtitle: 2 clean lines, narrower font on mobile
+## Fix 1 — Pulse ring: hug the crest image tightly
 
-The subtitle wraps badly on narrow screens. Use span blocks AND
-reduce font size to ensure 2 clean lines at any width:
+The pulse ring is too large. It must wrap tightly around the guild
+crest image itself, not a parent container.
+
+Find the element creating the pulse ring animation on the intro screen.
+
+### The fix
+The ring must be a sibling or child of the img element, sized to match
+the img dimensions exactly with only a small inset:
 
 ```tsx
-<p className="rc-sub">
-  <span style={{ display: 'block' }}>
-    Take the Oath. Six questions, sixty seconds.
-  </span>
-  <span style={{ display: 'block' }}>
-    Find out if your blade belongs with ours.
-  </span>
-</p>
+<div style={{ position: 'relative', display: 'inline-block' }}>
+  <img
+    src="/images/guild-crest_Alpha.png"
+    className="rc-intro-crest"
+    style={{ width: 140, height: 140, display: 'block' }}
+  />
+  {/* Ring wraps the img — not a larger parent */}
+  <div className="rc-seal-ring rc-seal-ring-1" />
+  <div className="rc-seal-ring rc-seal-ring-2" />
+</div>
 ```
 
 ```css
-.rc-sub {
-  font-size: clamp(0.85rem, 1.8vw, 1.2rem);  /* smaller so lines fit */
-  max-width: 500px;
-  text-align: center;
-  line-height: 1.8;
-}
-```
-
----
-
-## Fix 2 — Ken Burns snap-back: rewrite the slideshow animation
-
-The current implementation snaps the image back to its original scale
-just before transitioning. This happens because the Ken Burns animation
-resets when the is-active class is removed.
-
-### Root cause
-When a slide loses `is-active`, its animation stops and transform
-resets to scale(1) briefly before opacity reaches 0.
-
-### Fix: keep Ken Burns running continuously using a different approach
-
-Instead of restarting the animation per slide, pre-apply the zoom
-to a continuous transform that never resets:
-
-```css
-/* Each slide image gets an infinite slow zoom — never stops or resets */
-.rc-hero-slide img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  animation: rc-kenburns-inf 20s ease-in-out infinite alternate;
-  animation-fill-mode: both;
-  /* Offset each slide so they're at different points in zoom */
-}
-
-/* Stagger starting points per slide index via nth-child */
-.rc-hero-slide:nth-child(1) img { animation-delay: 0s; }
-.rc-hero-slide:nth-child(2) img { animation-delay: -5s; }
-.rc-hero-slide:nth-child(3) img { animation-delay: -10s; }
-.rc-hero-slide:nth-child(4) img { animation-delay: -3s; }
-.rc-hero-slide:nth-child(5) img { animation-delay: -8s; }
-.rc-hero-slide:nth-child(6) img { animation-delay: -13s; }
-.rc-hero-slide:nth-child(7) img { animation-delay: -2s; }
-
-@keyframes rc-kenburns-inf {
-  0%   { transform: scale(1.0) translate(0%, 0%); }
-  50%  { transform: scale(1.06) translate(-1%, 0.5%); }
-  100% { transform: scale(1.1) translate(0.5%, -1%); }
-}
-
-/* Fade control is ONLY on opacity — never touches transform */
-.rc-hero-slide {
+.rc-seal-ring {
   position: absolute;
-  inset: 0;
-  opacity: 0;
-  transition: opacity 3s ease-in-out;  /* slow crossfade only */
+  inset: -6px;           /* only 6px outside the image edge */
+  border-radius: 50%;
+  border: 1.5px solid rgba(201, 150, 26, 0.55);
+  animation: rc-pulse 2.5s ease-out infinite;
+  animation-fill-mode: both;
+  pointer-events: none;
 }
 
-.rc-hero-slide.is-active {
-  opacity: 1;
+.rc-seal-ring-2 {
+  animation-delay: 1.25s;
+  border-color: rgba(201, 150, 26, 0.3);
+}
+
+@keyframes rc-pulse {
+  0%   { transform: scale(1);    opacity: 0.7; }
+  100% { transform: scale(1.3);  opacity: 0; }
 }
 ```
 
-This separates the Ken Burns zoom (always running, never resets)
-from the crossfade (opacity only). No snap-back possible.
+Remove any existing ring or glow element that is sized independently
+of the img element (e.g. a fixed 200px or 300px circle container).
+
+Apply the same tight-ring fix to the results crest.
 
 ---
 
-## Fix 3 — AvatarOdys: one static image per question, fix black bg
+## Fix 2 — AvatarOdys: switch to withScroll PNG files
 
-### One image per question (no rotation)
+The new withScroll PNGs have proper backgrounds — no mix-blend-mode needed.
+
+### Step A — Copy new files
+```bash
+cp /mnt/user-data/uploads/AvatarOdys_speaking*_withScroll.png public/images/
+```
+
+### Step B — Update image paths and remove blend mode
+
 ```ts
 const AVATAR_PER_Q = [
-  '/images/AvatarOdys_speaking1.jpg',  // Q1
-  '/images/AvatarOdys_speaking4.jpg',  // Q2
-  '/images/AvatarOdys_speaking2.jpg',  // Q3
-  '/images/AvatarOdys_speaking5.jpg',  // Q4
-  '/images/AvatarOdys_speaking3.jpg',  // Q5
-  '/images/AvatarOdys_speaking4.jpg',  // Q6
+  '/images/AvatarOdys_speaking1_withScroll.png',  // Q1
+  '/images/AvatarOdys_speaking4_withScroll.png',  // Q2
+  '/images/AvatarOdys_speaking2_withScroll.png',  // Q3
+  '/images/AvatarOdys_speaking5_withScroll.png',  // Q4
+  '/images/AvatarOdys_speaking3_withScroll.png',  // Q5
+  '/images/AvatarOdys_speaking4_withScroll.png',  // Q6
 ];
 ```
 
-Remove ALL rotation logic (setInterval, avatarIdx state, multiple img elements).
-Render a single img per question:
-
 ```tsx
-<div className="rc-gm-images">
-  <img
-    key={idx}  // key change triggers React re-render/fade
-    src={AVATAR_PER_Q[idx]}
-    className="rc-gm-img"
-    alt=""
-  />
-</div>
+<img
+  key={AVATAR_PER_Q[idx]}
+  src={AVATAR_PER_Q[idx]}
+  className="rc-gm-img"
+  alt=""
+/>
 ```
 
 ```css
@@ -121,157 +91,80 @@ Render a single img per question:
   width: 100%;
   height: auto;
   object-fit: contain;
-  mix-blend-mode: screen;
-  filter: brightness(1.15) contrast(1.05);
-  animation: rc-fade-in 0.8s ease both;
+  /* NO mix-blend-mode — new PNGs have proper background */
+  animation: rc-fade-in 0.6s ease both;
   animation-fill-mode: both;
 }
 ```
 
-The `mix-blend-mode: screen` removes the black background.
-The `key={idx}` forces a fresh fade-in each question change.
-No looping, no snap-back, no rotation.
+### Step C — Size the GM corner for the scroll image
+The withScroll PNG is square with a triangular scroll design.
+Display it large enough to fill the bottom-right corner well:
 
----
-
-## Fix 4 — Q1 question: force exactly 2 lines
-
-```tsx
-// When rendering idx === 0, use this instead of the normal q string:
-{idx === 0 ? (
-  <h2 className="rc-q-text">
-    <span style={{ display: 'block' }}>What kind of leveling experience</span>
-    <span style={{ display: 'block' }}>are you after in TBC?</span>
-  </h2>
-) : (
-  <h2 className="rc-q-text">{QUESTIONS[idx].q}</h2>
-)}
-```
-
-Also increase quiz card width:
 ```css
-.rc-quiz-card {
-  max-width: 680px;  /* wider to fit Q1 on 2 lines at desktop */
-  width: min(680px, 92vw);
-}
-
-.rc-q-text {
-  font-size: clamp(1.1rem, 2.2vw, 1.6rem);
+.rc-gm-images {
+  width: clamp(220px, 22vw, 340px);
+  height: auto;
+  flex-shrink: 0;
 }
 ```
 
 ---
 
-## Fix 5 — Q4 image captions: updated text
+## Fix 3 — Q3 Winterspring image: move to top center
 
-Update the caption strings in the Q4 evidence images array:
+In the Q3 evidence images array, find Summon_toWinterspring.jpg.
+Change its position to top center:
 
 ```ts
-// Q4 evidence images:
-[
-  {
-    src: '/images/Recruiting_TophBagsFullofBags.jpg',
-    caption: 'Recruiters Tøph, Ðjenna & Ðeerføx are equipped with bags & tabards.',
-  },
-  {
-    src: '/images/Recruiting_TophInKharanos.jpg',
-    caption: 'Recruiter Ðeerføx traveling starting zones like Kharanos, Elwynn Forest, Teldrassil & Azuremyst Isle.',
-  },
-  {
-    src: '/images/Recruiting_TophinDarkshire.jpg',
-    caption: 'Recruiter Ðjenna checking on advancing tier adventurers in Darkshire, Westfall, Redridge Mountains & Darkshore.',
-  },
-]
-```
-
----
-
-## Fix 6 — Q5 answer B text
-
-In the QUESTIONS array, find Q5 (idx 4, "Real life comes first?").
-Change answer B text to:
-```
-No. There is no life outside of WoW. "How do you kill, that which has no life?"
-```
-
----
-
-## Fix 7 — Glow ring: fit the alpha crest asset
-
-The pulse ring is too large relative to the alpha crest image.
-The ring should hug the crest artwork closely.
-
-Find the rc-seal-pulse and related ring elements.
-The crest image (guild-crest_Alpha.png) is roughly square.
-Set the ring to match the image size exactly, not a larger container:
-
-```css
-/* Intro seal */
-.rc-seal-pulse-ring {
-  position: absolute;
-  /* Size matches the crest image dimensions exactly */
-  inset: -8px;  /* just 8px outside the image edge */
-  border-radius: 50%;
-  border: 1.5px solid rgba(201, 150, 26, 0.6);
-  animation: rc-pulse 2.4s ease-out infinite;
-  animation-fill-mode: both;
-  pointer-events: none;
-}
-
-@keyframes rc-pulse {
-  0%   { transform: scale(1);    opacity: 0.7; }
-  100% { transform: scale(1.25); opacity: 0; }
+{
+  src: '/images/Summon_toWinterspring.jpg',
+  caption: 'Get to the far north in Kalimdor quickly with summons to Winterspring.',
+  pos: { top: '2%', left: '50%', transform: 'translateX(-50%)' },
+  glow: 'summon',
 }
 ```
 
-Remove any fixed pixel size on the ring wrapper that was sized
-for the old container. The ring must be sized relative to the
-img element itself, not a parent container.
-
-On the results screen, apply the same fix to the result crest ring.
-
 ---
 
-## Fix 8 — Perk card hover: show large image above the card
+## Fix 4 — Result hover images: triple size, fixed center screen
 
-On hover of each perk card, show a large preview image floating
-above the card.
+The perk card hover images are too small and follow the mouse.
+Replace with large fixed-center images that appear in the same
+spot regardless of mouse position.
+
+Each card gets a predefined image that appears centered on screen,
+covering most of the viewport, when hovered:
 
 ```tsx
-const PERK_IMAGES = {
-  bags:     '/images/Recruiting_TophBagsFullofBags.jpg',
-  summons:  '/images/Summon_toMaraudon2.jpg',
-  fam:      '/images/GuildiesInShattrath.jpg',
-  guild:    '/images/hero-portal.png',
+const PERK_IMAGES: Record<string, string> = {
+  bags:    '/images/Recruiting_TophBagsFullofBags.jpg',
+  summons: '/images/Summon_toMaraudon2.jpg',
+  fam:     '/images/GuildiesInShattrath.jpg',
+  guild:   '/images/hero-portal.png',
 };
 
 const [hoveredPerk, setHoveredPerk] = useState<string | null>(null);
-const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 });
-
-const handlePerkEnter = (e: React.MouseEvent, key: string) => {
-  const rect = e.currentTarget.getBoundingClientRect();
-  setHoverPos({ x: rect.left + rect.width / 2, y: rect.top });
-  setHoveredPerk(key);
-};
 ```
 
 ```tsx
-{/* Perk hover image — rendered at root level */}
+{/* Full-screen overlay image — fixed center, not mouse-tracked */}
 {hoveredPerk && (
   <div
     style={{
       position: 'fixed',
-      left: hoverPos.x,
-      top: hoverPos.y - 16,
-      transform: 'translate(-50%, -100%)',
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
       zIndex: 9999,
       pointerEvents: 'none',
-      width: 'clamp(320px, 42vw, 600px)',
-      borderRadius: 10,
+      width: 'min(85vw, 85vh)',  /* large square-ish, most of viewport */
+      maxWidth: 960,
+      borderRadius: 12,
       overflow: 'hidden',
-      boxShadow: '0 16px 48px rgba(0,0,0,0.7)',
-      border: '1px solid rgba(201,150,26,0.4)',
-      animation: 'rc-fade-in 0.2s ease both',
+      boxShadow: '0 24px 80px rgba(0,0,0,0.85)',
+      border: '2px solid rgba(201,150,26,0.5)',
+      animation: 'rc-fade-in 0.15s ease both',
       animationFillMode: 'both',
     }}
   >
@@ -282,38 +175,45 @@ const handlePerkEnter = (e: React.MouseEvent, key: string) => {
     />
   </div>
 )}
+```
 
-{/* Each perk card */}
+Each perk card's mouse events:
+```tsx
 <div
   className="rc-perk-card"
-  onMouseEnter={(e) => handlePerkEnter(e, 'bags')}
+  onMouseEnter={() => setHoveredPerk('bags')}
   onMouseLeave={() => setHoveredPerk(null)}
 >
-  {/* Free Bags card content */}
-</div>
-{/* etc for summons (key='summons'), fam (key='fam'), guild (key='guild') */}
 ```
+
+Map each card to its key:
+- Free Bags card → key 'bags'
+- Lock Summons card → key 'summons'
+- GRATS Fam card → key 'fam'
+- Active Guild card → key 'guild'
+
+The image appears centered on the screen, always in the same position,
+changes instantly when moving between cards, disappears on mouse leave.
 
 ---
 
 ## Verification
 
-1. Intro subtitle: 2 clean lines, no orphan words at any screen width
-2. BG slides: smooth slow crossfade, NO snap-back to original zoom
-3. AvatarOdys: one specific image per question, black bg gone via mix-blend-mode
-4. Q1: exactly 2 lines
-5. Q4 captions updated with new text for all 3 images
-6. Q5 answer B updated with new text
-7. Glow pulse ring hugs crest asset closely — not floating wide of it
-8. Same ring fix on results crest
-9. Hovering "Free Bags" shows Toph bags image large above the card
-10. Hovering "Lock Summons" shows Maraudon2 image
-11. Hovering "GRATS Fam" shows GuildiesInShattrath image
-12. Hovering "Active Guild" shows hero-portal image
+1. Intro crest pulse ring: hugs the crest image closely (≤6px gap)
+2. Results crest ring: same tight fit
+3. AvatarOdys shows withScroll PNG images — proper background, no black
+4. AvatarOdys changes per question as specified
+5. Q3: Winterspring image appears at top center of screen
+6. Hovering "Free Bags": large image centered on screen, ~85vw wide
+7. Hovering "Lock Summons": Maraudon2 image large and centered
+8. Hovering "GRATS Fam": GuildiesInShattrath large and centered
+9. Hovering "Active Guild": hero-portal large and centered
+10. Hover image stays in same fixed spot regardless of mouse position
+11. Hover image disappears cleanly on mouse leave
 
 ## Do not touch
-- Scoring logic
-- Background slide order
+- Questions, answers, scoring
+- Background slideshow and Ken Burns
+- Progress pips
 - Discord/Auth URLs
-- Progress pip behavior
-- animation-fill-mode: both on ALL animations — never 'forwards'
+- animation-fill-mode: both on ALL animations

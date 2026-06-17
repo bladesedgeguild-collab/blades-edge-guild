@@ -22,12 +22,12 @@ const CYCLING_IMAGES = [
 ]
 
 const AVATAR_PER_Q = [
-  '/images/AvatarOdys_speaking1.jpg',
-  '/images/AvatarOdys_speaking4.jpg',
-  '/images/AvatarOdys_speaking2.jpg',
-  '/images/AvatarOdys_speaking5.jpg',
-  '/images/AvatarOdys_speaking3.jpg',
-  '/images/AvatarOdys_speaking4.jpg',
+  '/images/AvatarOdys_speaking1_withScroll.png',
+  '/images/AvatarOdys_speaking4_withScroll.png',
+  '/images/AvatarOdys_speaking2_withScroll.png',
+  '/images/AvatarOdys_speaking5_withScroll.png',
+  '/images/AvatarOdys_speaking3_withScroll.png',
+  '/images/AvatarOdys_speaking4_withScroll.png',
 ]
 
 const PERK_IMAGES: Record<string, string> = {
@@ -60,7 +60,7 @@ const Q3_EVIDENCE: EvidenceImg[] = [
   {
     src: '/images/Summon_toWinterspring.jpg',
     caption: 'Get to the far north in Kalimdor quickly with summons to Winterspring.',
-    pos: { bottom: '9%', right: '2%' },
+    pos: { top: '2%', left: '50%', transform: 'translateX(-50%)' },
     glow: 'summon',
   },
   {
@@ -257,7 +257,6 @@ export function RecruitPage() {
 
   // Perk card hover image
   const [hoveredPerk, setHoveredPerk] = useState<string | null>(null)
-  const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 })
 
   const embers = useMemo(() => makeEmbers(26), [])
 
@@ -336,12 +335,6 @@ export function RecruitPage() {
     setPhase('sealing')
     setBarPct(0)
     setScreen('intro')
-  }
-
-  function handlePerkEnter(e: React.MouseEvent, key: string) {
-    const rect = e.currentTarget.getBoundingClientRect()
-    setHoverPos({ x: rect.left + rect.width / 2, y: rect.top })
-    setHoveredPerk(key)
   }
 
   async function handleShare() {
@@ -469,15 +462,17 @@ export function RecruitPage() {
 
           <button onClick={startQuiz} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 40 }}>
             <div className="rc-seal-wrap">
-              <div className="rc-seal-circle">
-                <div className="rc-crest-wrap">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/images/guild-crest_Alpha.png" alt="" className="rc-crest-img rc-intro-crest" />
-                  <div className="rc-seal-pulse" />
-                  <div className="rc-seal-pulse rc-seal-pulse-2" />
-                </div>
+              <div style={{ position: 'relative', display: 'inline-block' }}>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/images/guild-crest_Alpha.png"
+                  alt=""
+                  className="rc-intro-crest"
+                  style={{ width: 140, height: 140, display: 'block' }}
+                />
+                <div className="rc-seal-ring rc-seal-ring-1" />
+                <div className="rc-seal-ring rc-seal-ring-2" />
               </div>
-              {/* Fix 4: White bold labels */}
               <div className="rc-seal-label">BEGIN THE OATH</div>
               <div className="rc-seal-sublabel">PRESS THE SEAL</div>
             </div>
@@ -538,7 +533,7 @@ export function RecruitPage() {
             <div className="rc-gm-images">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                key={qIdx}
+                key={AVATAR_PER_Q[qIdx]}
                 src={AVATAR_PER_Q[qIdx]}
                 className="rc-gm-img"
                 alt=""
@@ -576,9 +571,11 @@ export function RecruitPage() {
           {phase === 'reveal' && (
             <div className="rc-result-seal-wrap reveal">
               <div className="rc-result-seal-circle">
-                <div className="rc-crest-wrap">
+                <div style={{ position: 'relative', display: 'inline-block' }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/images/guild-crest_Alpha.png" alt="Blådes Edge" className="rc-crest-img rc-result-seal-img is-settled" />
+                  <img src="/images/guild-crest_Alpha.png" alt="Blådes Edge" className="rc-result-seal-img is-settled" />
+                  <div className="rc-seal-ring rc-seal-ring-1" />
+                  <div className="rc-seal-ring rc-seal-ring-2" />
                 </div>
               </div>
             </div>
@@ -614,7 +611,7 @@ export function RecruitPage() {
                   <div
                     key={i}
                     className="rc-perk-card"
-                    onMouseEnter={(e) => handlePerkEnter(e, p.key)}
+                    onMouseEnter={() => setHoveredPerk(p.key)}
                     onMouseLeave={() => setHoveredPerk(null)}
                   >
                     <span className="rc-perk-name">{p.title}</span>
@@ -653,22 +650,23 @@ export function RecruitPage() {
         </>
       )}
 
-      {/* Perk hover preview image */}
+      {/* Perk hover preview — fixed center, large */}
       {hoveredPerk && (
         <div
           style={{
             position: 'fixed',
-            left: hoverPos.x,
-            top: hoverPos.y - 16,
-            transform: 'translate(-50%, -100%)',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
             zIndex: 9999,
             pointerEvents: 'none',
-            width: 'clamp(320px, 42vw, 600px)',
-            borderRadius: 10,
+            width: 'min(85vw, 85vh)',
+            maxWidth: 960,
+            borderRadius: 12,
             overflow: 'hidden',
-            boxShadow: '0 16px 48px rgba(0,0,0,0.7)',
-            border: '1px solid rgba(201,150,26,0.4)',
-            animation: 'rc-fade-in 0.2s ease both',
+            boxShadow: '0 24px 80px rgba(0,0,0,0.85)',
+            border: '2px solid rgba(201,150,26,0.5)',
+            animation: 'rc-fade-in 0.15s ease both',
             animationFillMode: 'both',
           }}
         >
