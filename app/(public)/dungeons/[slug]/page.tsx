@@ -11,9 +11,9 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params
   const dungeon = getDungeon(slug)
-  if (!dungeon) return { title: 'Dungeon Not Found — Blådes Edge' }
+  if (!dungeon) return { title: 'Dungeon Not Found | Blådes Edge' }
   return {
-    title: `${dungeon.name} — Blådes Edge Dungeon Finder`,
+    title: `${dungeon.name} | Blådes Edge Dungeon Finder`,
     description: dungeon.summary,
   }
 }

@@ -79,7 +79,7 @@ export function LFGBanner() {
                 </button>
               </div>
               <span className="lfg-banner-private">
-                Your response is private — {post.character_name} will not be notified either way.
+                Your response is private. {post.character_name} will not be notified either way.
               </span>
             </div>
           </div>

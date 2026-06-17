@@ -11,7 +11,11 @@ export async function POST(req: Request) {
   }
 
   const body = await req.json()
-  const { dungeonSlug, dungeonName, role, availableWindow, notes, characterName } = body
+  const {
+    dungeonSlug, dungeonName, role,
+    daysAvailable, timeStart, timeEnd, timezoneLabel,
+    notes, characterName,
+  } = body
 
   if (!dungeonSlug || !role || !characterName) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -22,6 +26,8 @@ export async function POST(req: Request) {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
+  const windowSummary = buildWindowSummary(daysAvailable, timeStart, timeEnd)
+
   const { data: post, error } = await service
     .from('dungeon_lfg')
     .insert({
@@ -29,10 +35,14 @@ export async function POST(req: Request) {
       user_id: user.id,
       character_name: characterName,
       role,
-      available_window: availableWindow || null,
+      available_window: windowSummary,
+      days_available: daysAvailable ?? null,
+      time_start: timeStart || null,
+      time_end: timeEnd || null,
+      timezone_label: timezoneLabel || null,
       notes: notes || null,
     })
-    .select('id, character_name, role, available_window, notes')
+    .select('id, character_name, role, available_window, notes, days_available, time_start, time_end')
     .single()
 
   if (error) {
@@ -40,14 +50,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Failed to create LFG post' }, { status: 500 })
   }
 
-  // Send Discord webhook if configured
   const webhookUrl = process.env.DISCORD_WEBHOOK_URL
   if (webhookUrl) {
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bladesedgeguild.com'
     const content = [
       `⚔️ **Dungeon Call: ${dungeonName}**`,
       `**${characterName}** is looking for more as **${role}**.`,
-      availableWindow ? `Window: ${availableWindow}` : null,
+      windowSummary ? `Window: ${windowSummary}` : null,
       notes ? `Notes: ${notes}` : null,
       `Sign up: ${siteUrl}/dungeons/${dungeonSlug}`,
     ].filter(Boolean).join('\n')
@@ -64,4 +73,15 @@ export async function POST(req: Request) {
   }
 
   return NextResponse.json(post)
+}
+
+function buildWindowSummary(
+  days: string[] | null | undefined,
+  start: string | null | undefined,
+  end: string | null | undefined
+): string | null {
+  const dayStr = !days || days.length === 0 ? 'Any day' : days.join(', ')
+  if (start && end) return `${dayStr}, ${start}–${end} Server Time`
+  if (days && days.length > 0) return dayStr
+  return null
 }

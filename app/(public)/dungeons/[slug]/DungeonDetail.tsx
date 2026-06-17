@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import type { Dungeon, WoWClass } from '@/data/dungeons/types'
 import '../dungeons.css'
@@ -22,12 +22,37 @@ const CLASS_COLORS: Record<WoWClass, string> = {
   Shaman: '#0070dd',
 }
 
+const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
+const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
+  const h = Math.floor(i / 2)
+  const m = i % 2 === 0 ? '00' : '30'
+  const ampm = h < 12 ? 'AM' : 'PM'
+  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h
+  return `${h12}:${m} ${ampm}`
+})
+
 type LfgPost = {
   id: string
   character_name: string
   role: string
   available_window: string | null
   notes: string | null
+  days_available?: string[] | null
+  time_start?: string | null
+  time_end?: string | null
+}
+
+function formatWindow(post: LfgPost): string {
+  const days = post.days_available?.length
+    ? post.days_available.join(', ')
+    : post.days_available !== undefined && post.days_available !== null
+    ? 'Any day'
+    : null
+  if (post.time_start && post.time_end)
+    return `${days || 'Any day'}, ${post.time_start}–${post.time_end} Server Time`
+  if (days) return days
+  return post.available_window ?? ''
 }
 
 interface Props {
@@ -41,11 +66,42 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
   const [selectedClass, setSelectedClass] = useState<WoWClass>('Warrior')
   const [openBoss, setOpenBoss] = useState<number | null>(null)
   const [role, setRole] = useState('DPS')
-  const [availableWindow, setAvailableWindow] = useState('')
+  const [selectedDays, setSelectedDays] = useState<string[]>([])
+  const [anyDay, setAnyDay] = useState(false)
+  const [timeStart, setTimeStart] = useState('')
+  const [timeEnd, setTimeEnd] = useState('')
   const [notes, setNotes] = useState('')
+  const [detectedTimezone, setDetectedTimezone] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [posts, setPosts] = useState<LfgPost[]>(initialPosts)
+
+  useEffect(() => {
+    setDetectedTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone)
+  }, [])
+
+  function toggleDay(day: string) {
+    setSelectedDays(prev =>
+      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
+    )
+  }
+
+  function getLocalEquivalent(serverTimeStr: string): string | null {
+    if (!serverTimeStr || !detectedTimezone) return null
+    try {
+      const today = new Date().toDateString()
+      const mtDate = new Date(`${today} ${serverTimeStr} MST`)
+      return mtDate.toLocaleTimeString('en-US', {
+        hour: '2-digit', minute: '2-digit', hour12: true,
+        timeZone: detectedTimezone,
+      })
+    } catch {
+      return null
+    }
+  }
+
+  const localStartEquiv = getLocalEquivalent(timeStart)
+  const localEndEquiv = getLocalEquivalent(timeEnd)
 
   const classLoot = dungeon.loot.filter(item => {
     const rel = item.relevance[selectedClass]
@@ -65,7 +121,10 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
           dungeonSlug: dungeon.id,
           dungeonName: dungeon.name,
           role,
-          availableWindow,
+          daysAvailable: anyDay ? [] : selectedDays,
+          timeStart,
+          timeEnd,
+          timezoneLabel: detectedTimezone,
           notes,
           characterName,
         }),
@@ -74,9 +133,14 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
         const newPost = await res.json()
         setPosts(prev => [newPost, ...prev])
         setSuccess(true)
-        setAvailableWindow('')
-        setNotes('')
-        setTimeout(() => setSuccess(false), 4000)
+        setTimeout(() => {
+          setSuccess(false)
+          setSelectedDays([])
+          setAnyDay(false)
+          setTimeStart('')
+          setTimeEnd('')
+          setNotes('')
+        }, 5000)
       }
     } finally {
       setSubmitting(false)
@@ -93,6 +157,8 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
     'source-checked': 'Reviewed',
     verified: 'Verified',
   }
+
+  const daysLabel = anyDay ? 'Any day' : selectedDays.length > 0 ? selectedDays.join(', ') : ''
 
   return (
     <div className="dd-page">
@@ -243,7 +309,7 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
           </div>
           {classLoot.length === 0 ? (
             <p className="dd-loot-empty">
-              No notable loot for {selectedClass} — or loot data not yet sourced.
+              No notable loot for {selectedClass}, or loot data not yet sourced.
             </p>
           ) : (
             <div className="dd-loot-list">
@@ -276,9 +342,27 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
                   <Link href="/login">Log in</Link> to post a LFG request.
                 </p>
               ) : success ? (
-                <div className="dd-lfg-success">✓ Banner raised! Your guildmates have been alerted.</div>
+                <div className="dd-lfg-success">
+                  <div>Banner raised! Your guildmates have been alerted.</div>
+                  {daysLabel && (
+                    <div className="lfg-confirm-time">
+                      <strong>Your window:</strong>{' '}
+                      {daysLabel}
+                      {timeStart && timeEnd ? ` from ${timeStart} to ${timeEnd} Server Time (Mountain)` : ''}
+                      {detectedTimezone && localStartEquiv && localEndEquiv && (
+                        <>
+                          <br />
+                          <span className="lfg-confirm-local">
+                            That is {localStartEquiv} to {localEndEquiv} in your timezone ({detectedTimezone}).
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  )}
+                </div>
               ) : (
                 <form onSubmit={handleLFGSubmit}>
+                  {/* Role */}
                   <div className="dd-lfg-field">
                     <label className="dd-lfg-label">Role</label>
                     <select
@@ -292,15 +376,97 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
                       <option>Flex</option>
                     </select>
                   </div>
-                  <div className="dd-lfg-field">
-                    <label className="dd-lfg-label">Available Window</label>
-                    <input
-                      className="dd-lfg-input"
-                      value={availableWindow}
-                      onChange={e => setAvailableWindow(e.target.value)}
-                      placeholder="e.g. Tonight 7–10 PM"
-                    />
+
+                  {/* Server time */}
+                  <div className="lfg-server-time">
+                    <span className="lfg-server-label">Server Time (Mountain):</span>
+                    <span className="lfg-server-value" id="server-time-display" />
+                    <script dangerouslySetInnerHTML={{ __html: `
+                      function updateServerTime() {
+                        var now = new Date();
+                        var mt = now.toLocaleTimeString('en-US', {
+                          timeZone: 'America/Denver',
+                          hour: '2-digit', minute: '2-digit', hour12: true
+                        });
+                        var el = document.getElementById('server-time-display');
+                        if (el) el.textContent = mt + ' MT';
+                      }
+                      updateServerTime();
+                      setInterval(updateServerTime, 10000);
+                    `}} />
                   </div>
+
+                  {/* Days */}
+                  <div className="dd-lfg-field">
+                    <label className="dd-lfg-label lfg-field-label">Day(s) Available</label>
+                    <div className="lfg-day-checkboxes">
+                      {DAYS.map(day => (
+                        <label key={day} className={`lfg-day-chip${selectedDays.includes(day) ? ' lfg-day-chip--on' : ''}`}>
+                          <input
+                            type="checkbox"
+                            value={day}
+                            checked={selectedDays.includes(day)}
+                            disabled={anyDay}
+                            onChange={() => toggleDay(day)}
+                          />
+                          {day}
+                        </label>
+                      ))}
+                      <label className={`lfg-day-chip lfg-day-any${anyDay ? ' lfg-day-chip--on' : ''}`}>
+                        <input
+                          type="checkbox"
+                          checked={anyDay}
+                          onChange={e => {
+                            setAnyDay(e.target.checked)
+                            if (e.target.checked) setSelectedDays([])
+                          }}
+                        />
+                        Any Day
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Time range */}
+                  <div className="lfg-time-row">
+                    <div className="dd-lfg-field" style={{ flex: 1 }}>
+                      <label className="dd-lfg-label lfg-field-label">Start Time (MT)</label>
+                      <select
+                        className="dd-lfg-select"
+                        value={timeStart}
+                        onChange={e => setTimeStart(e.target.value)}
+                      >
+                        <option value="">Select...</option>
+                        {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                      </select>
+                    </div>
+                    <span className="lfg-time-to">to</span>
+                    <div className="dd-lfg-field" style={{ flex: 1 }}>
+                      <label className="dd-lfg-label lfg-field-label">End Time (MT)</label>
+                      <select
+                        className="dd-lfg-select"
+                        value={timeEnd}
+                        onChange={e => setTimeEnd(e.target.value)}
+                      >
+                        <option value="">Select...</option>
+                        {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Timezone */}
+                  {detectedTimezone && (
+                    <div className="lfg-timezone">
+                      <span className="lfg-tz-label">Your timezone:</span>
+                      <span className="lfg-tz-value">{detectedTimezone}</span>
+                      {localStartEquiv && timeStart && (
+                        <span className="lfg-tz-equiv">
+                          {timeStart} MT is {localStartEquiv} in your local time.
+                        </span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Notes */}
                   <div className="dd-lfg-field">
                     <label className="dd-lfg-label">Notes</label>
                     <textarea
@@ -310,8 +476,9 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
                       placeholder="Any notes for your group..."
                     />
                   </div>
+
                   <button type="submit" className="dd-lfg-btn" disabled={submitting}>
-                    {submitting ? 'Raising…' : '⚔️ Raise the Banner'}
+                    {submitting ? 'Raising...' : '⚔️ Raise the Banner'}
                   </button>
                 </form>
               )}
@@ -330,8 +497,8 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
                       {' '}is seeking more as{' '}
                       <span className="dd-lfg-post-role">{post.role}</span>
                     </div>
-                    {post.available_window && (
-                      <div className="dd-lfg-post-window">{post.available_window}</div>
+                    {formatWindow(post) && (
+                      <div className="dd-lfg-post-window">{formatWindow(post)}</div>
                     )}
                     {post.notes && (
                       <div className="dd-lfg-post-notes">{post.notes}</div>

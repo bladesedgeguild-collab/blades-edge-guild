@@ -78,7 +78,7 @@ export function OfficersClient() {
         setCharCount(chars.length)
         setFileReady(true)
       } catch {
-        setParseError('Invalid JSON — could not parse file.')
+        setParseError('Invalid JSON. Could not parse file.')
         setRawData(null)
         setFileReady(false)
       }
@@ -104,7 +104,7 @@ export function OfficersClient() {
         setStep('preview')
       }
     } catch {
-      setDiffError('Network error — check your connection.')
+      setDiffError('Network error. Check your connection.')
     } finally {
       setDiffLoading(false)
     }
@@ -131,7 +131,7 @@ export function OfficersClient() {
         if (fileRef.current) fileRef.current.value = ''
       }
     } catch {
-      setApplyError('Network error — check your connection.')
+      setApplyError('Network error. Check your connection.')
     } finally {
       setApplyLoading(false)
     }
@@ -247,7 +247,7 @@ export function OfficersClient() {
 
             {!hasChanges && diff.missing.length === 0 ? (
               <p style={{ fontFamily: "'Spectral', serif", color: '#8a7a5a', fontSize: '0.9rem', fontStyle: 'italic', marginBottom: '1rem' }}>
-                Everything is up to date — nothing to apply.
+                Everything is up to date. Nothing to apply.
               </p>
             ) : (
               <div
@@ -304,7 +304,7 @@ export function OfficersClient() {
                           {entry.name}
                         </td>
                         <td style={{ padding: '7px 12px', color: '#8a7a5a', fontFamily: "'Spectral', serif", fontSize: '0.82rem', fontStyle: 'italic' }}>
-                          Not in export — may have left
+                          Not in export, may have left
                         </td>
                       </tr>
                     ))}

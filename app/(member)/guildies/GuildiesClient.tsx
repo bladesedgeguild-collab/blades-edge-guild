@@ -370,7 +370,7 @@ export function GuildiesClient({
           <span className="guildie-claim-sub">Claim unclaimed characters and add them to your roster.</span>
         </div>
         <button className="guildie-claim-btn" onClick={() => setShowAddAltModal(true)}>
-          Claim your alt — add it to your roster
+          Claim your alt, add it to your roster
         </button>
       </div>
 
@@ -384,7 +384,7 @@ export function GuildiesClient({
       {/* Original Members — Still MIA */}
       <div style={{ marginTop: '2.5rem' }}>
         <p style={{ fontFamily: 'Cinzel, serif', fontSize: '0.65rem', letterSpacing: '0.2em', color: 'rgba(201,150,26,0.45)', margin: '0 0 1rem', textTransform: 'uppercase' }}>
-          Original Members — Still MIA
+          Original Members Still MIA
         </p>
         <div style={{ background: activeSortDef.bgTint, borderRadius: 12, transition: 'background 400ms ease', border: '1px solid rgba(61,46,21,0.3)', overflow: 'hidden', opacity: 0.35 }}>
           {sortedMia.map(char => {

@@ -78,7 +78,7 @@ export default function ImportPage() {
           })),
         })
       } catch {
-        setParseError('Invalid JSON — could not parse file.')
+        setParseError('Invalid JSON. Could not parse file.')
         setPreview(null)
         setRosterData(null)
       }
@@ -106,7 +106,7 @@ export default function ImportPage() {
         if (fileRef.current) fileRef.current.value = ''
       }
     } catch {
-      setImportError('Network error — check your connection.')
+      setImportError('Network error. Check your connection.')
     } finally {
       setImporting(false)
     }
@@ -197,7 +197,7 @@ export default function ImportPage() {
               className="text-sm italic"
               style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
             >
-              {rosterData ? 'File loaded — see preview below' : 'No file selected'}
+              {rosterData ? 'File loaded. See preview below.' : 'No file selected'}
             </span>
           </div>
 

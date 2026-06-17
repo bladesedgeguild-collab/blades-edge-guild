@@ -47,7 +47,7 @@ const eyebrow: CSSProperties = {
 }
 
 const PLACEHOLDER_EVENTS = [
-  { date: 'TUE', time: '20:00', name: 'Karazhan — Progression', signups: 0, cap: 25 },
+  { date: 'TUE', time: '20:00', name: 'Karazhan Progression', signups: 0, cap: 25 },
   { date: 'THU', time: '20:00', name: 'Dungeon Night',           signups: 0, cap: 10 },
   { date: 'SAT', time: '14:00', name: 'Guild Meeting',           signups: 0, cap: 50 },
   { date: 'SUN', time: '20:00', name: 'Heroic Runs',             signups: 0, cap: 5  },
@@ -141,26 +141,36 @@ export default async function DashboardPage() {
     }
   }
 
-  // Active LFG posts — graceful if table doesn't exist yet
-  let activeLFG: {
+  const { data: lfgData, error: lfgError } = await adminDb
+    .from('dungeon_lfg')
+    .select('*')
+    .gt('expires_at', new Date().toISOString())
+    .order('created_at', { ascending: false })
+
+  if (lfgError) console.error('LFG query error:', lfgError)
+
+  const activeLFG = (lfgData ?? []) as {
     id: string; dungeon_slug: string; character_name: string; role: string
     available_window: string | null; notes: string | null
     current_group: { tank: number; healer: number; dps: number } | null
+    days_available: string[] | null; time_start: string | null; time_end: string | null
     created_at: string
-  }[] = []
-  try {
-    const { data: lfgData } = await adminDb
-      .from('dungeon_lfg')
-      .select('id, dungeon_slug, character_name, role, available_window, notes, current_group, created_at')
-      .gt('expires_at', new Date().toISOString())
-      .order('created_at', { ascending: false })
-    activeLFG = (lfgData ?? []) as typeof activeLFG
-  } catch {
-    // Table not yet created
-  }
+  }[]
 
   function formatDungeonName(slug: string): string {
     return DUNGEONS.find(d => d.id === slug)?.name ?? slug.replace(/-/g, ' ')
+  }
+
+  function formatWindow(post: typeof activeLFG[0]): string {
+    const days = post.days_available?.length
+      ? post.days_available.join(', ')
+      : post.days_available !== null && post.days_available !== undefined
+      ? 'Any day'
+      : null
+    if (post.time_start && post.time_end)
+      return `${days || 'Any day'}, ${post.time_start}–${post.time_end} Server Time`
+    if (days) return days
+    return post.available_window ?? ''
   }
 
   const feedEntries: FeedEntry[] = [
@@ -239,7 +249,7 @@ export default async function DashboardPage() {
               Welcome, New Guildies!
             </h2>
             <p style={{ fontFamily: "'Spectral', serif", fontSize: '0.9rem', color: 'rgba(138,122,90,0.8)', margin: '0 0 18px', lineHeight: 1.5 }}>
-              The guild is in heavy recruitment mode and reactivating old guildies before the name change. Our goal is 200+ active members — enough to have guildies online at nearly all times, day or night. The more the merrier. Spread the word.
+              The guild is in heavy recruitment mode and reactivating old guildies before the name change. Our goal is 200+ active members, enough to have guildies online at nearly all times, day or night. The more the merrier. Spread the word.
             </p>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
               <Link href="/dungeons" style={{
@@ -354,9 +364,6 @@ export default async function DashboardPage() {
               </span>
             </div>
           ))}
-          <p style={{ padding: '12px 22px', fontFamily: "'Spectral', serif", fontStyle: 'italic', fontSize: '0.8rem', color: 'rgba(138,122,90,0.5)', margin: 0, borderTop: '1px solid rgba(61,46,21,0.4)' }}>
-            Dungeon sign-ups coming soon
-          </p>
         </div>
       </div>
 
@@ -373,8 +380,8 @@ export default async function DashboardPage() {
                   <div className="hall-lfg-caller">
                     <strong>{post.character_name}</strong> · {post.role}
                   </div>
-                  {post.available_window && (
-                    <div className="hall-lfg-window">🕐 {post.available_window}</div>
+                  {formatWindow(post) && (
+                    <div className="hall-lfg-window">🕐 {formatWindow(post)}</div>
                   )}
                   <div className="hall-lfg-group">
                     <span>Tank: {cg.tank}/1</span>

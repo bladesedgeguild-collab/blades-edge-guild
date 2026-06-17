@@ -174,7 +174,7 @@ export function SettingsClient({
           {!isEmailUser && (
             <div className="settings-row">
               <span className="settings-label">Password</span>
-              <span className="settings-hint">Signed in via Discord — no password set</span>
+              <span className="settings-hint">Signed in via Discord. No password set.</span>
             </div>
           )}
         </section>

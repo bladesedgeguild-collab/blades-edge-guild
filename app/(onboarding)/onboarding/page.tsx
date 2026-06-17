@@ -166,7 +166,7 @@ function CharFormFields({ form, errors, onChange, onSubmit, submitLabel }: {
           onFocus={(e) => { (e.target as HTMLSelectElement).style.borderColor = 'rgba(201,150,26,0.7)' }}
           onBlur={(e) => { (e.target as HTMLSelectElement).style.borderColor = errors.race ? 'rgba(255,107,107,0.6)' : 'rgba(61,46,21,0.6)' }}
         >
-          <option value="">— Select your race —</option>
+          <option value="">Select your race...</option>
           {Object.keys(RACE_CLASSES).map((r) => <option key={r} value={r}>{r}</option>)}
         </select>
         {errors.race && <p style={errorStyle}>{errors.race}</p>}
@@ -179,7 +179,7 @@ function CharFormFields({ form, errors, onChange, onSubmit, submitLabel }: {
           onFocus={(e) => { (e.target as HTMLSelectElement).style.borderColor = 'rgba(201,150,26,0.7)' }}
           onBlur={(e) => { (e.target as HTMLSelectElement).style.borderColor = errors.cls ? 'rgba(255,107,107,0.6)' : 'rgba(61,46,21,0.6)' }}
         >
-          <option value="">{form.race ? '— Select your class —' : '— Select race first —'}</option>
+          <option value="">{form.race ? 'Select your class...' : 'Select race first...'}</option>
           {availableClasses.map((c) => <option key={c} value={c}>{c}</option>)}
         </select>
         {errors.cls && <p style={errorStyle}>{errors.cls}</p>}

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { DUNGEONS } from '@/data/dungeons/index'
 import type { Dungeon, DungeonContinent } from '@/data/dungeons/types'
+import type { LfgSidebarPost } from './page'
 import './dungeons.css'
 
 type Continent = 'All' | DungeonContinent
@@ -24,11 +25,25 @@ const CONTINENT_BAND: Record<string, string> = {
 
 const CONTINENTS: Continent[] = ['All', 'Eastern Kingdoms', 'Kalimdor', 'Outland']
 
-interface Props {
-  playerLevel: number
+function formatWindow(post: LfgSidebarPost): string {
+  const days = post.days_available?.length
+    ? post.days_available.join(', ')
+    : post.days_available !== null && post.days_available !== undefined
+    ? 'Any day'
+    : null
+  if (post.time_start && post.time_end)
+    return `${days || 'Any day'}, ${post.time_start}–${post.time_end} MT`
+  if (days) return days
+  return post.available_window ?? ''
 }
 
-export default function DungeonsClient({ playerLevel }: Props) {
+interface Props {
+  playerLevel: number
+  activeLFG: LfgSidebarPost[]
+  dungeonNames: Record<string, string>
+}
+
+export default function DungeonsClient({ playerLevel, activeLFG, dungeonNames }: Props) {
   const [continent, setContinent] = useState<Continent>('All')
   const [overrideLevel, setOverrideLevel] = useState<number | null>(null)
 
@@ -40,6 +55,52 @@ export default function DungeonsClient({ playerLevel }: Props) {
 
   return (
     <>
+      {/* Header row: title + LFG sidebar */}
+      <div className="df-header-row">
+        <div className="df-header-left">
+          <h1 className="df-title">Dungeon Finder</h1>
+          <p className="df-subtitle">
+            Every den of darkness, every vault of peril. Sorted for your level.
+          </p>
+        </div>
+        {activeLFG.length > 0 && (
+          <div className="df-lfg-sidebar">
+            <div className="df-lfg-sidebar-title">⚔️ Active LFG Calls</div>
+            {activeLFG.map(post => {
+              const window = formatWindow(post)
+              return (
+                <div key={post.id} className="df-lfg-sidebar-post">
+                  <div className="df-lfg-sidebar-dungeon">
+                    {dungeonNames[post.dungeon_slug] ?? post.dungeon_slug}
+                  </div>
+                  <div className="df-lfg-sidebar-caller">
+                    {post.character_name}
+                    {' '}
+                    <span className="df-lfg-sidebar-role">({post.role})</span>
+                  </div>
+                  {window && (
+                    <div className="df-lfg-sidebar-window">{window}</div>
+                  )}
+                  {post.current_group && (
+                    <div className="df-lfg-sidebar-comp">
+                      <span>🛡 {post.current_group.tank}</span>
+                      <span>💚 {post.current_group.healer}</span>
+                      <span>⚔️ {post.current_group.dps}</span>
+                    </div>
+                  )}
+                  <Link
+                    href={`/dungeons/${post.dungeon_slug}`}
+                    className="df-lfg-sidebar-link"
+                  >
+                    View &rarr;
+                  </Link>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
       <div className="df-level-selector">
         <span className="df-level-label">
           Showing dungeons for level{' '}

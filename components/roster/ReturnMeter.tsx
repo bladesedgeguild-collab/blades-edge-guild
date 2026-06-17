@@ -85,7 +85,7 @@ export function ReturnMeter({ totalRoster, returnedOriginal, newCount }: ReturnM
         className="mt-2 text-xs text-center italic"
         style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
       >
-        {mia} still MIA — will you be next?
+        {mia} still MIA. Will you be next?
       </p>
     </div>
   )
