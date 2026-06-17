@@ -1,4 +1,5 @@
 /* recruit.css — /recruit page only */
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap');
 
 /* ── Full-page container ── */
 .rc-page {
@@ -226,18 +227,19 @@
   box-shadow: 0 0 8px rgba(201, 150, 26, 0.8), 0 0 16px rgba(201, 150, 26, 0.4);
 }
 
-/* Fix 5: Larger counter */
 .rc-q-count {
-  font-family: 'Cinzel', serif;
+  font-family: 'JetBrains Mono', 'IBM Plex Mono', ui-monospace, monospace;
   font-size: 1rem;
-  color: #8a7a5a;
+  font-weight: 600;
+  color: rgba(201, 150, 26, 0.8);
+  letter-spacing: 0.05em;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .rc-q-count b {
-  font-size: 1.3rem;
   color: var(--be-gold, #c9961a);
+  font-size: 1.2rem;
 }
 
 /* Fix 5: Eyebrow centered, slightly larger */
@@ -377,6 +379,117 @@
   .rc-evidence-wrap { display: none; }
 }
 
+/* ── Fix 1: Sealing phase — full-center stamp screen ── */
+.rc-sealing-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  position: relative;
+  z-index: 10;
+}
+
+.rc-sealing-crest img {
+  width: 280px;
+  height: 280px;
+  animation: be-stamp 0.7s cubic-bezier(.17,.67,.35,1.3) both;
+  animation-fill-mode: both;
+  mix-blend-mode: screen;
+}
+
+.rc-sealing-text {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  color: var(--be-gold, #c9961a);
+  letter-spacing: 0.15em;
+  margin-top: 2rem;
+  animation: rc-fade-in 0.8s ease 0.6s both;
+  animation-fill-mode: both;
+}
+
+@keyframes rc-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Fix 4: GM quote corner ── */
+.rc-gm-corner {
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  pointer-events: none;
+  z-index: 6;
+  padding: 0 1rem 0 0;
+  max-width: 520px;
+}
+
+.rc-gm-images {
+  position: relative;
+  width: 220px;
+  height: 320px;
+  flex-shrink: 0;
+}
+
+.rc-gm-img {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  opacity: 0;
+  transition: opacity 1.5s ease;
+  mix-blend-mode: screen;
+  filter: brightness(1.05);
+}
+
+.rc-gm-img.is-active { opacity: 1; }
+
+.rc-gm-quote-wrap {
+  padding-bottom: 2rem;
+  max-width: 260px;
+}
+
+.rc-gm-quote {
+  font-family: 'Spectral', serif;
+  font-style: italic;
+  font-size: clamp(0.75rem, 1.2vw, 0.9rem);
+  color: rgba(240, 230, 200, 0.85);
+  line-height: 1.55;
+  margin: 0 0 0.5rem;
+  border-left: 2px solid rgba(201, 150, 26, 0.4);
+  padding-left: 0.75rem;
+}
+
+.rc-gm-byline {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding-left: 0.75rem;
+}
+
+.rc-gm-name {
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  color: var(--be-gold, #c9961a);
+  letter-spacing: 0.08em;
+}
+
+.rc-gm-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.62rem;
+  color: #8a7a5a;
+  letter-spacing: 0.06em;
+}
+
+@media (max-width: 900px) {
+  .rc-gm-corner { display: none; }
+}
+
 /* ── Result seal: two-phase (Fix 10) ── */
 .rc-result-seal-wrap {
   display: flex;
@@ -386,10 +499,6 @@
   inset: 0;
   z-index: 20;
   pointer-events: none;
-}
-
-.rc-result-seal-wrap.seal {
-  animation: rc-seal-stamp 0.7s cubic-bezier(.17,.67,.35,1.3) both;
 }
 
 .rc-result-seal-wrap.reveal {
@@ -413,6 +522,20 @@
 .rc-result-seal-circle img {
   object-fit: cover;
   border-radius: 50%;
+}
+
+/* Fix 6: Seal size states */
+.rc-result-seal-img.is-sealing {
+  width: 280px;
+  height: 280px;
+  animation: be-stamp 0.7s cubic-bezier(.17,.67,.35,1.3) both;
+  animation-fill-mode: both;
+}
+
+.rc-result-seal-img.is-settled {
+  width: 210px;
+  height: 210px;
+  transition: width 0.6s ease, height 0.6s ease;
 }
 
 /* Fix 10: Result content fades in below the seal */
@@ -447,14 +570,18 @@
 }
 
 .rc-result-body {
+  max-width: 580px;
+  margin: 0 auto 1.5rem;
+  text-align: center;
+  font-size: clamp(0.9rem, 1.6vw, 1.2rem);
+  line-height: 1.75;
   font-family: 'Spectral', serif;
   font-style: italic;
-  font-size: clamp(1.1rem, 2vw, 1.35rem);
-  color: rgba(240, 230, 200, 0.85);
-  max-width: 360px;
-  line-height: 1.75;
-  margin: 0 auto 28px;
-  text-wrap: balance;
+  color: rgba(240, 230, 200, 0.92);
+}
+
+.rc-body-line {
+  display: block;
 }
 
 /* ── Match bar ── */

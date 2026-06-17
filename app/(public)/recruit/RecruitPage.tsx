@@ -26,22 +26,36 @@ const Q3_EVIDENCE = [
   '/images/Summon_toStormwind.jpg',
   '/images/Summon_toBlastedLands.jpg',
   '/images/Summon_toWinterspring.jpg',
-  '/images/Summon_toMaraudon.jpg',
 ]
 
 const Q4_EVIDENCE = [
   '/images/Recruiting_TophBagsFullofBags.jpg',
   '/images/Recruiting_TophinDarkshire.jpg',
   '/images/Recruiting_TophInKharanos.jpg',
-  '/images/GuildiesInShattrath.jpg',
 ]
 
 // Clock positions for Q4 evidence images (viewport-relative, applied inline)
 const Q4_POSITIONS: React.CSSProperties[] = [
   { top: '12%', right: '1%' },
-  { bottom: '3%', left: '50%', transform: 'translateX(-50%)' },
+  { bottom: '8%', left: '4%' },
   { top: '12%', left: '1%' },
-  { top: '2%', left: '22%' },
+]
+
+const GM_QUOTES = [
+  "We are a casual guild with few expectations of you but ready to help & group up with you when you need!",
+  "Let's keep it clean so my 10-year old daughter & your kids feel safe to log on sometimes.",
+  "I have a summoning army of Warlocks with full bags of soul shards ready when you are!",
+  "Our recruiters making the Call to Arms in the starting zones have bags full of...well...more bags!",
+  "Haha you & I can be friends if you recognized that Southpark quote. XD",
+  "Blådes Edge was my first ever guild in Vanilla WoW. I'm enjoying the homage & representing the name here again!",
+]
+
+const AVATAR_IMAGES = [
+  '/images/AvatarOdys_speaking1.jpg',
+  '/images/AvatarOdys_speaking2.jpg',
+  '/images/AvatarOdys_speaking3.jpg',
+  '/images/AvatarOdys_speaking4.jpg',
+  '/images/AvatarOdys_speaking5.jpg',
 ]
 
 const PERKS = [
@@ -137,17 +151,26 @@ function getResult(score: number) {
   if (ratio >= 0.78) return {
     tier: 'True Blade',
     name: 'Welcome Home.',
-    body: "You're one of us. The oath knows it — fam-friendly, helpful, here for the long haul. Grab your free bags and let's ride to 70 together.",
+    body: [
+      "You're one of us. The oath knows it — fam-friendly, helpful, here for the long haul. Grab",
+      "your free bags and let's ride to 70 together.",
+    ],
   }
   if (ratio >= 0.50) return {
     tier: 'Promising Edge',
     name: 'The Edge Is Calling.',
-    body: "You've got the spark. Sharpen it with the fam — we'll cover the bags, the summons, and the groups. You bring the good vibes.",
+    body: [
+      "You've got the spark. Sharpen it with the fam — we'll cover the bags, the summons, and the groups.",
+      "You bring the good vibes.",
+    ],
   }
   return {
     tier: 'Wandering Soul',
     name: 'Every Blade Was Once Unforged.',
-    body: "Maybe you've wandered Azeroth solo long enough. The hall is warm, the chat is kind, and the door is open whenever you're ready to belong.",
+    body: [
+      "Maybe you've wandered Azeroth solo long enough. The hall is warm, the chat is kind,",
+      "and the door is open whenever you're ready to belong.",
+    ],
   }
 }
 
@@ -183,9 +206,10 @@ export function RecruitPage() {
   // Evidence images (JS-driven, not CSS animations)
   const [evidenceCount, setEvidenceCount] = useState(0)
 
-  // Fix 10: Two-phase result reveal
-  const [phase, setPhase] = useState<'seal' | 'reveal'>('seal')
+  // Two-phase result reveal
+  const [phase, setPhase] = useState<'sealing' | 'reveal'>('sealing')
   const [barPct, setBarPct] = useState(0)
+  const [avatarIdx, setAvatarIdx] = useState(0)
 
   const embers = useMemo(() => makeEmbers(26), [])
 
@@ -227,12 +251,20 @@ export function RecruitPage() {
     return () => clearTimeout(id)
   }, [bgMode, evidenceCount])
 
-  // Fix 10: Phase timer — seal → reveal after 1500ms
+  // Phase timer — sealing → reveal after 1500ms
   useEffect(() => {
-    if (screen !== 'result') { setPhase('seal'); return }
+    if (screen !== 'result') { setPhase('sealing'); return }
     const id = setTimeout(() => setPhase('reveal'), 1500)
     return () => clearTimeout(id)
   }, [screen])
+
+  // Avatar cycling during quiz — reset on question change
+  useEffect(() => {
+    if (screen !== 'quiz') return
+    setAvatarIdx(0)
+    const t = setInterval(() => setAvatarIdx(i => (i + 1) % AVATAR_IMAGES.length), 4000)
+    return () => clearInterval(t)
+  }, [qIdx, screen])
 
   // Match bar fills after reveal
   useEffect(() => {
@@ -269,7 +301,7 @@ export function RecruitPage() {
   function retake() {
     setQIdx(0)
     setScores([])
-    setPhase('seal')
+    setPhase('sealing')
     setBarPct(0)
     setScreen('intro')
   }
@@ -424,63 +456,104 @@ export function RecruitPage() {
 
       {/* ═══ QUIZ ═══ */}
       {screen === 'quiz' && currentQ && (
-        <div className="rc-quiz-content">
-          <div className="rc-card">
-            {/* Fix 7: i <= qIdx shows current pip; renamed classes */}
-            <div className="rc-progress-row">
-              <div className="rc-progress">
-                {QUESTIONS.map((_, i) => (
-                  <div key={i} className={`rc-progress-pip${i <= qIdx ? ' is-active' : ''}`} />
+        <>
+          <div className="rc-quiz-content">
+            <div className="rc-card">
+              <div className="rc-progress-row">
+                <div className="rc-progress">
+                  {QUESTIONS.map((_, i) => (
+                    <div key={i} className={`rc-progress-pip${i <= qIdx ? ' is-active' : ''}`} />
+                  ))}
+                </div>
+                <span className="rc-q-count"><b>{qIdx + 1}</b>/{QUESTIONS.length}</span>
+              </div>
+
+              <span className="rc-q-eyebrow">{currentQ.eyebrow}</span>
+              <h2 className="rc-question">{currentQ.q}</h2>
+
+              <div className="rc-answers">
+                {currentQ.a.map((ans, i) => (
+                  <button key={i} className="rc-answer-btn" onClick={() => selectAnswer(ans.s)}>
+                    <span className="rc-letter-badge">{LETTERS[i]}</span>
+                    <span>{ans.t}</span>
+                  </button>
                 ))}
               </div>
-              <span className="rc-q-count"><b>{qIdx + 1}</b>/{QUESTIONS.length}</span>
+
+              <button
+                type="button"
+                className="rc-quiz-back"
+                onClick={back}
+                disabled={qIdx === 0}
+              >
+                ‹ Back
+              </button>
             </div>
+          </div>
 
-            <span className="rc-q-eyebrow">{currentQ.eyebrow}</span>
-            <h2 className="rc-question">{currentQ.q}</h2>
-
-            <div className="rc-answers">
-              {currentQ.a.map((ans, i) => (
-                <button key={i} className="rc-answer-btn" onClick={() => selectAnswer(ans.s)}>
-                  <span className="rc-letter-badge">{LETTERS[i]}</span>
-                  <span>{ans.t}</span>
-                </button>
+          {/* Fix 4: GM quote + speaking image — bottom-right corner */}
+          <div className="rc-gm-corner">
+            <div className="rc-gm-images">
+              {AVATAR_IMAGES.map((src, i) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={src}
+                  src={src}
+                  className={`rc-gm-img${i === avatarIdx ? ' is-active' : ''}`}
+                  style={{ mixBlendMode: 'screen' }}
+                  alt=""
+                />
               ))}
             </div>
-
-            {/* Fix 8: Back button — visible always, disabled on Q1 */}
-            <button
-              type="button"
-              className="rc-quiz-back"
-              onClick={back}
-              disabled={qIdx === 0}
-            >
-              ‹ Back
-            </button>
+            <div className="rc-gm-quote-wrap">
+              <blockquote className="rc-gm-quote">
+                &ldquo;{GM_QUOTES[qIdx]}&rdquo;
+              </blockquote>
+              <div className="rc-gm-byline">
+                <span className="rc-gm-name">Åvatarødys</span>
+                <span className="rc-gm-title">Blådes Edge Guild Master</span>
+              </div>
+            </div>
           </div>
-        </div>
+        </>
       )}
 
       {/* ═══ RESULT ═══ */}
       {screen === 'result' && (
         <>
-          {/* Fix 10: Seal stamps center screen, then slides up */}
-          <div className={`rc-result-seal-wrap ${phase}`}>
-            <div className="rc-result-seal-circle">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/guild-crest.png" alt="Blådes Edge" className="rc-crest-img rc-result-crest" />
+          {/* Fix 1: Sealing phase — stamp + text center screen */}
+          {phase === 'sealing' && (
+            <div className="rc-sealing-wrap">
+              <div className="rc-sealing-crest">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/images/guild-crest.png" alt="" style={{ mixBlendMode: 'screen' }} />
+              </div>
+              <p className="rc-sealing-text">Sealing your oath...</p>
             </div>
-          </div>
+          )}
 
-          {/* Fix 10: Content fades in after seal slides up */}
+          {/* Fix 6: Seal slides to top at 75% when reveal starts */}
+          {phase === 'reveal' && (
+            <div className="rc-result-seal-wrap reveal">
+              <div className="rc-result-seal-circle">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/images/guild-crest.png" alt="Blådes Edge" className="rc-crest-img rc-result-seal-img is-settled" />
+              </div>
+            </div>
+          )}
+
+          {/* Content fades in after seal slides up */}
           {phase === 'reveal' && (
             <div className="rc-result-content" style={{ animation: 'rc-fade-up 0.7s ease both' }}>
-              {/* Fix 11: Larger fonts via CSS classes */}
               <div className="rc-result-tier">— {result.tier} —</div>
 
               <h1 className="rc-result-name">{result.name}</h1>
 
-              <p className="rc-result-body">{result.body}</p>
+              <p className="rc-result-body">
+                {result.body.map((line, i) => (
+                  <span key={i} className="rc-body-line">{line}</span>
+                ))}
+              </p>
 
               {/* Match bar */}
               <div style={{ width: '100%', maxWidth: 480, marginBottom: 28 }}>
