@@ -90,19 +90,13 @@ export async function NavBar() {
               >
                 Guildies
               </Link>
-              <span
-                className="text-sm cursor-not-allowed relative group"
-                style={{ fontFamily: "'Cinzel', serif", color: '#3d2e15' }}
-                title="Coming soon"
+              <Link
+                href="/dungeons"
+                className="text-sm transition-colors hover:text-[#c9961a]"
+                style={{ fontFamily: "'Cinzel', serif", color: '#f0e6c8' }}
               >
                 Dungeons
-                <span
-                  className="absolute -top-7 left-1/2 -translate-x-1/2 text-xs px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none"
-                  style={{ backgroundColor: '#241a0e', color: '#8a7a5a', fontFamily: "'Crimson Pro', serif" }}
-                >
-                  Coming soon
-                </span>
-              </span>
+              </Link>
               {isOfficer && (
                 <Link
                   href="/officers"
@@ -141,19 +135,13 @@ export async function NavBar() {
               >
                 Join
               </Link>
-              <span
-                className="text-sm cursor-not-allowed relative group"
-                style={{ fontFamily: "'Cinzel', serif", color: '#3d2e15' }}
-                title="Coming soon"
+              <Link
+                href="/dungeons"
+                className="text-sm transition-colors hover:text-[#c9961a]"
+                style={{ fontFamily: "'Cinzel', serif", color: '#f0e6c8' }}
               >
                 Dungeons
-                <span
-                  className="absolute -top-7 left-1/2 -translate-x-1/2 text-xs px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none"
-                  style={{ backgroundColor: '#241a0e', color: '#8a7a5a', fontFamily: "'Crimson Pro', serif" }}
-                >
-                  Coming soon
-                </span>
-              </span>
+              </Link>
               <Link
                 href="/login"
                 className="text-sm font-medium transition-colors hover:text-white"
