@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { CharacterClass } from '@/types'
+import { DUNGEONS } from '@/data/dungeons/index'
 
 type MainChar = {
   id: string
@@ -138,6 +139,28 @@ export default async function DashboardPage() {
     for (const c of (feedCharData ?? []) as { id: string; class: string; status: string }[]) {
       feedCharMap[c.id] = { class: c.class, status: c.status }
     }
+  }
+
+  // Active LFG posts — graceful if table doesn't exist yet
+  let activeLFG: {
+    id: string; dungeon_slug: string; character_name: string; role: string
+    available_window: string | null; notes: string | null
+    current_group: { tank: number; healer: number; dps: number } | null
+    created_at: string
+  }[] = []
+  try {
+    const { data: lfgData } = await adminDb
+      .from('dungeon_lfg')
+      .select('id, dungeon_slug, character_name, role, available_window, notes, current_group, created_at')
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false })
+    activeLFG = (lfgData ?? []) as typeof activeLFG
+  } catch {
+    // Table not yet created
+  }
+
+  function formatDungeonName(slug: string): string {
+    return DUNGEONS.find(d => d.id === slug)?.name ?? slug.replace(/-/g, ' ')
   }
 
   const feedEntries: FeedEntry[] = [
@@ -336,6 +359,40 @@ export default async function DashboardPage() {
           </p>
         </div>
       </div>
+
+      {/* ── Active Dungeon Calls ── */}
+      {activeLFG.length > 0 && (
+        <section className="hall-lfg-section">
+          <h2 className="hall-lfg-heading">⚔️ Active Dungeon Calls</h2>
+          <div className="hall-lfg-grid">
+            {activeLFG.map(post => {
+              const cg = post.current_group ?? { tank: 0, healer: 0, dps: 0 }
+              return (
+                <div key={post.id} className="hall-lfg-card">
+                  <div className="hall-lfg-dungeon">{formatDungeonName(post.dungeon_slug)}</div>
+                  <div className="hall-lfg-caller">
+                    <strong>{post.character_name}</strong> · {post.role}
+                  </div>
+                  {post.available_window && (
+                    <div className="hall-lfg-window">🕐 {post.available_window}</div>
+                  )}
+                  <div className="hall-lfg-group">
+                    <span>Tank: {cg.tank}/1</span>
+                    <span>Healer: {cg.healer}/1</span>
+                    <span>DPS: {cg.dps}/3</span>
+                  </div>
+                  {post.notes && (
+                    <p className="hall-lfg-notes">{post.notes}</p>
+                  )}
+                  <Link href={`/dungeons/${post.dungeon_slug}`} className="hall-lfg-link">
+                    View Dungeon →
+                  </Link>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      )}
     </div>
   )
 }

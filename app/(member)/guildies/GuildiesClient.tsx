@@ -222,7 +222,7 @@ export function GuildiesClient({
   const totalActive = claimed.length + unclaimedActive.length
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '2rem 1.5rem' }}>
+    <div className="page-container" style={{ paddingTop: '2rem', paddingBottom: '2rem' }}>
 
       {/* Page header */}
       <div style={{ marginBottom: '2rem' }}>

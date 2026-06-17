@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import './globals.css'
+import { LFGBanner } from '@/components/layout/LFGBanner'
 
 export const metadata: Metadata = {
   title: 'Blådes Edge — Burning Crusade Classic',
@@ -27,6 +28,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full flex flex-col">
+        <LFGBanner />
         {children}
       </body>
     </html>

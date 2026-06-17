@@ -1408,6 +1408,171 @@ input[type=number] { -moz-appearance: textfield; }
   .guildie-claim-cta { flex-direction: column; align-items: flex-start; }
 }
 
+/* ── Hall: Active Dungeon Calls ── */
+.hall-lfg-section {
+  margin-top: 1.5rem;
+}
+
+.hall-lfg-heading {
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--be-gold);
+  margin-bottom: 0.75rem;
+}
+
+.hall-lfg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.hall-lfg-card {
+  background: var(--be-bg-2, #2a1e0e);
+  border: 1px solid rgba(201, 150, 26, 0.3);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.hall-lfg-dungeon {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 0.9rem;
+  color: var(--be-gold);
+}
+
+.hall-lfg-caller {
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  color: var(--be-ink);
+}
+
+.hall-lfg-window {
+  font-family: 'Spectral', serif;
+  font-size: 0.82rem;
+  color: var(--be-muted);
+  font-style: italic;
+}
+
+.hall-lfg-group {
+  display: flex;
+  gap: 0.75rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  color: var(--be-muted);
+}
+
+.hall-lfg-notes {
+  font-family: 'Spectral', serif;
+  font-size: 0.8rem;
+  color: var(--be-muted);
+  font-style: italic;
+  margin: 0;
+}
+
+.hall-lfg-link {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  color: var(--be-portal);
+  text-decoration: none;
+  margin-top: 0.25rem;
+  letter-spacing: 0.08em;
+}
+
+/* ── LFG Notification Banner (above navbar) ── */
+.lfg-banner {
+  background: #8b0000;
+  border-bottom: 2px solid #ffcc00;
+  padding: 0.65rem 1.5rem;
+  z-index: 10000;
+  position: relative;
+}
+
+.lfg-banner-content {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  max-width: 1600px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+}
+
+.lfg-banner-icon {
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+
+.lfg-banner-text {
+  font-family: 'Spectral', serif;
+  font-size: 0.9rem;
+  color: #ffcc00;
+  flex: 1;
+  line-height: 1.5;
+}
+
+.lfg-banner-text strong {
+  color: #ffffff;
+}
+
+.lfg-banner-dungeon-link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.lfg-banner-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.lfg-banner-accept {
+  background: #ffcc00;
+  color: #1a0000;
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  border: none;
+  border-radius: 6px;
+  padding: 0.4rem 1rem;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.lfg-banner-accept:hover {
+  background: #ffe566;
+}
+
+.lfg-banner-decline {
+  background: transparent;
+  color: #ffcc00;
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  border: 1px solid rgba(255, 204, 0, 0.4);
+  border-radius: 6px;
+  padding: 0.4rem 1rem;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.lfg-banner-decline:hover {
+  border-color: #ffcc00;
+  color: #fff;
+}
+
+.lfg-banner-private {
+  font-family: 'Spectral', serif;
+  font-style: italic;
+  font-size: 0.72rem;
+  color: rgba(255, 204, 0, 0.55);
+  width: 100%;
+}
+
 /* ── Settings ── */
 @media (max-width: 768px) {
   .settings-section {

@@ -33,13 +33,15 @@ export default async function DungeonsPage() {
 
   return (
     <div className="df-page">
-      <div className="df-header">
-        <h1 className="df-title">Dungeon Finder</h1>
-        <p className="df-subtitle">
-          Every den of darkness, every vault of peril — sorted for your level.
-        </p>
+      <div className="page-container" style={{ paddingTop: '2rem', paddingBottom: '4rem' }}>
+        <div className="df-header">
+          <h1 className="df-title">Dungeon Finder</h1>
+          <p className="df-subtitle">
+            Every den of darkness, every vault of peril — sorted for your level.
+          </p>
+        </div>
+        <DungeonsClient playerLevel={playerLevel} />
       </div>
-      <DungeonsClient playerLevel={playerLevel} />
     </div>
   )
 }
