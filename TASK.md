@@ -1,175 +1,352 @@
-# TASK: /recruit — evidence image positions, guild crest alpha, results fixes
+# TASK: /recruit — 9 final polish fixes
 
 ---
 
-## Fix 1 — Q3 and Q4 evidence images: clock positions, larger size
+## Fix 1 — Intro subtitle: forced 2-line break
 
-Evidence images use `position: fixed` coordinates relative to viewport.
-Make them LARGER: `clamp(380px, 42vw, 640px)` wide.
+Find the subtitle text on the intro/landing screen.
+Replace with two explicit line blocks:
 
-### Q4 clock positions (viewport %)
-Images fade in one at a time in this order, each at its clock position,
-staying on screen until the question is answered:
-
-1. **Recruiting_TophBagsFullofBags.jpg** — 2–3 o'clock (top right mid)
-   `top: 12%, right: 1%`
-
-2. **Recruiting_TophinDarkshire.jpg** — 6 o'clock (bottom center)
-   `bottom: 3%, left: 50%, transform: translateX(-50%)`
-
-3. **Recruiting_TophInKharanos.jpg** — 10 o'clock (top left)
-   `top: 12%, left: 1%`
-
-4. **GuildiesInShattrath.jpg** — just left of noon (top, slightly left of center)
-   `top: 2%, left: 22%`
-
-### Q3 clock positions (same approach, summon images)
-Keep same clock positions as previously designed but also apply the
-larger size `clamp(380px, 42vw, 640px)`.
-
-### CSS
-```css
-.rc-evi {
-  position: fixed;
-  width: clamp(380px, 42vw, 640px);
-  border-radius: 10px;
-  overflow: hidden;
-  opacity: 0;
-  transition: opacity 1.6s ease;
-  pointer-events: none;
-  z-index: 5;
-}
-.rc-evi.is-on { opacity: 1; }
-.rc-evi img { width: 100%; height: auto; display: block; }
-
-/* Q3 glow */
-.rc-evi-summon {
-  box-shadow: 0 0 0 3px #1aff6e, 0 0 28px rgba(26,255,110,0.45);
-}
-
-/* Q4 glow */
-.rc-evi-recruit {
-  box-shadow: 0 0 0 3px #c9961a, 0 0 28px rgba(201,150,26,0.5);
-}
-
-@media (max-width: 768px) {
-  .rc-evi { display: none; }
-}
-```
-
-Each evidence div gets its clock position via inline style per image.
-
----
-
-## Fix 2 — Prevent orphan word on Q4 question text
-
-Q4 question: "What's the biggest perk of a guild?"
-"guild?" orphans on its own line at some screen widths.
-
-Apply `text-wrap: balance` (modern) with a fallback:
-```css
-.rc-q-text {
-  text-wrap: balance;
-  max-width: 480px;
-  margin: 0 auto 1.5rem;
-}
-```
-
-`text-wrap: balance` distributes words more evenly across lines,
-preventing single-word orphans. Supported in all modern browsers.
-No content change needed.
-
----
-
-## Fix 3 — Guild crest: remove black square background
-
-The guild-crest.png file has a background that appears as a black square
-when rendered outside the oath cinematic's circular amber container.
-
-### Step A — Check what's happening
-Find every place guild-crest.png is rendered on /recruit.
-Check if any parent element or the img itself has:
-- background: black or #000 or #1a1208
-- A CSS class applying a background
-- A box-shadow creating a dark square effect
-
-### Step B — Use mix-blend-mode to knock out the dark bg
-If the PNG truly has a dark/black background (not transparency),
-apply CSS to knock it out:
-```css
-.rc-crest-img {
-  mix-blend-mode: screen;  /* knocks out black, keeps the gold crest */
-  filter: brightness(1.1);
-}
-```
-
-This makes black areas transparent via CSS without needing a new PNG file.
-
-### Step C — Increase crest size
-Make the crest larger everywhere on the recruit page:
-
-Intro seal crest: 160px × 160px (inside the 220px amber circle)
-Result seal: 240px × 240px 
-
-```css
-.rc-intro-crest { width: 160px; height: 160px; }
-.rc-result-crest { width: 240px; height: 240px; }
+```tsx
+<p className="rc-sub">
+  <span style={{ display: 'block' }}>
+    Take the Oath. Six questions, sixty seconds.
+  </span>
+  <span style={{ display: 'block' }}>
+    Find out if your blade belongs with ours.
+  </span>
+</p>
 ```
 
 ---
 
-## Fix 4 — Results overlay: increase opacity for text legibility
+## Fix 2 — Q1 question: wider card + forced 2-line break
 
-Find the dark overlay on the result screen background.
-The quiz questions use ~0.52 opacity. Results need darker:
-
+Increase the quiz card max-width from current value to 640px:
 ```css
-/* Results phase overlay */
-.rc-hero-overlay.is-result {
-  background: rgba(8, 4, 1, 0.72);  /* was 0.52 — darker for text legibility */
+.rc-quiz-card {
+  max-width: 640px;
 }
 ```
 
-If the overlay is a single element for all phases, apply a class
-toggle when the result phase begins so only results get the darker overlay.
+Also wrap Q1 question text in explicit line blocks:
+```tsx
+// In QUESTIONS array for Q1, change q to a JSX element or use a separate render:
+// When rendering the question text for Q1 (idx === 0):
+<h2 className="rc-q-text">
+  <span style={{ display: 'block' }}>What kind of leveling experience</span>
+  <span style={{ display: 'block' }}>are you after in TBC?</span>
+</h2>
+
+// For all other questions, render normally (no forced breaks needed)
+```
 
 ---
 
-## Fix 5 — Result body text: tighter max-width to avoid short last line
+## Fix 3 — AvatarOdys speaking images: fix path + double font size
 
-The "True Blade" body text currently has "let's ride to 70 together."
-alone on the last line. Tighten max-width so the final line reads
-"your free bags and let's ride to 70 together."
+### Step A — Ensure images are in place
+```bash
+ls public/images/AvatarOdys_speaking*.jpg
+```
+If any are missing, copy from /mnt/user-data/uploads/:
+```bash
+cp /mnt/user-data/uploads/AvatarOdys_speaking*.jpg public/images/
+```
+
+### Step B — Fix image path and ensure component renders
+In the GM corner component, verify the img src uses the correct path:
+```tsx
+src={`/images/AvatarOdys_speaking${(avatarIdx % 5) + 1}.jpg`}
+```
+
+The image must be rendered. Add a console.log to confirm avatarIdx
+is cycling. If the component is returning null or display:none,
+fix the condition that hides it.
+
+### Step C — Double all font sizes in the GM corner
+
+```css
+.rc-gm-quote {
+  font-size: clamp(0.9rem, 1.5vw, 1.15rem);   /* doubled from 0.75/0.9 */
+  line-height: 1.6;
+  padding-left: 1rem;
+}
+
+.rc-gm-name {
+  font-size: 1rem;          /* doubled from 0.75rem */
+  letter-spacing: 0.1em;
+}
+
+.rc-gm-title {
+  font-size: 0.82rem;       /* doubled from 0.62rem */
+}
+
+/* Also increase character image size */
+.rc-gm-images {
+  width: 280px;
+  height: 400px;
+}
+```
+
+---
+
+## Fix 4 — Image caption tags for Q3 summon images
+
+Under each floating evidence image on Q3, add italic gold caption text.
+
+In the evidence image component, add a caption below the img:
+
+```tsx
+<div className="rc-evi">
+  <img src={img.src} alt="" />
+  {img.caption && (
+    <p className="rc-evi-caption">{img.caption}</p>
+  )}
+</div>
+```
+
+```css
+.rc-evi-caption {
+  font-family: 'Spectral', serif;
+  font-style: italic;
+  font-size: 0.78rem;
+  color: rgba(201, 150, 26, 0.9);
+  text-align: center;
+  padding: 0.4rem 0.6rem;
+  background: rgba(10, 6, 2, 0.75);
+  margin: 0;
+  line-height: 1.4;
+}
+```
+
+Q3 summon image captions (add `caption` field to each):
+```ts
+// Q3 evidence images with captions:
+[
+  {
+    src: '/images/Summon_toMaraudon2.jpg',
+    caption: 'Summons to Maraudon at the portal purple side.',
+    pos: { /* clock position */ },
+    glow: 'summon',
+  },
+  {
+    src: '/images/Summon_toStormwind.jpg',
+    caption: 'Summons to Stormwind when your hearthstone is set for questing but you need quick access to the Auction House or Bank.',
+    pos: { /* clock position */ },
+    glow: 'summon',
+  },
+  {
+    src: '/images/Summon_toWinterspring.jpg',
+    caption: 'Get to the far north in Kalimdor quickly with summons to Winterspring.',
+    pos: { /* clock position */ },
+    glow: 'summon',
+  },
+  {
+    src: '/images/Summon_toBlastedLands.jpg',
+    caption: 'Summons to the Dark Portal among 16 different locations our Warlock Summoning Army are standing by.',
+    pos: { /* clock position */ },
+    glow: 'summon',
+  },
+]
+```
+
+---
+
+## Fix 5 — Image caption tags for Q4 recruiting images
+
+Q4 recruiting image captions:
+```ts
+[
+  {
+    src: '/images/Recruiting_TophBagsFullofBags.jpg',
+    caption: 'Recruiters Tøph, Ðjenna, Ðeerføx equipped with bags & tabards.',
+    pos: { top: '12%', right: '1%' },
+    glow: 'recruit',
+  },
+  {
+    src: '/images/Recruiting_TophinDarkshire.jpg',
+    caption: 'Recruiters Tøph, Ðjenna, Ðeerføx checking on progressing adventurers in Darkshire, Westfall, Redridge Mountains and Darkshore.',
+    pos: { bottom: '8%', left: '4%' },
+    glow: 'recruit',
+  },
+  {
+    src: '/images/Recruiting_TophInKharanos.jpg',
+    caption: 'Recruiters Tøph, Ðjenna, Ðeerføx traveling starting zones of Kharanos, Elwynn Forest, Teldrassil & Azuremyst Isle.',
+    pos: { top: '12%', left: '1%' },
+    glow: 'recruit',
+  },
+]
+```
+
+---
+
+## Fix 6 — Result body text: hard 3-line break with span blocks
+
+The body text MUST use three explicit span blocks.
+No text-wrap:balance, no max-width tricks — only span blocks work reliably.
+
+```tsx
+// True Blade body:
+<p className="rc-result-body">
+  <span style={{ display: 'block' }}>
+    You're one of us. The oath knows it — fam-
+  </span>
+  <span style={{ display: 'block' }}>
+    friendly, helpful, here for the long haul. Grab
+  </span>
+  <span style={{ display: 'block' }}>
+    your free bags and let's ride to 70 together.
+  </span>
+</p>
+
+// Promising Edge body:
+<p className="rc-result-body">
+  <span style={{ display: 'block' }}>
+    You've got the spark. Sharpen it with the fam —
+  </span>
+  <span style={{ display: 'block' }}>
+    we'll cover the bags, the summons, and the groups.
+  </span>
+  <span style={{ display: 'block' }}>
+    You bring the good vibes.
+  </span>
+</p>
+
+// Wandering Soul body:
+<p className="rc-result-body">
+  <span style={{ display: 'block' }}>
+    Maybe you've wandered Azeroth solo long enough.
+  </span>
+  <span style={{ display: 'block' }}>
+    The hall is warm, the chat is kind, and the door
+  </span>
+  <span style={{ display: 'block' }}>
+    is open whenever you're ready to belong.
+  </span>
+</p>
+```
 
 ```css
 .rc-result-body {
-  max-width: 360px;   /* tighter than current — forces better line breaks */
+  text-align: center;
+  font-family: 'Spectral', serif;
+  font-style: italic;
+  font-size: clamp(0.95rem, 1.6vw, 1.2rem);
+  color: rgba(240, 230, 200, 0.92);
+  line-height: 1.8;
   margin: 0 auto 1.5rem;
-  text-wrap: balance;
-  line-height: 1.75;
 }
 ```
 
-Adjust value between 320px–400px to find the break that gives
-"your free bags and let's ride to 70 together." as the last line.
+---
+
+## Fix 7 — Perk cards: pop-out on hover
+
+```css
+.rc-perk-card {
+  transition: transform 200ms ease, box-shadow 200ms ease,
+              background 200ms ease;
+  cursor: default;
+}
+
+.rc-perk-card:hover {
+  transform: scale(1.08);
+  background: rgba(28, 16, 4, 0.95);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5),
+              0 0 20px rgba(201,150,26,0.15);
+  z-index: 2;
+  position: relative;
+}
+
+.rc-perk-card:hover .rc-perk-title {
+  color: var(--be-gold);
+  font-size: 0.88rem;
+}
+
+.rc-perk-card:hover .rc-perk-body {
+  color: rgba(240, 230, 200, 0.95);
+  font-size: 0.98rem;
+}
+```
+
+---
+
+## Fix 8 — Bottom recruiter text: new wording + bold gold phrase
+
+Find the text:
+"A recruiter will invite you in-game — register now so your spot is ready."
+
+Replace with:
+```tsx
+<p className="rc-recruiter-note">
+  A recruiter will{' '}
+  <strong style={{ color: 'var(--be-gold)', fontWeight: 700 }}>
+    invite you in-game
+  </strong>
+  . But feel free to register now so your spot is ready.
+</p>
+```
+
+---
+
+## Fix 9 — Use guild-crest_Alpha.png, remove red circle, extend sealing
+
+### A — Switch to alpha PNG everywhere on /recruit
+Find every reference to guild-crest.png in the recruit page/component.
+Replace ALL of them with guild-crest_Alpha.png:
+```
+/images/guild-crest.png → /images/guild-crest_Alpha.png
+```
+
+### B — Remove the red/amber circular container
+The circular amber/red container (background: radial-gradient with
+#7a2a0a / #3d1205 colors) was added as a workaround for the black
+square. Now that we have a proper alpha PNG, remove this container.
+
+The crest should render directly on the page background with no
+circular colored container behind it.
+
+Find and remove any element with:
+- background containing #7a2a0a, #3d1205, or similar amber/red radial gradient
+- border-radius: 50% that serves as a crest background container
+- The "rc-seal-circle" or similar class if it has a background applied
+
+### C — Extend "Sealing your oath..." duration
+The sealing phase currently transitions too quickly to results.
+Increase the delay before results reveal from current value to 2800ms:
+
+```ts
+// In the sealing phase timeout:
+const t = setTimeout(() => setPhase('reveal'), 2800);  // was shorter
+```
+
+### D — Remove mix-blend-mode: screen from crest images
+Since the alpha PNG has proper transparency, remove any
+`mixBlendMode: 'screen'` or `mix-blend-mode: screen` from
+the guild crest img elements. It is no longer needed.
 
 ---
 
 ## Verification
 
-1. Q4: Bags image appears top-right (~2 o'clock), Darkshire bottom center
-   (~6 o'clock), Kharanos top-left (~10 o'clock), Shattrath top near noon-left
-2. All Q4 evidence images are noticeably larger (~42vw on desktop)
-3. Q4 question text "biggest perk of a guild?" stays on 2 balanced lines
-4. Guild crest has no visible black or dark square behind it anywhere
-5. Guild crest is 160px in intro, 240px in results
-6. Results background overlay is visibly darker than during quiz questions
-7. Result body text last line reads "your free bags and let's ride to 70 together."
-8. Q3 images also larger with their clock positions maintained
+1. Intro subtitle: exactly 2 clean lines, no orphan words
+2. Q1 question: exactly 2 lines as specified
+3. AvatarOdys speaking images visible bottom-right, rotating every 4s
+4. GM quote text is 2x larger and easily readable
+5. Q3 images each have italic gold caption beneath them
+6. Q4 images each have italic gold caption beneath them
+7. True Blade result body: exactly 3 lines with "fam-" at end of line 1
+8. Perk cards pop out 8% larger on hover with brighter text
+9. "invite you in-game" appears in bold gold
+10. Recruiter note text matches new wording exactly
+11. Guild crest shows with clean alpha — no red circle, no square
+12. Sealing screen stays visible for ~2.8 seconds before results appear
+13. guild-crest_Alpha.png is used everywhere, no mix-blend-mode needed
 
 ## Do not touch
-- Questions, answers, scoring logic
-- BG slide order and Ken Burns
-- Discord URL and AUTH_URL
-- Progress pips behavior
-- animation-fill-mode: both on all animations
+- Scoring logic
+- Background slides and Ken Burns
+- Progress pips
+- Discord/Auth URLs
+- animation-fill-mode: both on ALL animations — never 'forwards'

@@ -21,24 +21,59 @@ const CYCLING_IMAGES = [
   '/images/Recruiting_TophInKharanos.jpg',
 ]
 
-const Q3_EVIDENCE = [
-  '/images/Summon_toMaraudon2.jpg',
-  '/images/Summon_toStormwind.jpg',
-  '/images/Summon_toBlastedLands.jpg',
-  '/images/Summon_toWinterspring.jpg',
+interface EvidenceImg {
+  src: string
+  caption: string
+  pos: React.CSSProperties
+  glow: 'summon' | 'recruit'
+}
+
+const Q3_EVIDENCE: EvidenceImg[] = [
+  {
+    src: '/images/Summon_toMaraudon2.jpg',
+    caption: 'Summons to Maraudon at the portal purple side.',
+    pos: { top: '7%', left: '2%' },
+    glow: 'summon',
+  },
+  {
+    src: '/images/Summon_toStormwind.jpg',
+    caption: 'Summons to Stormwind when your hearthstone is set for questing but you need quick access to the Auction House or Bank.',
+    pos: { top: '7%', right: '2%' },
+    glow: 'summon',
+  },
+  {
+    src: '/images/Summon_toWinterspring.jpg',
+    caption: 'Get to the far north in Kalimdor quickly with summons to Winterspring.',
+    pos: { bottom: '9%', right: '2%' },
+    glow: 'summon',
+  },
+  {
+    src: '/images/Summon_toBlastedLands.jpg',
+    caption: 'Summons to the Dark Portal among 16 different locations our Warlock Summoning Army are standing by.',
+    pos: { bottom: '9%', left: '2%' },
+    glow: 'summon',
+  },
 ]
 
-const Q4_EVIDENCE = [
-  '/images/Recruiting_TophBagsFullofBags.jpg',
-  '/images/Recruiting_TophinDarkshire.jpg',
-  '/images/Recruiting_TophInKharanos.jpg',
-]
-
-// Clock positions for Q4 evidence images (viewport-relative, applied inline)
-const Q4_POSITIONS: React.CSSProperties[] = [
-  { top: '12%', right: '1%' },
-  { bottom: '8%', left: '4%' },
-  { top: '12%', left: '1%' },
+const Q4_EVIDENCE: EvidenceImg[] = [
+  {
+    src: '/images/Recruiting_TophBagsFullofBags.jpg',
+    caption: 'Recruiters Tøph, Ðjenna, Ðeerføx equipped with bags & tabards.',
+    pos: { top: '12%', right: '1%' },
+    glow: 'recruit',
+  },
+  {
+    src: '/images/Recruiting_TophinDarkshire.jpg',
+    caption: 'Recruiters Tøph, Ðjenna, Ðeerføx checking on progressing adventurers in Darkshire, Westfall, Redridge Mountains and Darkshore.',
+    pos: { bottom: '8%', left: '4%' },
+    glow: 'recruit',
+  },
+  {
+    src: '/images/Recruiting_TophInKharanos.jpg',
+    caption: 'Recruiters Tøph, Ðjenna, Ðeerføx traveling starting zones of Kharanos, Elwynn Forest, Teldrassil & Azuremyst Isle.',
+    pos: { top: '12%', left: '1%' },
+    glow: 'recruit',
+  },
 ]
 
 const GM_QUOTES = [
@@ -48,14 +83,6 @@ const GM_QUOTES = [
   "Our recruiters making the Call to Arms in the starting zones have bags full of...well...more bags!",
   "Haha you & I can be friends if you recognized that Southpark quote. XD",
   "Blådes Edge was my first ever guild in Vanilla WoW. I'm enjoying the homage & representing the name here again!",
-]
-
-const AVATAR_IMAGES = [
-  '/images/AvatarOdys_speaking1.jpg',
-  '/images/AvatarOdys_speaking2.jpg',
-  '/images/AvatarOdys_speaking3.jpg',
-  '/images/AvatarOdys_speaking4.jpg',
-  '/images/AvatarOdys_speaking5.jpg',
 ]
 
 const PERKS = [
@@ -152,7 +179,8 @@ function getResult(score: number) {
     tier: 'True Blade',
     name: 'Welcome Home.',
     body: [
-      "You're one of us. The oath knows it — fam-friendly, helpful, here for the long haul. Grab",
+      "You're one of us. The oath knows it — fam-",
+      "friendly, helpful, here for the long haul. Grab",
       "your free bags and let's ride to 70 together.",
     ],
   }
@@ -160,7 +188,8 @@ function getResult(score: number) {
     tier: 'Promising Edge',
     name: 'The Edge Is Calling.',
     body: [
-      "You've got the spark. Sharpen it with the fam — we'll cover the bags, the summons, and the groups.",
+      "You've got the spark. Sharpen it with the fam —",
+      "we'll cover the bags, the summons, and the groups.",
       "You bring the good vibes.",
     ],
   }
@@ -168,8 +197,9 @@ function getResult(score: number) {
     tier: 'Wandering Soul',
     name: 'Every Blade Was Once Unforged.',
     body: [
-      "Maybe you've wandered Azeroth solo long enough. The hall is warm, the chat is kind,",
-      "and the door is open whenever you're ready to belong.",
+      "Maybe you've wandered Azeroth solo long enough.",
+      "The hall is warm, the chat is kind, and the door",
+      "is open whenever you're ready to belong.",
     ],
   }
 }
@@ -254,7 +284,7 @@ export function RecruitPage() {
   // Phase timer — sealing → reveal after 1500ms
   useEffect(() => {
     if (screen !== 'result') { setPhase('sealing'); return }
-    const id = setTimeout(() => setPhase('reveal'), 1500)
+    const id = setTimeout(() => setPhase('reveal'), 2800)
     return () => clearTimeout(id)
   }, [screen])
 
@@ -262,7 +292,7 @@ export function RecruitPage() {
   useEffect(() => {
     if (screen !== 'quiz') return
     setAvatarIdx(0)
-    const t = setInterval(() => setAvatarIdx(i => (i + 1) % AVATAR_IMAGES.length), 4000)
+    const t = setInterval(() => setAvatarIdx(i => (i + 1) % 5), 4000)
     return () => clearInterval(t)
   }, [qIdx, screen])
 
@@ -377,10 +407,11 @@ export function RecruitPage() {
       {/* ── Evidence: Q3 summon ── */}
       {bgMode === 'summon' && (
         <div className="rc-evidence-wrap">
-          {Q3_EVIDENCE.map((src, i) => (
-            <div key={i} className={`rc-evi rc-evi-summon rc-ev-pos-${i}${i < evidenceCount ? ' is-on' : ''}`}>
+          {Q3_EVIDENCE.map((img, i) => (
+            <div key={i} className={`rc-evi rc-evi-summon${i < evidenceCount ? ' is-on' : ''}`} style={img.pos}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={src} alt="" />
+              <img src={img.src} alt="" />
+              {img.caption && <p className="rc-evi-caption">{img.caption}</p>}
             </div>
           ))}
         </div>
@@ -389,11 +420,11 @@ export function RecruitPage() {
       {/* ── Evidence: Q4 perks ── */}
       {bgMode === 'perks' && (
         <div className="rc-evidence-wrap">
-          {Q4_EVIDENCE.map((src, i) => (
-            <div key={i} className={`rc-evi rc-evi-recruit${i < evidenceCount ? ' is-on' : ''}`}
-              style={Q4_POSITIONS[i]}>
+          {Q4_EVIDENCE.map((img, i) => (
+            <div key={i} className={`rc-evi rc-evi-recruit${i < evidenceCount ? ' is-on' : ''}`} style={img.pos}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={src} alt="" />
+              <img src={img.src} alt="" />
+              {img.caption && <p className="rc-evi-caption">{img.caption}</p>}
             </div>
           ))}
         </div>
@@ -414,9 +445,8 @@ export function RecruitPage() {
           textAlign: 'center',
           overflowY: 'auto',
         }}>
-          {/* Fix 1: Crest on transparent bg */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/images/guild-crest.png" alt="Blådes Edge" style={{ width: 96, height: 96, marginBottom: 20, objectFit: 'cover', borderRadius: '50%' }} />
+          <img src="/images/guild-crest_Alpha.png" alt="Blådes Edge" style={{ width: 96, height: 96, marginBottom: 20, objectFit: 'contain' }} />
 
           <span style={{ fontFamily: "'Cinzel', serif", fontSize: '0.75rem', letterSpacing: '0.25em', color: 'var(--be-gold)', marginBottom: 16, display: 'block' }}>
             — BLÅDES EDGE · TBC CLASSIC —
@@ -428,9 +458,10 @@ export function RecruitPage() {
             Call
           </h1>
 
-          {/* Fix 3: No em dash, .rc-sub class for larger font */}
+          {/* Fix 1: forced 2-line break */}
           <p className="rc-sub">
-            Take the Oath. Six questions, sixty seconds. Find out if your blade belongs with ours.
+            <span style={{ display: 'block' }}>Take the Oath. Six questions, sixty seconds.</span>
+            <span style={{ display: 'block' }}>Find out if your blade belongs with ours.</span>
           </p>
 
           {/* Fix 12: 200px seal, dark red gradient, double pulse ring */}
@@ -438,7 +469,7 @@ export function RecruitPage() {
             <div className="rc-seal-wrap">
               <div className="rc-seal-circle">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/images/guild-crest.png" alt="" className="rc-crest-img rc-intro-crest" />
+                <img src="/images/guild-crest_Alpha.png" alt="" className="rc-crest-img rc-intro-crest" />
                 <div className="rc-seal-pulse" />
                 <div className="rc-seal-pulse rc-seal-pulse-2" />
               </div>
@@ -469,7 +500,14 @@ export function RecruitPage() {
               </div>
 
               <span className="rc-q-eyebrow">{currentQ.eyebrow}</span>
-              <h2 className="rc-question">{currentQ.q}</h2>
+              {qIdx === 0 ? (
+                <h2 className="rc-question">
+                  <span style={{ display: 'block' }}>What kind of leveling experience</span>
+                  <span style={{ display: 'block' }}>are you after in TBC?</span>
+                </h2>
+              ) : (
+                <h2 className="rc-question">{currentQ.q}</h2>
+              )}
 
               <div className="rc-answers">
                 {currentQ.a.map((ans, i) => (
@@ -494,16 +532,13 @@ export function RecruitPage() {
           {/* Fix 4: GM quote + speaking image — bottom-right corner */}
           <div className="rc-gm-corner">
             <div className="rc-gm-images">
-              {AVATAR_IMAGES.map((src, i) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={src}
-                  src={src}
-                  className={`rc-gm-img${i === avatarIdx ? ' is-active' : ''}`}
-                  style={{ mixBlendMode: 'screen' }}
-                  alt=""
-                />
-              ))}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                key={avatarIdx}
+                src={`/images/AvatarOdys_speaking${(avatarIdx % 5) + 1}.jpg`}
+                className="rc-gm-img"
+                alt=""
+              />
             </div>
             <div className="rc-gm-quote-wrap">
               <blockquote className="rc-gm-quote">
@@ -526,7 +561,8 @@ export function RecruitPage() {
             <div className="rc-sealing-wrap">
               <div className="rc-sealing-crest">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/images/guild-crest.png" alt="" style={{ mixBlendMode: 'screen' }} />
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src="/images/guild-crest_Alpha.png" alt="" />
               </div>
               <p className="rc-sealing-text">Sealing your oath...</p>
             </div>
@@ -537,7 +573,7 @@ export function RecruitPage() {
             <div className="rc-result-seal-wrap reveal">
               <div className="rc-result-seal-circle">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/images/guild-crest.png" alt="Blådes Edge" className="rc-crest-img rc-result-seal-img is-settled" />
+                <img src="/images/guild-crest_Alpha.png" alt="Blådes Edge" className="rc-crest-img rc-result-seal-img is-settled" />
               </div>
             </div>
           )}
@@ -589,8 +625,12 @@ export function RecruitPage() {
                 </Link>
               </div>
 
-              <p className="rc-cta-note">
-                A recruiter will invite you in-game — register now so your spot is ready.
+              <p className="rc-recruiter-note">
+                A recruiter will{' '}
+                <strong style={{ color: 'var(--be-gold)', fontWeight: 700 }}>
+                  invite you in-game
+                </strong>
+                . But feel free to register now so your spot is ready.
               </p>
 
               <div className="rc-tools-row">

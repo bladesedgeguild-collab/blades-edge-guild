@@ -75,7 +75,6 @@
   width: 220px;
   height: 220px;
   border-radius: 50%;
-  background: radial-gradient(circle, #7a2a0a 0%, #3d1205 60%, #1a0800 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -96,15 +95,13 @@
 }
 
 .rc-seal-circle img {
-  object-fit: cover;
-  border-radius: 50%;
+  object-fit: contain;
   position: relative;
   z-index: 1;
 }
 
 .rc-crest-img {
-  border-radius: 50%;
-  object-fit: cover;
+  object-fit: contain;
 }
 
 .rc-intro-crest {
@@ -184,10 +181,9 @@
   overflow-y: auto;
 }
 
-/* Fix 5: Card text centered */
 .rc-card {
   width: 100%;
-  max-width: 560px;
+  max-width: 640px;
   background: rgba(10, 6, 2, 0.88);
   border: 1px solid rgba(201, 150, 26, 0.35);
   border-radius: 12px;
@@ -362,6 +358,18 @@
   display: block;
 }
 
+.rc-evi-caption {
+  font-family: 'Spectral', serif;
+  font-style: italic;
+  font-size: 0.78rem;
+  color: rgba(201, 150, 26, 0.9);
+  text-align: center;
+  padding: 0.4rem 0.6rem;
+  background: rgba(10, 6, 2, 0.75);
+  margin: 0;
+  line-height: 1.4;
+}
+
 .rc-evi-summon { box-shadow: 0 0 0 3px #1aff6e, 0 0 28px rgba(26, 255, 110, 0.45); }
 .rc-evi-recruit { box-shadow: 0 0 0 3px #c9961a, 0 0 28px rgba(201, 150, 26, 0.5); }
 
@@ -393,9 +401,9 @@
 .rc-sealing-crest img {
   width: 280px;
   height: 280px;
+  object-fit: contain;
   animation: be-stamp 0.7s cubic-bezier(.17,.67,.35,1.3) both;
   animation-fill-mode: both;
-  mix-blend-mode: screen;
 }
 
 .rc-sealing-text {
@@ -429,8 +437,8 @@
 
 .rc-gm-images {
   position: relative;
-  width: 220px;
-  height: 320px;
+  width: 280px;
+  height: 400px;
   flex-shrink: 0;
 }
 
@@ -441,13 +449,11 @@
   width: 100%;
   height: auto;
   object-fit: contain;
-  opacity: 0;
-  transition: opacity 1.5s ease;
   mix-blend-mode: screen;
   filter: brightness(1.05);
+  animation: rc-fade-in 0.8s ease both;
+  animation-fill-mode: both;
 }
-
-.rc-gm-img.is-active { opacity: 1; }
 
 .rc-gm-quote-wrap {
   padding-bottom: 2rem;
@@ -457,12 +463,12 @@
 .rc-gm-quote {
   font-family: 'Spectral', serif;
   font-style: italic;
-  font-size: clamp(0.75rem, 1.2vw, 0.9rem);
+  font-size: clamp(0.9rem, 1.5vw, 1.15rem);
   color: rgba(240, 230, 200, 0.85);
-  line-height: 1.55;
+  line-height: 1.6;
   margin: 0 0 0.5rem;
   border-left: 2px solid rgba(201, 150, 26, 0.4);
-  padding-left: 0.75rem;
+  padding-left: 1rem;
 }
 
 .rc-gm-byline {
@@ -474,14 +480,14 @@
 
 .rc-gm-name {
   font-family: 'Cinzel', serif;
-  font-size: 0.75rem;
+  font-size: 1rem;
   color: var(--be-gold, #c9961a);
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
 }
 
 .rc-gm-title {
   font-family: 'Cinzel', serif;
-  font-size: 0.62rem;
+  font-size: 0.82rem;
   color: #8a7a5a;
   letter-spacing: 0.06em;
 }
@@ -509,7 +515,6 @@
   width: 300px;
   height: 300px;
   border-radius: 50%;
-  background: radial-gradient(circle, #7a2a0a 0%, #3d1205 60%, #1a0800 100%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -520,8 +525,7 @@
 }
 
 .rc-result-seal-circle img {
-  object-fit: cover;
-  border-radius: 50%;
+  object-fit: contain;
 }
 
 /* Fix 6: Seal size states */
@@ -634,6 +638,27 @@
   border-radius: 8px;
   padding: 0.75rem;
   text-align: left;
+  transition: transform 200ms ease, box-shadow 200ms ease, background 200ms ease;
+  cursor: default;
+}
+
+.rc-perk-card:hover {
+  transform: scale(1.08);
+  background: rgba(28, 16, 4, 0.95);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5),
+              0 0 20px rgba(201, 150, 26, 0.15);
+  z-index: 2;
+  position: relative;
+}
+
+.rc-perk-card:hover .rc-perk-name {
+  color: var(--be-gold);
+  font-size: 0.88rem;
+}
+
+.rc-perk-card:hover .rc-perk-body {
+  color: rgba(240, 230, 200, 0.95);
+  font-size: 0.98rem;
 }
 
 .rc-perk-name {
