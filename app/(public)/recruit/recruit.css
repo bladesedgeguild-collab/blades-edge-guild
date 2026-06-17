@@ -17,23 +17,32 @@
   background: #0a0602;
 }
 
-/* Fix 2: Ken Burns 14s, scale 1.1 */
-.rc-bg-cur {
+/* ── Hero slides: continuous Ken Burns + opacity crossfade ── */
+.rc-hero-slide {
   position: absolute;
   inset: 0;
-  background-size: cover;
-  background-position: center;
-  animation: rc-ken-burns 14s ease-in-out both;
+  opacity: 0;
+  transition: opacity 3s ease-in-out;
 }
 
-/* Fix 2: Crossfade 3s */
-.rc-bg-prev {
-  position: absolute;
-  inset: 0;
-  background-size: cover;
-  background-position: center;
-  animation: rc-fadeout 3s ease both;
+.rc-hero-slide.is-active {
+  opacity: 1;
 }
+
+.rc-hero-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: rc-kenburns-inf 20s ease-in-out infinite alternate both;
+}
+
+.rc-hero-slide:nth-child(1) img { animation-delay: 0s; }
+.rc-hero-slide:nth-child(2) img { animation-delay: -5s; }
+.rc-hero-slide:nth-child(3) img { animation-delay: -10s; }
+.rc-hero-slide:nth-child(4) img { animation-delay: -3s; }
+.rc-hero-slide:nth-child(5) img { animation-delay: -8s; }
+.rc-hero-slide:nth-child(6) img { animation-delay: -13s; }
+.rc-hero-slide:nth-child(7) img { animation-delay: -2s; }
 
 .rc-bg-pinned {
   position: absolute;
@@ -114,13 +123,19 @@
   height: 240px;
 }
 
-/* Fix 12: Expanding pulse rings */
+/* Tight wrapper so pulse rings are sized relative to crest image */
+.rc-crest-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+/* Expanding pulse rings — hugs crest image edge */
 .rc-seal-pulse {
   position: absolute;
-  inset: -10px;
+  inset: -8px;
   border-radius: 50%;
-  border: 2px solid rgba(201, 150, 26, 0.5);
-  animation: rc-pulse 2.2s ease-out infinite both;
+  border: 1.5px solid rgba(201, 150, 26, 0.6);
+  animation: rc-pulse 2.4s ease-out infinite both;
 }
 
 .rc-seal-pulse-2 {
@@ -157,14 +172,14 @@
   padding: 0.45rem 1.1rem;
 }
 
-/* Fix 3: Subtitle — no em dash, larger font */
 .rc-sub {
   font-family: 'Spectral', serif;
   font-style: italic;
-  font-size: clamp(1.1rem, 2.2vw, 1.4rem);
+  font-size: clamp(0.85rem, 1.8vw, 1.2rem);
   color: rgba(240, 230, 200, 0.85);
-  max-width: 360px;
-  line-height: 1.7;
+  max-width: 500px;
+  text-align: center;
+  line-height: 1.8;
   margin-bottom: 0;
 }
 
@@ -182,8 +197,8 @@
 }
 
 .rc-card {
-  width: 100%;
-  max-width: 640px;
+  width: min(680px, 92vw);
+  max-width: 680px;
   background: rgba(10, 6, 2, 0.88);
   border: 1px solid rgba(201, 150, 26, 0.35);
   border-radius: 12px;
@@ -251,10 +266,9 @@
   opacity: 0.85;
 }
 
-/* Fix 5: Question text centered, larger */
 .rc-question {
   font-family: 'Cinzel', serif;
-  font-size: clamp(1.3rem, 2.8vw, 1.8rem);
+  font-size: clamp(1.1rem, 2.2vw, 1.6rem);
   color: #f0e6c8;
   line-height: 1.35;
   text-align: center;
@@ -450,7 +464,7 @@
   height: auto;
   object-fit: contain;
   mix-blend-mode: screen;
-  filter: brightness(1.05);
+  filter: brightness(1.15) contrast(1.05);
   animation: rc-fade-in 0.8s ease both;
   animation-fill-mode: both;
 }
@@ -763,22 +777,15 @@
 
 /* ── Keyframes ── */
 
-/* Fix 2: Scale to 1.1 */
-@keyframes rc-ken-burns {
-  from { transform: scale(1.0); }
-  to   { transform: scale(1.1); }
+@keyframes rc-kenburns-inf {
+  0%   { transform: scale(1.0) translate(0%, 0%); }
+  50%  { transform: scale(1.06) translate(-1%, 0.5%); }
+  100% { transform: scale(1.1) translate(0.5%, -1%); }
 }
 
-/* Fix 2: 3s crossfade */
-@keyframes rc-fadeout {
-  0%   { opacity: 1; }
-  100% { opacity: 0; }
-}
-
-/* Fix 12: Expanding pulse (replaces oscillating ring) */
 @keyframes rc-pulse {
-  0%   { transform: scale(1);    opacity: 0.6; }
-  100% { transform: scale(1.35); opacity: 0; }
+  0%   { transform: scale(1);    opacity: 0.7; }
+  100% { transform: scale(1.25); opacity: 0; }
 }
 
 /* Fix 10: Result seal animations */

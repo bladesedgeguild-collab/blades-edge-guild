@@ -21,6 +21,22 @@ const CYCLING_IMAGES = [
   '/images/Recruiting_TophInKharanos.jpg',
 ]
 
+const AVATAR_PER_Q = [
+  '/images/AvatarOdys_speaking1.jpg',
+  '/images/AvatarOdys_speaking4.jpg',
+  '/images/AvatarOdys_speaking2.jpg',
+  '/images/AvatarOdys_speaking5.jpg',
+  '/images/AvatarOdys_speaking3.jpg',
+  '/images/AvatarOdys_speaking4.jpg',
+]
+
+const PERK_IMAGES: Record<string, string> = {
+  bags:    '/images/Recruiting_TophBagsFullofBags.jpg',
+  summons: '/images/Summon_toMaraudon2.jpg',
+  fam:     '/images/GuildiesInShattrath.jpg',
+  guild:   '/images/hero-portal.png',
+}
+
 interface EvidenceImg {
   src: string
   caption: string
@@ -58,19 +74,19 @@ const Q3_EVIDENCE: EvidenceImg[] = [
 const Q4_EVIDENCE: EvidenceImg[] = [
   {
     src: '/images/Recruiting_TophBagsFullofBags.jpg',
-    caption: 'Recruiters Tøph, Ðjenna, Ðeerføx equipped with bags & tabards.',
+    caption: 'Recruiters Tøph, Ðjenna & Ðeerføx are equipped with bags & tabards.',
     pos: { top: '12%', right: '1%' },
     glow: 'recruit',
   },
   {
     src: '/images/Recruiting_TophinDarkshire.jpg',
-    caption: 'Recruiters Tøph, Ðjenna, Ðeerføx checking on progressing adventurers in Darkshire, Westfall, Redridge Mountains and Darkshore.',
+    caption: 'Recruiter Ðjenna checking on advancing tier adventurers in Darkshire, Westfall, Redridge Mountains & Darkshore.',
     pos: { bottom: '8%', left: '4%' },
     glow: 'recruit',
   },
   {
     src: '/images/Recruiting_TophInKharanos.jpg',
-    caption: 'Recruiters Tøph, Ðjenna, Ðeerføx traveling starting zones of Kharanos, Elwynn Forest, Teldrassil & Azuremyst Isle.',
+    caption: 'Recruiter Ðeerføx traveling starting zones like Kharanos, Elwynn Forest, Teldrassil & Azuremyst Isle.',
     pos: { top: '12%', left: '1%' },
     glow: 'recruit',
   },
@@ -86,10 +102,10 @@ const GM_QUOTES = [
 ]
 
 const PERKS = [
-  { title: 'Free Bags', desc: 'Four 10-slot bags, on the house, the moment you join.' },
-  { title: 'Lock Summons', desc: 'Never run to a flight path again. Our locks have you.' },
-  { title: 'GRATS Fam', desc: 'Helpful chat, real friends, zero toxicity.' },
-  { title: 'Active Guild', desc: "Someone's always online for dungeons & groups." },
+  { title: 'Free Bags',    desc: 'Four 10-slot bags, on the house, the moment you join.', key: 'bags' },
+  { title: 'Lock Summons', desc: 'Never run to a flight path again. Our locks have you.', key: 'summons' },
+  { title: 'GRATS Fam',    desc: 'Helpful chat, real friends, zero toxicity.',             key: 'fam' },
+  { title: 'Active Guild', desc: "Someone's always online for dungeons & groups.",         key: 'guild' },
 ]
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -156,7 +172,7 @@ const QUESTIONS: Question[] = [
     q: 'Real life comes first?',
     a: [
       { t: 'Yes — casual is perfect. Real Life > WoW time.', s: 2 },
-      { t: 'No — No life outside of WoW. "How do you kill, that which has no life?"', s: 1 },
+      { t: 'No. There is no life outside of WoW. "How do you kill, that which has no life?"', s: 1 },
     ],
     background: 'cycling',
   },
@@ -231,7 +247,6 @@ export function RecruitPage() {
 
   // Background cycling
   const [bgStep, setBgStep] = useState(0)
-  const [showPrev, setShowPrev] = useState(false)
 
   // Evidence images (JS-driven, not CSS animations)
   const [evidenceCount, setEvidenceCount] = useState(0)
@@ -239,7 +254,10 @@ export function RecruitPage() {
   // Two-phase result reveal
   const [phase, setPhase] = useState<'sealing' | 'reveal'>('sealing')
   const [barPct, setBarPct] = useState(0)
-  const [avatarIdx, setAvatarIdx] = useState(0)
+
+  // Perk card hover image
+  const [hoveredPerk, setHoveredPerk] = useState<string | null>(null)
+  const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 })
 
   const embers = useMemo(() => makeEmbers(26), [])
 
@@ -258,14 +276,6 @@ export function RecruitPage() {
     const id = setInterval(() => setBgStep(s => s + 1), 14000)
     return () => clearInterval(id)
   }, [isPinned])
-
-  // Fix 2: Crossfade showPrev 3500ms
-  useEffect(() => {
-    if (bgStep === 0) return
-    setShowPrev(true)
-    const id = setTimeout(() => setShowPrev(false), 3500)
-    return () => clearTimeout(id)
-  }, [bgStep])
 
   // Evidence stagger: one image fades in at a time via is-on class
   useEffect(() => {
@@ -287,14 +297,6 @@ export function RecruitPage() {
     const id = setTimeout(() => setPhase('reveal'), 2800)
     return () => clearTimeout(id)
   }, [screen])
-
-  // Avatar cycling during quiz — reset on question change
-  useEffect(() => {
-    if (screen !== 'quiz') return
-    setAvatarIdx(0)
-    const t = setInterval(() => setAvatarIdx(i => (i + 1) % 5), 4000)
-    return () => clearInterval(t)
-  }, [qIdx, screen])
 
   // Match bar fills after reveal
   useEffect(() => {
@@ -336,6 +338,12 @@ export function RecruitPage() {
     setScreen('intro')
   }
 
+  function handlePerkEnter(e: React.MouseEvent, key: string) {
+    const rect = e.currentTarget.getBoundingClientRect()
+    setHoverPos({ x: rect.left + rect.width / 2, y: rect.top })
+    setHoveredPerk(key)
+  }
+
   async function handleShare() {
     const total = scores.reduce((s, v) => s + v, 0)
     const pct = Math.round((total / MAX_SCORE) * 100)
@@ -350,7 +358,6 @@ export function RecruitPage() {
   }
 
   const curCycleIdx = bgStep % CYCLING_IMAGES.length
-  const prevCycleIdx = (bgStep - 1 + CYCLING_IMAGES.length) % CYCLING_IMAGES.length
   const totalScore = scores.reduce((s, v) => s + v, 0)
   const result = getResult(totalScore)
 
@@ -359,16 +366,12 @@ export function RecruitPage() {
 
       {/* ── Background ── */}
       <div className="rc-bg-layer">
-        {bgMode === 'cycling' && (
-          <>
-            {showPrev && bgStep > 0 && (
-              <div key={`prev-${bgStep}`} className="rc-bg-prev"
-                style={{ backgroundImage: `url(${CYCLING_IMAGES[prevCycleIdx]})` }} />
-            )}
-            <div key={`cur-${bgStep}`} className="rc-bg-cur"
-              style={{ backgroundImage: `url(${CYCLING_IMAGES[curCycleIdx]})` }} />
-          </>
-        )}
+        {bgMode === 'cycling' && CYCLING_IMAGES.map((src, i) => (
+          <div key={src} className={`rc-hero-slide${i === curCycleIdx ? ' is-active' : ''}`}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={src} alt="" />
+          </div>
+        ))}
         {bgMode === 'summon' && (
           <div className="rc-bg-pinned" style={{ backgroundImage: 'url(/images/Summon_toBlastedLands.jpg)' }} />
         )}
@@ -464,14 +467,15 @@ export function RecruitPage() {
             <span style={{ display: 'block' }}>Find out if your blade belongs with ours.</span>
           </p>
 
-          {/* Fix 12: 200px seal, dark red gradient, double pulse ring */}
           <button onClick={startQuiz} style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginTop: 40 }}>
             <div className="rc-seal-wrap">
               <div className="rc-seal-circle">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/images/guild-crest_Alpha.png" alt="" className="rc-crest-img rc-intro-crest" />
-                <div className="rc-seal-pulse" />
-                <div className="rc-seal-pulse rc-seal-pulse-2" />
+                <div className="rc-crest-wrap">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/images/guild-crest_Alpha.png" alt="" className="rc-crest-img rc-intro-crest" />
+                  <div className="rc-seal-pulse" />
+                  <div className="rc-seal-pulse rc-seal-pulse-2" />
+                </div>
               </div>
               {/* Fix 4: White bold labels */}
               <div className="rc-seal-label">BEGIN THE OATH</div>
@@ -529,13 +533,13 @@ export function RecruitPage() {
             </div>
           </div>
 
-          {/* Fix 4: GM quote + speaking image — bottom-right corner */}
+          {/* GM quote + speaking image — bottom-right corner */}
           <div className="rc-gm-corner">
             <div className="rc-gm-images">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                key={avatarIdx}
-                src={`/images/AvatarOdys_speaking${(avatarIdx % 5) + 1}.jpg`}
+                key={qIdx}
+                src={AVATAR_PER_Q[qIdx]}
                 className="rc-gm-img"
                 alt=""
               />
@@ -572,8 +576,10 @@ export function RecruitPage() {
           {phase === 'reveal' && (
             <div className="rc-result-seal-wrap reveal">
               <div className="rc-result-seal-circle">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/images/guild-crest_Alpha.png" alt="Blådes Edge" className="rc-crest-img rc-result-seal-img is-settled" />
+                <div className="rc-crest-wrap">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src="/images/guild-crest_Alpha.png" alt="Blådes Edge" className="rc-crest-img rc-result-seal-img is-settled" />
+                </div>
               </div>
             </div>
           )}
@@ -605,7 +611,12 @@ export function RecruitPage() {
               {/* Perks 2×2 */}
               <div className="rc-result-perks" style={{ maxWidth: 480, width: '100%' }}>
                 {PERKS.map((p, i) => (
-                  <div key={i} className="rc-perk-card">
+                  <div
+                    key={i}
+                    className="rc-perk-card"
+                    onMouseEnter={(e) => handlePerkEnter(e, p.key)}
+                    onMouseLeave={() => setHoveredPerk(null)}
+                  >
                     <span className="rc-perk-name">{p.title}</span>
                     <span className="rc-perk-body">{p.desc}</span>
                   </div>
@@ -640,6 +651,34 @@ export function RecruitPage() {
             </div>
           )}
         </>
+      )}
+
+      {/* Perk hover preview image */}
+      {hoveredPerk && (
+        <div
+          style={{
+            position: 'fixed',
+            left: hoverPos.x,
+            top: hoverPos.y - 16,
+            transform: 'translate(-50%, -100%)',
+            zIndex: 9999,
+            pointerEvents: 'none',
+            width: 'clamp(320px, 42vw, 600px)',
+            borderRadius: 10,
+            overflow: 'hidden',
+            boxShadow: '0 16px 48px rgba(0,0,0,0.7)',
+            border: '1px solid rgba(201,150,26,0.4)',
+            animation: 'rc-fade-in 0.2s ease both',
+            animationFillMode: 'both',
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={PERK_IMAGES[hoveredPerk]}
+            style={{ width: '100%', height: 'auto', display: 'block' }}
+            alt=""
+          />
+        </div>
       )}
 
     </div>

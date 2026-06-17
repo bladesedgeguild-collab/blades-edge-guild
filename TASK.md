@@ -1,11 +1,11 @@
-# TASK: /recruit — 9 final polish fixes
+# TASK: /recruit — Ken Burns fix, text wrapping, AvatarOdys, glow ring, perk hover images
 
 ---
 
-## Fix 1 — Intro subtitle: forced 2-line break
+## Fix 1 — Intro subtitle: 2 clean lines, narrower font on mobile
 
-Find the subtitle text on the intro/landing screen.
-Replace with two explicit line blocks:
+The subtitle wraps badly on narrow screens. Use span blocks AND
+reduce font size to ensure 2 clean lines at any width:
 
 ```tsx
 <p className="rc-sub">
@@ -18,335 +18,302 @@ Replace with two explicit line blocks:
 </p>
 ```
 
----
-
-## Fix 2 — Q1 question: wider card + forced 2-line break
-
-Increase the quiz card max-width from current value to 640px:
 ```css
-.rc-quiz-card {
-  max-width: 640px;
+.rc-sub {
+  font-size: clamp(0.85rem, 1.8vw, 1.2rem);  /* smaller so lines fit */
+  max-width: 500px;
+  text-align: center;
+  line-height: 1.8;
 }
 ```
 
-Also wrap Q1 question text in explicit line blocks:
-```tsx
-// In QUESTIONS array for Q1, change q to a JSX element or use a separate render:
-// When rendering the question text for Q1 (idx === 0):
-<h2 className="rc-q-text">
-  <span style={{ display: 'block' }}>What kind of leveling experience</span>
-  <span style={{ display: 'block' }}>are you after in TBC?</span>
-</h2>
-
-// For all other questions, render normally (no forced breaks needed)
-```
-
 ---
 
-## Fix 3 — AvatarOdys speaking images: fix path + double font size
+## Fix 2 — Ken Burns snap-back: rewrite the slideshow animation
 
-### Step A — Ensure images are in place
-```bash
-ls public/images/AvatarOdys_speaking*.jpg
-```
-If any are missing, copy from /mnt/user-data/uploads/:
-```bash
-cp /mnt/user-data/uploads/AvatarOdys_speaking*.jpg public/images/
-```
+The current implementation snaps the image back to its original scale
+just before transitioning. This happens because the Ken Burns animation
+resets when the is-active class is removed.
 
-### Step B — Fix image path and ensure component renders
-In the GM corner component, verify the img src uses the correct path:
-```tsx
-src={`/images/AvatarOdys_speaking${(avatarIdx % 5) + 1}.jpg`}
-```
+### Root cause
+When a slide loses `is-active`, its animation stops and transform
+resets to scale(1) briefly before opacity reaches 0.
 
-The image must be rendered. Add a console.log to confirm avatarIdx
-is cycling. If the component is returning null or display:none,
-fix the condition that hides it.
+### Fix: keep Ken Burns running continuously using a different approach
 
-### Step C — Double all font sizes in the GM corner
+Instead of restarting the animation per slide, pre-apply the zoom
+to a continuous transform that never resets:
 
 ```css
-.rc-gm-quote {
-  font-size: clamp(0.9rem, 1.5vw, 1.15rem);   /* doubled from 0.75/0.9 */
-  line-height: 1.6;
-  padding-left: 1rem;
+/* Each slide image gets an infinite slow zoom — never stops or resets */
+.rc-hero-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: rc-kenburns-inf 20s ease-in-out infinite alternate;
+  animation-fill-mode: both;
+  /* Offset each slide so they're at different points in zoom */
 }
 
-.rc-gm-name {
-  font-size: 1rem;          /* doubled from 0.75rem */
-  letter-spacing: 0.1em;
+/* Stagger starting points per slide index via nth-child */
+.rc-hero-slide:nth-child(1) img { animation-delay: 0s; }
+.rc-hero-slide:nth-child(2) img { animation-delay: -5s; }
+.rc-hero-slide:nth-child(3) img { animation-delay: -10s; }
+.rc-hero-slide:nth-child(4) img { animation-delay: -3s; }
+.rc-hero-slide:nth-child(5) img { animation-delay: -8s; }
+.rc-hero-slide:nth-child(6) img { animation-delay: -13s; }
+.rc-hero-slide:nth-child(7) img { animation-delay: -2s; }
+
+@keyframes rc-kenburns-inf {
+  0%   { transform: scale(1.0) translate(0%, 0%); }
+  50%  { transform: scale(1.06) translate(-1%, 0.5%); }
+  100% { transform: scale(1.1) translate(0.5%, -1%); }
 }
 
-.rc-gm-title {
-  font-size: 0.82rem;       /* doubled from 0.62rem */
+/* Fade control is ONLY on opacity — never touches transform */
+.rc-hero-slide {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 3s ease-in-out;  /* slow crossfade only */
 }
 
-/* Also increase character image size */
-.rc-gm-images {
-  width: 280px;
-  height: 400px;
+.rc-hero-slide.is-active {
+  opacity: 1;
 }
 ```
 
+This separates the Ken Burns zoom (always running, never resets)
+from the crossfade (opacity only). No snap-back possible.
+
 ---
 
-## Fix 4 — Image caption tags for Q3 summon images
+## Fix 3 — AvatarOdys: one static image per question, fix black bg
 
-Under each floating evidence image on Q3, add italic gold caption text.
+### One image per question (no rotation)
+```ts
+const AVATAR_PER_Q = [
+  '/images/AvatarOdys_speaking1.jpg',  // Q1
+  '/images/AvatarOdys_speaking4.jpg',  // Q2
+  '/images/AvatarOdys_speaking2.jpg',  // Q3
+  '/images/AvatarOdys_speaking5.jpg',  // Q4
+  '/images/AvatarOdys_speaking3.jpg',  // Q5
+  '/images/AvatarOdys_speaking4.jpg',  // Q6
+];
+```
 
-In the evidence image component, add a caption below the img:
+Remove ALL rotation logic (setInterval, avatarIdx state, multiple img elements).
+Render a single img per question:
 
 ```tsx
-<div className="rc-evi">
-  <img src={img.src} alt="" />
-  {img.caption && (
-    <p className="rc-evi-caption">{img.caption}</p>
-  )}
+<div className="rc-gm-images">
+  <img
+    key={idx}  // key change triggers React re-render/fade
+    src={AVATAR_PER_Q[idx]}
+    className="rc-gm-img"
+    alt=""
+  />
 </div>
 ```
 
 ```css
-.rc-evi-caption {
-  font-family: 'Spectral', serif;
-  font-style: italic;
-  font-size: 0.78rem;
-  color: rgba(201, 150, 26, 0.9);
-  text-align: center;
-  padding: 0.4rem 0.6rem;
-  background: rgba(10, 6, 2, 0.75);
-  margin: 0;
-  line-height: 1.4;
+.rc-gm-img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  mix-blend-mode: screen;
+  filter: brightness(1.15) contrast(1.05);
+  animation: rc-fade-in 0.8s ease both;
+  animation-fill-mode: both;
 }
 ```
 
-Q3 summon image captions (add `caption` field to each):
-```ts
-// Q3 evidence images with captions:
-[
-  {
-    src: '/images/Summon_toMaraudon2.jpg',
-    caption: 'Summons to Maraudon at the portal purple side.',
-    pos: { /* clock position */ },
-    glow: 'summon',
-  },
-  {
-    src: '/images/Summon_toStormwind.jpg',
-    caption: 'Summons to Stormwind when your hearthstone is set for questing but you need quick access to the Auction House or Bank.',
-    pos: { /* clock position */ },
-    glow: 'summon',
-  },
-  {
-    src: '/images/Summon_toWinterspring.jpg',
-    caption: 'Get to the far north in Kalimdor quickly with summons to Winterspring.',
-    pos: { /* clock position */ },
-    glow: 'summon',
-  },
-  {
-    src: '/images/Summon_toBlastedLands.jpg',
-    caption: 'Summons to the Dark Portal among 16 different locations our Warlock Summoning Army are standing by.',
-    pos: { /* clock position */ },
-    glow: 'summon',
-  },
-]
+The `mix-blend-mode: screen` removes the black background.
+The `key={idx}` forces a fresh fade-in each question change.
+No looping, no snap-back, no rotation.
+
+---
+
+## Fix 4 — Q1 question: force exactly 2 lines
+
+```tsx
+// When rendering idx === 0, use this instead of the normal q string:
+{idx === 0 ? (
+  <h2 className="rc-q-text">
+    <span style={{ display: 'block' }}>What kind of leveling experience</span>
+    <span style={{ display: 'block' }}>are you after in TBC?</span>
+  </h2>
+) : (
+  <h2 className="rc-q-text">{QUESTIONS[idx].q}</h2>
+)}
+```
+
+Also increase quiz card width:
+```css
+.rc-quiz-card {
+  max-width: 680px;  /* wider to fit Q1 on 2 lines at desktop */
+  width: min(680px, 92vw);
+}
+
+.rc-q-text {
+  font-size: clamp(1.1rem, 2.2vw, 1.6rem);
+}
 ```
 
 ---
 
-## Fix 5 — Image caption tags for Q4 recruiting images
+## Fix 5 — Q4 image captions: updated text
 
-Q4 recruiting image captions:
+Update the caption strings in the Q4 evidence images array:
+
 ```ts
+// Q4 evidence images:
 [
   {
     src: '/images/Recruiting_TophBagsFullofBags.jpg',
-    caption: 'Recruiters Tøph, Ðjenna, Ðeerføx equipped with bags & tabards.',
-    pos: { top: '12%', right: '1%' },
-    glow: 'recruit',
-  },
-  {
-    src: '/images/Recruiting_TophinDarkshire.jpg',
-    caption: 'Recruiters Tøph, Ðjenna, Ðeerføx checking on progressing adventurers in Darkshire, Westfall, Redridge Mountains and Darkshore.',
-    pos: { bottom: '8%', left: '4%' },
-    glow: 'recruit',
+    caption: 'Recruiters Tøph, Ðjenna & Ðeerføx are equipped with bags & tabards.',
   },
   {
     src: '/images/Recruiting_TophInKharanos.jpg',
-    caption: 'Recruiters Tøph, Ðjenna, Ðeerføx traveling starting zones of Kharanos, Elwynn Forest, Teldrassil & Azuremyst Isle.',
-    pos: { top: '12%', left: '1%' },
-    glow: 'recruit',
+    caption: 'Recruiter Ðeerføx traveling starting zones like Kharanos, Elwynn Forest, Teldrassil & Azuremyst Isle.',
+  },
+  {
+    src: '/images/Recruiting_TophinDarkshire.jpg',
+    caption: 'Recruiter Ðjenna checking on advancing tier adventurers in Darkshire, Westfall, Redridge Mountains & Darkshore.',
   },
 ]
 ```
 
 ---
 
-## Fix 6 — Result body text: hard 3-line break with span blocks
+## Fix 6 — Q5 answer B text
 
-The body text MUST use three explicit span blocks.
-No text-wrap:balance, no max-width tricks — only span blocks work reliably.
-
-```tsx
-// True Blade body:
-<p className="rc-result-body">
-  <span style={{ display: 'block' }}>
-    You're one of us. The oath knows it — fam-
-  </span>
-  <span style={{ display: 'block' }}>
-    friendly, helpful, here for the long haul. Grab
-  </span>
-  <span style={{ display: 'block' }}>
-    your free bags and let's ride to 70 together.
-  </span>
-</p>
-
-// Promising Edge body:
-<p className="rc-result-body">
-  <span style={{ display: 'block' }}>
-    You've got the spark. Sharpen it with the fam —
-  </span>
-  <span style={{ display: 'block' }}>
-    we'll cover the bags, the summons, and the groups.
-  </span>
-  <span style={{ display: 'block' }}>
-    You bring the good vibes.
-  </span>
-</p>
-
-// Wandering Soul body:
-<p className="rc-result-body">
-  <span style={{ display: 'block' }}>
-    Maybe you've wandered Azeroth solo long enough.
-  </span>
-  <span style={{ display: 'block' }}>
-    The hall is warm, the chat is kind, and the door
-  </span>
-  <span style={{ display: 'block' }}>
-    is open whenever you're ready to belong.
-  </span>
-</p>
+In the QUESTIONS array, find Q5 (idx 4, "Real life comes first?").
+Change answer B text to:
 ```
+No. There is no life outside of WoW. "How do you kill, that which has no life?"
+```
+
+---
+
+## Fix 7 — Glow ring: fit the alpha crest asset
+
+The pulse ring is too large relative to the alpha crest image.
+The ring should hug the crest artwork closely.
+
+Find the rc-seal-pulse and related ring elements.
+The crest image (guild-crest_Alpha.png) is roughly square.
+Set the ring to match the image size exactly, not a larger container:
 
 ```css
-.rc-result-body {
-  text-align: center;
-  font-family: 'Spectral', serif;
-  font-style: italic;
-  font-size: clamp(0.95rem, 1.6vw, 1.2rem);
-  color: rgba(240, 230, 200, 0.92);
-  line-height: 1.8;
-  margin: 0 auto 1.5rem;
+/* Intro seal */
+.rc-seal-pulse-ring {
+  position: absolute;
+  /* Size matches the crest image dimensions exactly */
+  inset: -8px;  /* just 8px outside the image edge */
+  border-radius: 50%;
+  border: 1.5px solid rgba(201, 150, 26, 0.6);
+  animation: rc-pulse 2.4s ease-out infinite;
+  animation-fill-mode: both;
+  pointer-events: none;
+}
+
+@keyframes rc-pulse {
+  0%   { transform: scale(1);    opacity: 0.7; }
+  100% { transform: scale(1.25); opacity: 0; }
 }
 ```
 
----
+Remove any fixed pixel size on the ring wrapper that was sized
+for the old container. The ring must be sized relative to the
+img element itself, not a parent container.
 
-## Fix 7 — Perk cards: pop-out on hover
-
-```css
-.rc-perk-card {
-  transition: transform 200ms ease, box-shadow 200ms ease,
-              background 200ms ease;
-  cursor: default;
-}
-
-.rc-perk-card:hover {
-  transform: scale(1.08);
-  background: rgba(28, 16, 4, 0.95);
-  box-shadow: 0 8px 32px rgba(0,0,0,0.5),
-              0 0 20px rgba(201,150,26,0.15);
-  z-index: 2;
-  position: relative;
-}
-
-.rc-perk-card:hover .rc-perk-title {
-  color: var(--be-gold);
-  font-size: 0.88rem;
-}
-
-.rc-perk-card:hover .rc-perk-body {
-  color: rgba(240, 230, 200, 0.95);
-  font-size: 0.98rem;
-}
-```
+On the results screen, apply the same fix to the result crest ring.
 
 ---
 
-## Fix 8 — Bottom recruiter text: new wording + bold gold phrase
+## Fix 8 — Perk card hover: show large image above the card
 
-Find the text:
-"A recruiter will invite you in-game — register now so your spot is ready."
+On hover of each perk card, show a large preview image floating
+above the card.
 
-Replace with:
 ```tsx
-<p className="rc-recruiter-note">
-  A recruiter will{' '}
-  <strong style={{ color: 'var(--be-gold)', fontWeight: 700 }}>
-    invite you in-game
-  </strong>
-  . But feel free to register now so your spot is ready.
-</p>
+const PERK_IMAGES = {
+  bags:     '/images/Recruiting_TophBagsFullofBags.jpg',
+  summons:  '/images/Summon_toMaraudon2.jpg',
+  fam:      '/images/GuildiesInShattrath.jpg',
+  guild:    '/images/hero-portal.png',
+};
+
+const [hoveredPerk, setHoveredPerk] = useState<string | null>(null);
+const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 });
+
+const handlePerkEnter = (e: React.MouseEvent, key: string) => {
+  const rect = e.currentTarget.getBoundingClientRect();
+  setHoverPos({ x: rect.left + rect.width / 2, y: rect.top });
+  setHoveredPerk(key);
+};
 ```
 
----
+```tsx
+{/* Perk hover image — rendered at root level */}
+{hoveredPerk && (
+  <div
+    style={{
+      position: 'fixed',
+      left: hoverPos.x,
+      top: hoverPos.y - 16,
+      transform: 'translate(-50%, -100%)',
+      zIndex: 9999,
+      pointerEvents: 'none',
+      width: 'clamp(320px, 42vw, 600px)',
+      borderRadius: 10,
+      overflow: 'hidden',
+      boxShadow: '0 16px 48px rgba(0,0,0,0.7)',
+      border: '1px solid rgba(201,150,26,0.4)',
+      animation: 'rc-fade-in 0.2s ease both',
+      animationFillMode: 'both',
+    }}
+  >
+    <img
+      src={PERK_IMAGES[hoveredPerk]}
+      style={{ width: '100%', height: 'auto', display: 'block' }}
+      alt=""
+    />
+  </div>
+)}
 
-## Fix 9 — Use guild-crest_Alpha.png, remove red circle, extend sealing
-
-### A — Switch to alpha PNG everywhere on /recruit
-Find every reference to guild-crest.png in the recruit page/component.
-Replace ALL of them with guild-crest_Alpha.png:
+{/* Each perk card */}
+<div
+  className="rc-perk-card"
+  onMouseEnter={(e) => handlePerkEnter(e, 'bags')}
+  onMouseLeave={() => setHoveredPerk(null)}
+>
+  {/* Free Bags card content */}
+</div>
+{/* etc for summons (key='summons'), fam (key='fam'), guild (key='guild') */}
 ```
-/images/guild-crest.png → /images/guild-crest_Alpha.png
-```
-
-### B — Remove the red/amber circular container
-The circular amber/red container (background: radial-gradient with
-#7a2a0a / #3d1205 colors) was added as a workaround for the black
-square. Now that we have a proper alpha PNG, remove this container.
-
-The crest should render directly on the page background with no
-circular colored container behind it.
-
-Find and remove any element with:
-- background containing #7a2a0a, #3d1205, or similar amber/red radial gradient
-- border-radius: 50% that serves as a crest background container
-- The "rc-seal-circle" or similar class if it has a background applied
-
-### C — Extend "Sealing your oath..." duration
-The sealing phase currently transitions too quickly to results.
-Increase the delay before results reveal from current value to 2800ms:
-
-```ts
-// In the sealing phase timeout:
-const t = setTimeout(() => setPhase('reveal'), 2800);  // was shorter
-```
-
-### D — Remove mix-blend-mode: screen from crest images
-Since the alpha PNG has proper transparency, remove any
-`mixBlendMode: 'screen'` or `mix-blend-mode: screen` from
-the guild crest img elements. It is no longer needed.
 
 ---
 
 ## Verification
 
-1. Intro subtitle: exactly 2 clean lines, no orphan words
-2. Q1 question: exactly 2 lines as specified
-3. AvatarOdys speaking images visible bottom-right, rotating every 4s
-4. GM quote text is 2x larger and easily readable
-5. Q3 images each have italic gold caption beneath them
-6. Q4 images each have italic gold caption beneath them
-7. True Blade result body: exactly 3 lines with "fam-" at end of line 1
-8. Perk cards pop out 8% larger on hover with brighter text
-9. "invite you in-game" appears in bold gold
-10. Recruiter note text matches new wording exactly
-11. Guild crest shows with clean alpha — no red circle, no square
-12. Sealing screen stays visible for ~2.8 seconds before results appear
-13. guild-crest_Alpha.png is used everywhere, no mix-blend-mode needed
+1. Intro subtitle: 2 clean lines, no orphan words at any screen width
+2. BG slides: smooth slow crossfade, NO snap-back to original zoom
+3. AvatarOdys: one specific image per question, black bg gone via mix-blend-mode
+4. Q1: exactly 2 lines
+5. Q4 captions updated with new text for all 3 images
+6. Q5 answer B updated with new text
+7. Glow pulse ring hugs crest asset closely — not floating wide of it
+8. Same ring fix on results crest
+9. Hovering "Free Bags" shows Toph bags image large above the card
+10. Hovering "Lock Summons" shows Maraudon2 image
+11. Hovering "GRATS Fam" shows GuildiesInShattrath image
+12. Hovering "Active Guild" shows hero-portal image
 
 ## Do not touch
 - Scoring logic
-- Background slides and Ken Burns
-- Progress pips
+- Background slide order
 - Discord/Auth URLs
+- Progress pip behavior
 - animation-fill-mode: both on ALL animations — never 'forwards'
