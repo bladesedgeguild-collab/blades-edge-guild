@@ -55,6 +55,8 @@ function formatWindow(post: LfgPost): string {
   return post.available_window ?? ''
 }
 
+const MT_ZONES = ['America/Denver', 'America/Phoenix', 'America/Boise', 'America/Creston']
+
 interface Props {
   dungeon: Dungeon
   initialPosts: LfgPost[]
@@ -89,9 +91,38 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
   function getLocalEquivalent(serverTimeStr: string): string | null {
     if (!serverTimeStr || !detectedTimezone) return null
     try {
-      const today = new Date().toDateString()
-      const mtDate = new Date(`${today} ${serverTimeStr} MST`)
-      return mtDate.toLocaleTimeString('en-US', {
+      const match = serverTimeStr.match(/^(\d{1,2}):(\d{2})\s+(AM|PM)$/i)
+      if (!match) return null
+      let h = parseInt(match[1], 10)
+      const m = parseInt(match[2], 10)
+      if (match[3].toUpperCase() === 'PM' && h !== 12) h += 12
+      if (match[3].toUpperCase() === 'AM' && h === 12) h = 0
+
+      const now = new Date()
+      const mtFmt = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/Denver',
+        hour: 'numeric', minute: 'numeric', hour12: false,
+      })
+      const mtParts = mtFmt.formatToParts(now)
+      let mtH = parseInt(mtParts.find(p => p.type === 'hour')?.value ?? '0')
+      const mtM = parseInt(mtParts.find(p => p.type === 'minute')?.value ?? '0')
+      if (mtH === 24) mtH = 0
+
+      const nowUtcMins = now.getUTCHours() * 60 + now.getUTCMinutes()
+      const nowMtMins = mtH * 60 + mtM
+      const mtOffsetMins = nowMtMins - nowUtcMins
+
+      const serverMins = h * 60 + m
+      const utcTotalMins = serverMins - mtOffsetMins
+      const utcH = Math.floor(((utcTotalMins % 1440) + 1440) % 1440 / 60)
+      const utcMin = ((utcTotalMins % 60) + 60) % 60
+
+      const utcDate = new Date(Date.UTC(
+        now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(),
+        utcH, utcMin,
+      ))
+
+      return utcDate.toLocaleTimeString('en-US', {
         hour: '2-digit', minute: '2-digit', hour12: true,
         timeZone: detectedTimezone,
       })
@@ -100,8 +131,9 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
     }
   }
 
-  const localStartEquiv = getLocalEquivalent(timeStart)
-  const localEndEquiv = getLocalEquivalent(timeEnd)
+  const isSameMT = MT_ZONES.includes(detectedTimezone)
+  const localStartEquiv = timeStart ? getLocalEquivalent(timeStart) : null
+  const localEndEquiv = timeEnd ? getLocalEquivalent(timeEnd) : null
 
   const classLoot = dungeon.loot.filter(item => {
     const rel = item.relevance[selectedClass]
@@ -238,7 +270,7 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
                     {q.importance.replace(/-/g, ' ')}
                   </span>
                   {q.rewardNote && (
-                    <span style={{ fontSize: '0.72rem', color: 'var(--be-muted)', fontStyle: 'italic', fontFamily: 'Spectral, serif' }}>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--be-muted)', fontStyle: 'italic', fontFamily: 'Spectral, serif' }}>
                       {q.rewardNote}
                     </span>
                   )}
@@ -336,7 +368,7 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
           <div className="dd-lfg-board">
             {/* Form */}
             <div className="dd-lfg-form-wrap">
-              <div className="dd-lfg-form-title">⚔️ Raise the Banner</div>
+              <div className="dd-lfg-form-title">Raise the Banner</div>
               {!isLoggedIn ? (
                 <p className="dd-lfg-auth-note">
                   <Link href="/login">Log in</Link> to post a LFG request.
@@ -348,12 +380,13 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
                     <div className="lfg-confirm-time">
                       <strong>Your window:</strong>{' '}
                       {daysLabel}
-                      {timeStart && timeEnd ? ` from ${timeStart} to ${timeEnd} Server Time (Mountain)` : ''}
+                      {timeStart && timeEnd ? ` from ${timeStart} to ${timeEnd} Server Time` : ''}
                       {detectedTimezone && localStartEquiv && localEndEquiv && (
                         <>
                           <br />
                           <span className="lfg-confirm-local">
-                            That is {localStartEquiv} to {localEndEquiv} in your timezone ({detectedTimezone}).
+                            That is {localStartEquiv} to {localEndEquiv} in your local time
+                            {isSameMT ? ' (same timezone)' : ''}.
                           </span>
                         </>
                       )}
@@ -379,17 +412,17 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
 
                   {/* Server time */}
                   <div className="lfg-server-time">
-                    <span className="lfg-server-label">Server Time (Mountain):</span>
+                    <span className="lfg-server-label">Server Time:</span>
                     <span className="lfg-server-value" id="server-time-display" />
                     <script dangerouslySetInnerHTML={{ __html: `
                       function updateServerTime() {
                         var now = new Date();
-                        var mt = now.toLocaleTimeString('en-US', {
+                        var st = now.toLocaleTimeString('en-US', {
                           timeZone: 'America/Denver',
                           hour: '2-digit', minute: '2-digit', hour12: true
                         });
                         var el = document.getElementById('server-time-display');
-                        if (el) el.textContent = mt + ' MT';
+                        if (el) el.textContent = st;
                       }
                       updateServerTime();
                       setInterval(updateServerTime, 10000);
@@ -429,7 +462,7 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
                   {/* Time range */}
                   <div className="lfg-time-row">
                     <div className="dd-lfg-field" style={{ flex: 1 }}>
-                      <label className="dd-lfg-label lfg-field-label">Start Time (MT)</label>
+                      <label className="dd-lfg-label lfg-field-label">Start Time (Server)</label>
                       <select
                         className="dd-lfg-select"
                         value={timeStart}
@@ -441,7 +474,7 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
                     </div>
                     <span className="lfg-time-to">to</span>
                     <div className="dd-lfg-field" style={{ flex: 1 }}>
-                      <label className="dd-lfg-label lfg-field-label">End Time (MT)</label>
+                      <label className="dd-lfg-label lfg-field-label">End Time (Server)</label>
                       <select
                         className="dd-lfg-select"
                         value={timeEnd}
@@ -460,7 +493,8 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
                       <span className="lfg-tz-value">{detectedTimezone}</span>
                       {localStartEquiv && timeStart && (
                         <span className="lfg-tz-equiv">
-                          {timeStart} MT is {localStartEquiv} in your local time.
+                          {timeStart} Server Time is {localStartEquiv} in your local time
+                          {isSameMT ? ' (same timezone)' : ''}.
                         </span>
                       )}
                     </div>
@@ -478,7 +512,7 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
                   </div>
 
                   <button type="submit" className="dd-lfg-btn" disabled={submitting}>
-                    {submitting ? 'Raising...' : '⚔️ Raise the Banner'}
+                    {submitting ? 'Raising...' : 'Raise the Banner'}
                   </button>
                 </form>
               )}

@@ -32,7 +32,7 @@ function formatWindow(post: LfgSidebarPost): string {
     ? 'Any day'
     : null
   if (post.time_start && post.time_end)
-    return `${days || 'Any day'}, ${post.time_start}–${post.time_end} MT`
+    return `${days || 'Any day'}, ${post.time_start}–${post.time_end} Server Time`
   if (days) return days
   return post.available_window ?? ''
 }
@@ -65,7 +65,7 @@ export default function DungeonsClient({ playerLevel, activeLFG, dungeonNames }:
         </div>
         {activeLFG.length > 0 && (
           <div className="df-lfg-sidebar">
-            <div className="df-lfg-sidebar-title">⚔️ Active LFG Calls</div>
+            <div className="df-lfg-sidebar-title">Active LFG Calls</div>
             {activeLFG.map(post => {
               const window = formatWindow(post)
               return (
@@ -83,9 +83,9 @@ export default function DungeonsClient({ playerLevel, activeLFG, dungeonNames }:
                   )}
                   {post.current_group && (
                     <div className="df-lfg-sidebar-comp">
-                      <span>🛡 {post.current_group.tank}</span>
-                      <span>💚 {post.current_group.healer}</span>
-                      <span>⚔️ {post.current_group.dps}</span>
+                      <span>🛡 {Array.isArray(post.current_group.tank) ? post.current_group.tank.length : post.current_group.tank}</span>
+                      <span>💚 {Array.isArray(post.current_group.healer) ? post.current_group.healer.length : post.current_group.healer}</span>
+                      <span>⚔️ {Array.isArray(post.current_group.dps) ? post.current_group.dps.length : post.current_group.dps}</span>
                     </div>
                   )}
                   <Link
@@ -174,12 +174,12 @@ export default function DungeonsClient({ playerLevel, activeLFG, dungeonNames }:
                       {dungeon.specialMechanic && (
                         <div className="df-card-special">{dungeon.specialMechanic}</div>
                       )}
+                      {status === 'locked' && (
+                        <div className="df-requires-pill">
+                          Requires Level {dungeon.recommendedLevelMin}
+                        </div>
+                      )}
                     </div>
-                    {status === 'locked' && (
-                      <div className="df-card-locked-overlay">
-                        Requires Level {dungeon.recommendedLevelMin}
-                      </div>
-                    )}
                   </div>
                 </Link>
               )

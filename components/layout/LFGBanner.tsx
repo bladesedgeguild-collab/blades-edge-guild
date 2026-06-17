@@ -18,6 +18,7 @@ type EligiblePost = {
 export function LFGBanner() {
   const [posts, setPosts] = useState<EligiblePost[]>([])
   const [dismissedIds, setDismissedIds] = useState<string[]>([])
+  const [selectedRoles, setSelectedRoles] = useState<Record<string, string>>({})
 
   useEffect(() => {
     fetch('/api/dungeons/lfg/eligible')
@@ -29,16 +30,23 @@ export function LFGBanner() {
   const visible = posts.filter(p => !dismissedIds.includes(p.id))
   if (visible.length === 0) return null
 
-  async function handleResponse(lfgId: string, response: 'accepted' | 'declined') {
-    setDismissedIds(prev => [...prev, lfgId])
+  async function handleResponse(post: EligiblePost, response: 'accepted' | 'declined') {
+    setDismissedIds(prev => [...prev, post.id])
+    const acceptorCharName = post.matching_chars[0]?.name
+    const acceptorRole = selectedRoles[post.id] ?? 'DPS'
     try {
       await fetch('/api/dungeons/lfg/respond', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lfgId, response }),
+        body: JSON.stringify({
+          lfgId: post.id,
+          response,
+          acceptorCharName: response === 'accepted' ? acceptorCharName : undefined,
+          acceptorRole: response === 'accepted' ? acceptorRole : undefined,
+        }),
       })
     } catch {
-      // Non-fatal — banner already dismissed locally
+      // Non-fatal
     }
   }
 
@@ -47,7 +55,7 @@ export function LFGBanner() {
       {visible.map(post => {
         const chars = post.matching_chars
         const charText = chars.map(c => `${c.name} (Lvl ${c.level})`).join(', ')
-        const cg = post.current_group ?? { tank: 0, healer: 0, dps: 0 }
+        const currentRole = selectedRoles[post.id] ?? 'DPS'
 
         return (
           <div key={post.id} className="lfg-banner">
@@ -60,20 +68,29 @@ export function LFGBanner() {
                 </Link>.{' '}
                 Your character{chars.length > 1 ? 's' : ''}{' '}
                 <strong>{charText}</strong>{' '}
-                {chars.length > 1 ? 'are' : 'is'} a great fit.{' '}
-                Group: {cg.tank}/1 Tank · {cg.healer}/1 Healer · {cg.dps}/3 DPS
+                {chars.length > 1 ? 'are' : 'is'} a great fit.
                 {post.available_window && ` · ${post.available_window}`}
               </span>
               <div className="lfg-banner-actions">
+                <select
+                  className="lfg-banner-role-select"
+                  value={currentRole}
+                  onChange={e => setSelectedRoles(prev => ({ ...prev, [post.id]: e.target.value }))}
+                  aria-label="Your role"
+                >
+                  <option>Tank</option>
+                  <option>Healer</option>
+                  <option>DPS</option>
+                </select>
                 <button
                   className="lfg-banner-accept"
-                  onClick={() => handleResponse(post.id, 'accepted')}
+                  onClick={() => handleResponse(post, 'accepted')}
                 >
                   Accept
                 </button>
                 <button
                   className="lfg-banner-decline"
-                  onClick={() => handleResponse(post.id, 'declined')}
+                  onClick={() => handleResponse(post, 'declined')}
                 >
                   Decline
                 </button>

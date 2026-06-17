@@ -28,6 +28,12 @@ export async function POST(req: Request) {
 
   const windowSummary = buildWindowSummary(daysAvailable, timeStart, timeEnd)
 
+  const initial_group = {
+    tank: role === 'Tank' ? [characterName] : [],
+    healer: role === 'Healer' ? [characterName] : [],
+    dps: (role === 'DPS' || role === 'Flex') ? [characterName] : [],
+  }
+
   const { data: post, error } = await service
     .from('dungeon_lfg')
     .insert({
@@ -41,8 +47,9 @@ export async function POST(req: Request) {
       time_end: timeEnd || null,
       timezone_label: timezoneLabel || null,
       notes: notes || null,
+      current_group: initial_group,
     })
-    .select('id, character_name, role, available_window, notes, days_available, time_start, time_end')
+    .select('id, character_name, role, available_window, notes, days_available, time_start, time_end, current_group')
     .single()
 
   if (error) {

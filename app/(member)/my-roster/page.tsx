@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { getCharacterArt } from '@/lib/character-art'
 import { AddAltSection } from './AddAltSection'
+import ActiveLFGCalls from '@/components/ActiveLFGCalls'
 
 const CLASS_COLORS: Record<string, string> = {
   MAGE: '#3fc7eb', PALADIN: '#f48cba', WARRIOR: '#c69b3a',
@@ -169,6 +170,9 @@ export default async function MyRosterPage() {
         <AddAltSection alts={alts} mainCharId={mainChar.id} />
 
       </div>
+
+      {/* ── Active Dungeon Calls ── */}
+      <ActiveLFGCalls />
 
     </div>
   )

@@ -3,7 +3,7 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { CharacterClass } from '@/types'
-import { DUNGEONS } from '@/data/dungeons/index'
+import ActiveLFGCalls from '@/components/ActiveLFGCalls'
 
 type MainChar = {
   id: string
@@ -139,38 +139,6 @@ export default async function DashboardPage() {
     for (const c of (feedCharData ?? []) as { id: string; class: string; status: string }[]) {
       feedCharMap[c.id] = { class: c.class, status: c.status }
     }
-  }
-
-  const { data: lfgData, error: lfgError } = await adminDb
-    .from('dungeon_lfg')
-    .select('*')
-    .gt('expires_at', new Date().toISOString())
-    .order('created_at', { ascending: false })
-
-  if (lfgError) console.error('LFG query error:', lfgError)
-
-  const activeLFG = (lfgData ?? []) as {
-    id: string; dungeon_slug: string; character_name: string; role: string
-    available_window: string | null; notes: string | null
-    current_group: { tank: number; healer: number; dps: number } | null
-    days_available: string[] | null; time_start: string | null; time_end: string | null
-    created_at: string
-  }[]
-
-  function formatDungeonName(slug: string): string {
-    return DUNGEONS.find(d => d.id === slug)?.name ?? slug.replace(/-/g, ' ')
-  }
-
-  function formatWindow(post: typeof activeLFG[0]): string {
-    const days = post.days_available?.length
-      ? post.days_available.join(', ')
-      : post.days_available !== null && post.days_available !== undefined
-      ? 'Any day'
-      : null
-    if (post.time_start && post.time_end)
-      return `${days || 'Any day'}, ${post.time_start}–${post.time_end} Server Time`
-    if (days) return days
-    return post.available_window ?? ''
   }
 
   const feedEntries: FeedEntry[] = [
@@ -368,38 +336,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* ── Active Dungeon Calls ── */}
-      {activeLFG.length > 0 && (
-        <section className="hall-lfg-section">
-          <h2 className="hall-lfg-heading">⚔️ Active Dungeon Calls</h2>
-          <div className="hall-lfg-grid">
-            {activeLFG.map(post => {
-              const cg = post.current_group ?? { tank: 0, healer: 0, dps: 0 }
-              return (
-                <div key={post.id} className="hall-lfg-card">
-                  <div className="hall-lfg-dungeon">{formatDungeonName(post.dungeon_slug)}</div>
-                  <div className="hall-lfg-caller">
-                    <strong>{post.character_name}</strong> · {post.role}
-                  </div>
-                  {formatWindow(post) && (
-                    <div className="hall-lfg-window">🕐 {formatWindow(post)}</div>
-                  )}
-                  <div className="hall-lfg-group">
-                    <span>Tank: {cg.tank}/1</span>
-                    <span>Healer: {cg.healer}/1</span>
-                    <span>DPS: {cg.dps}/3</span>
-                  </div>
-                  {post.notes && (
-                    <p className="hall-lfg-notes">{post.notes}</p>
-                  )}
-                  <Link href={`/dungeons/${post.dungeon_slug}`} className="hall-lfg-link">
-                    View Dungeon →
-                  </Link>
-                </div>
-              )
-            })}
-          </div>
-        </section>
-      )}
+      <ActiveLFGCalls />
     </div>
   )
 }

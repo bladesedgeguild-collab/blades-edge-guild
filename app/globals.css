@@ -1573,6 +1573,153 @@ input[type=number] { -moz-appearance: textfield; }
   width: 100%;
 }
 
+.lfg-banner-role-select {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 204, 0, 0.4);
+  border-radius: 6px;
+  color: #ffcc00;
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  padding: 0.35rem 0.55rem;
+  outline: none;
+  cursor: pointer;
+}
+
+/* ── Active LFG Calls — large card layout ── */
+
+.lfg-big-section {
+  margin-top: 1.5rem;
+}
+
+.lfg-big-heading {
+  font-family: 'Cinzel', serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--be-gold, #c9961a);
+  margin-bottom: 1rem;
+}
+
+.lfg-big-card {
+  background: var(--be-bg-2, #2a1e0e);
+  border: 1px solid rgba(201, 150, 26, 0.35);
+  border-radius: 14px;
+  padding: 1.75rem 2rem;
+  margin-bottom: 1.25rem;
+}
+
+.lfg-big-dungeon {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(1.4rem, 2.5vw, 2.2rem);
+  color: var(--be-gold, #c9961a);
+  margin: 0 0 0.5rem;
+  line-height: 1.2;
+}
+
+.lfg-big-meta {
+  font-family: 'Spectral', serif;
+  font-size: 1rem;
+  color: var(--be-muted, #8a7a5a);
+  font-style: italic;
+  margin-bottom: 1.25rem;
+  display: flex;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.lfg-big-roles {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.5fr;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (max-width: 600px) {
+  .lfg-big-roles { grid-template-columns: 1fr; }
+}
+
+.lfg-role-block {
+  background: var(--be-bg-1, #221a0c);
+  border: 1px solid rgba(201, 150, 26, 0.2);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+}
+
+.lfg-role-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.lfg-role-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  line-height: 1;
+}
+
+.lfg-role-icon--tank { color: var(--be-gold, #c9961a); }
+.lfg-role-icon--healer { color: var(--be-portal, #1aff6e); }
+.lfg-role-icon--dps { color: #3fc7eb; }
+
+.lfg-role-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--be-gold, #c9961a);
+}
+
+.lfg-role-slot {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+  font-family: 'Cinzel', serif;
+  font-size: 0.9rem;
+}
+
+.lfg-dps-label {
+  color: var(--be-muted, #8a7a5a);
+  font-size: 0.8rem;
+  min-width: 48px;
+}
+
+.lfg-slot-name {
+  color: var(--be-ink, #f0e6c8);
+  font-weight: 600;
+}
+
+.lfg-slot-need {
+  color: #ff4400;
+  font-weight: 700;
+  font-size: 0.9rem;
+  letter-spacing: 0.08em;
+}
+
+.lfg-big-notes {
+  font-family: 'Spectral', serif;
+  font-size: 0.9rem;
+  font-style: italic;
+  color: var(--be-muted, #8a7a5a);
+  margin: 0 0 1rem;
+  line-height: 1.5;
+}
+
+.lfg-big-link {
+  font-family: 'Cinzel', serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  color: var(--be-portal, #1aff6e);
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: opacity 150ms ease;
+}
+
+.lfg-big-link:hover { opacity: 0.75; }
+
 /* ── Settings ── */
 @media (max-width: 768px) {
   .settings-section {

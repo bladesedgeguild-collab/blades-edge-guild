@@ -19,7 +19,7 @@ export type LfgSidebarPost = {
   days_available: string[] | null
   time_start: string | null
   time_end: string | null
-  current_group: { tank: number; healer: number; dps: number } | null
+  current_group: { tank: number | string[]; healer: number | string[]; dps: number | string[] } | null
 }
 
 export default async function DungeonsPage() {

@@ -1,352 +1,359 @@
-# TASK: LFG system fixes + time window form + dungeon page alerts
+# TASK: LFG display overhaul + dungeon page width + role icons + names
 
 ---
 
-## Fix 1 — Remove em dash from dungeon page tagline
+## Fix 1 — "Requires Level X" gold pill on locked cards
 
-Find the text:
-"Every den of darkness, every vault of peril — sorted for your level."
-
-Change to:
-"Every den of darkness, every vault of peril. Sorted for your level."
-
-Also grep the entire codebase for em dashes (—) in string literals
-and JSX text content. Replace each one with a period, comma, or
-restructured sentence. Do not use semicolons or colons as replacements.
-
-```bash
-grep -rn "—" app/ components/ src/ --include="*.tsx" --include="*.ts"
-```
-
-Fix every result found.
-
----
-
-## Fix 2 — Hall page: show ALL active LFG posts to ALL logged-in users
-
-The current Hall LFG block is either not rendering or showing
-"Dungeon sign-ups coming soon." Fix both issues.
-
-### Query fix
-Use the service role client to bypass RLS for reading LFG posts.
-The read policy allows anyone to view active posts, but the client
-may need service role for server-side rendering:
-
-```ts
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
-const { data: activeLFG, error } = await supabaseAdmin
-  .from('dungeon_lfg')
-  .select('*')
-  .gt('expires_at', new Date().toISOString())
-  .order('created_at', { ascending: false });
-
-// Log error to confirm if table issue or query issue
-if (error) console.error('LFG query error:', error);
-```
-
-### Show ALL posts to ALL logged-in users
-Remove any level-matching filter from the Hall display.
-Everyone who is logged in sees all active LFG posts.
-Level matching is only used for the top-of-site red banner.
-
-### Remove "Dungeon sign-ups coming soon"
-Find and delete this placeholder text entirely.
-
----
-
-## Fix 3 — Upcoming section: store structured time windows
-
-### DB migration (run after deploy)
-```sql
-ALTER TABLE public.dungeon_lfg
-  ADD COLUMN IF NOT EXISTS days_available text[] DEFAULT '{}',
-  ADD COLUMN IF NOT EXISTS time_start text,
-  ADD COLUMN IF NOT EXISTS time_end text,
-  ADD COLUMN IF NOT EXISTS timezone_label text;
-```
-
-### Form changes on dungeon page
-
-Replace the free-text "available_window" input with structured fields:
+On dungeon cards where status === 'locked' (level too high for player),
+replace the current lost-in-the-gray text with a gold filled pill:
 
 ```tsx
-{/* Server time display */}
-<div className="lfg-server-time">
-  <span className="lfg-server-label">Server Time (Mountain):</span>
-  <span className="lfg-server-value" id="server-time-display" />
-  <script dangerouslySetInnerHTML={{ __html: `
-    function updateServerTime() {
-      const now = new Date();
-      const mt = now.toLocaleTimeString('en-US', {
-        timeZone: 'America/Denver',
-        hour: '2-digit', minute: '2-digit', hour12: true
-      });
-      const el = document.getElementById('server-time-display');
-      if (el) el.textContent = mt + ' MT';
-    }
-    updateServerTime();
-    setInterval(updateServerTime, 10000);
-  `}} />
-</div>
-
-{/* Day selector */}
-<div className="lfg-days">
-  <label className="lfg-field-label">Day(s) Available</label>
-  <div className="lfg-day-checkboxes">
-    {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(day => (
-      <label key={day} className="lfg-day-chip">
-        <input
-          type="checkbox"
-          value={day}
-          checked={selectedDays.includes(day)}
-          onChange={e => toggleDay(day)}
-        />
-        {day}
-      </label>
-    ))}
-    <label className="lfg-day-chip lfg-day-any">
-      <input
-        type="checkbox"
-        checked={anyDay}
-        onChange={e => { setAnyDay(e.target.checked); setSelectedDays([]); }}
-      />
-      Any Day
-    </label>
+{status === 'locked' && (
+  <div className="df-requires-pill">
+    Requires Level {dungeon.recommendedLevelMin}
   </div>
-</div>
-
-{/* Time window */}
-<div className="lfg-time-row">
-  <div className="lfg-field">
-    <label className="lfg-field-label">Start Time (Server/MT)</label>
-    <select value={timeStart} onChange={e => setTimeStart(e.target.value)}>
-      <option value="">Select...</option>
-      {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-    </select>
-  </div>
-  <span className="lfg-time-to">to</span>
-  <div className="lfg-field">
-    <label className="lfg-field-label">End Time (Server/MT)</label>
-    <select value={timeEnd} onChange={e => setTimeEnd(e.target.value)}>
-      <option value="">Select...</option>
-      {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-    </select>
-  </div>
-</div>
-
-{/* Timezone detection */}
-<div className="lfg-timezone">
-  <span className="lfg-tz-label">Your timezone:</span>
-  <span className="lfg-tz-value">{detectedTimezone}</span>
-  {localTimeEquivalent && (
-    <span className="lfg-tz-equiv">
-      That is {localTimeEquivalent} in your local time.
-    </span>
-  )}
-</div>
+)}
 ```
 
-TIME_OPTIONS array (every 30 minutes, 12am to 11:30pm):
-```ts
-const TIME_OPTIONS = Array.from({length: 48}, (_, i) => {
-  const h = Math.floor(i / 2);
-  const m = i % 2 === 0 ? '00' : '30';
-  const ampm = h < 12 ? 'AM' : 'PM';
-  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h;
-  return `${h12}:${m} ${ampm}`;
-});
+```css
+.df-requires-pill {
+  display: inline-block;
+  background: var(--be-gold);
+  color: #1a1208;
+  font-family: 'Cinzel', serif;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0.3rem 0.85rem;
+  border-radius: 999px;
+  margin-top: 0.5rem;
+}
 ```
 
-Timezone detection:
-```ts
-const detectedTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+---
 
-// Calculate local equivalent of selected server start time
-const getLocalEquivalent = (serverTimeStr: string) => {
-  if (!serverTimeStr) return null;
-  // Parse the MT time and convert to user's local
-  const today = new Date().toDateString();
-  const mtDate = new Date(`${today} ${serverTimeStr} MST`);
-  return mtDate.toLocaleTimeString('en-US', {
-    hour: '2-digit', minute: '2-digit', hour12: true,
-    timeZone: detectedTimezone
-  });
+## Fix 2 — Wider layout on individual dungeon pages + Raise the Banner
+
+Find the container class/max-width on:
+- app/(public)/dungeons/[slug]/page.tsx
+- Any raise-the-banner or LFG form page/modal
+
+Apply the same wide container class used by the Dungeon Finder grid page.
+Also increase all font sizes on the dungeon detail page to match
+the larger sizes on the grid cards (same doubling applied in previous task).
+
+---
+
+## Fix 3 — Server time display: say "Server Time" not "MT"
+
+Find every instance of "MT" in the time display and LFG form.
+Replace with "Server Time":
+
+- "9:00 AM MT" becomes "9:00 AM Server Time"
+- "Server Time (Mountain)" becomes "Server Time"
+- The comparison line: "9:00 AM Server Time is X in your local time."
+
+Also fix the timezone comparison logic. If the user's detected timezone
+IS Mountain Time (America/Denver or America/Phoenix), the comparison
+should still show but say:
+"9:00 AM Server Time is 9:00 AM in your local time (same timezone)."
+
+Do not skip the comparison when timezones match. Show it always.
+
+---
+
+## Fix 4 — Active LFG Calls: show on Hall AND My Roster
+
+The LFG calls block is only appearing on the Dungeons page.
+Add it to:
+- Hall/dashboard page (app/(member)/dashboard/page.tsx)
+- My Roster page (app/(member)/my-roster/page.tsx)
+
+Extract the LFG block into a shared component:
+```
+components/ActiveLFGCalls.tsx
+```
+
+Import and render it in all three pages. It queries the same
+dungeon_lfg table with service role client.
+
+---
+
+## Fix 5 + 7 — LFG block: MUCH larger, show names not numbers
+
+The entire LFG block needs to be significantly larger and more prominent.
+Each active call should be a large card.
+
+### Data: store player names per role slot
+When a LFG post is created, store the requester in the appropriate slot.
+When others accept, add their name to the slot.
+
+Update current_group to store names:
+```ts
+// Initial submission (requester counts as their own role):
+const initial_group = {
+  tank: role === 'Tank' ? [characterName] : [],
+  healer: role === 'Healer' ? [characterName] : [],
+  dps: role === 'DPS' || role === 'Flex' ? [characterName] : [],
 };
+// Store as jsonb: {"tank":["Åvatarødys"],"healer":[],"dps":["Åvatarødys"]}
 ```
 
-### Confirmation screen timezone emphasis
-After submission, show a confirmation that includes:
-```tsx
-<div className="lfg-confirm-time">
-  <strong>Your window:</strong>{' '}
-  {days} from {timeStart} to {timeEnd} Server Time (Mountain)
-  <br/>
-  <span className="lfg-confirm-local">
-    That is {localStart} to {localEnd} in your timezone ({detectedTimezone}).
-  </span>
-</div>
-```
-
-### Display format for LFG posts
-Build a human-readable window string from the structured fields:
+Update the INSERT to use this structure:
 ```ts
-const formatWindow = (post: LFGPost) => {
-  const days = post.days_available?.length
-    ? post.days_available.join(', ')
-    : 'Any day';
-  if (post.time_start && post.time_end)
-    return `${days}, ${post.time_start}–${post.time_end} Server Time`;
-  return days;
-};
+current_group: {
+  tank: role === 'Tank' ? [characterName] : [],
+  healer: role === 'Healer' ? [characterName] : [],
+  dps: (role === 'DPS' || role === 'Flex') ? [characterName] : [],
+}
 ```
 
----
+When someone accepts, append their name to the right array via:
+```ts
+// In the respond API route, on 'accepted':
+const newGroup = { ...post.current_group };
+const roleKey = acceptorRole === 'Tank' ? 'tank'
+  : acceptorRole === 'Healer' ? 'healer' : 'dps';
+newGroup[roleKey] = [...(newGroup[roleKey] || []), acceptorCharName];
+await supabase.from('dungeon_lfg')
+  .update({ current_group: newGroup })
+  .eq('id', post.id);
+```
 
-## Fix 4 — Dungeons page: active LFG box top-right
-
-On the /dungeons page, add a fixed-position or sticky box in the
-top-right area of the page showing active LFG requests.
-
-Position it to the right of the "DUNGEON FINDER" heading and
-"Showing dungeons for level" controls.
+### Large card display
 
 ```tsx
-<div className="df-lfg-sidebar">
-  <h3 className="df-lfg-sidebar-title">
-    Active Calls
-  </h3>
-  {activeLFG.length === 0 ? (
-    <p className="df-lfg-sidebar-empty">No active calls right now.</p>
-  ) : (
-    activeLFG.map(post => (
-      <div key={post.id} className="df-lfg-sidebar-post">
-        <span className="df-lfg-sidebar-dungeon">
-          {formatDungeonName(post.dungeon_slug)}
-        </span>
-        <span className="df-lfg-sidebar-caller">
-          {post.character_name} as {post.role}
-        </span>
-        <span className="df-lfg-sidebar-window">
-          {formatWindow(post)}
-        </span>
-        <div className="df-lfg-sidebar-group">
-          T: {post.current_group.tank}/1
-          H: {post.current_group.healer}/1
-          D: {post.current_group.dps}/3
-        </div>
-        <Link href={`/dungeons/${post.dungeon_slug}`} className="df-lfg-sidebar-link">
-          View
-        </Link>
+<div className="lfg-big-card">
+  {/* Dungeon name — very large */}
+  <h2 className="lfg-big-dungeon">
+    {formatDungeonName(post.dungeon_slug)}
+  </h2>
+
+  {/* Caller + window */}
+  <div className="lfg-big-meta">
+    <span>{post.character_name} is calling for a group</span>
+    {formatWindow(post) && <span>{formatWindow(post)}</span>}
+  </div>
+
+  {/* Role slots */}
+  <div className="lfg-big-roles">
+
+    {/* Tank — 1 slot */}
+    <div className="lfg-role-block">
+      <div className="lfg-role-header">
+        <span className="lfg-role-icon">🛡</span>
+        <span className="lfg-role-label">Tank</span>
       </div>
-    ))
-  )}
+      <div className="lfg-role-slot">
+        {post.current_group.tank?.[0]
+          ? <span className="lfg-slot-name">{post.current_group.tank[0]}</span>
+          : <span className="lfg-slot-need">NEED</span>
+        }
+      </div>
+    </div>
+
+    {/* Healer — 1 slot */}
+    <div className="lfg-role-block">
+      <div className="lfg-role-header">
+        <span className="lfg-role-icon">✚</span>
+        <span className="lfg-role-label">Healer</span>
+      </div>
+      <div className="lfg-role-slot">
+        {post.current_group.healer?.[0]
+          ? <span className="lfg-slot-name">{post.current_group.healer[0]}</span>
+          : <span className="lfg-slot-need">NEED</span>
+        }
+      </div>
+    </div>
+
+    {/* DPS — 3 slots */}
+    <div className="lfg-role-block lfg-role-block--dps">
+      <div className="lfg-role-header">
+        <span className="lfg-role-icon">⚔</span>
+        <span className="lfg-role-label">DPS</span>
+      </div>
+      {[0, 1, 2].map(i => (
+        <div key={i} className="lfg-role-slot">
+          <span className="lfg-dps-label">DPS {i + 1}:</span>
+          {post.current_group.dps?.[i]
+            ? <span className="lfg-slot-name">{post.current_group.dps[i]}</span>
+            : <span className="lfg-slot-need">NEED</span>
+          }
+        </div>
+      ))}
+    </div>
+
+  </div>
+
+  <Link href={`/dungeons/${post.dungeon_slug}`} className="lfg-big-link">
+    Answer the Call
+  </Link>
 </div>
 ```
 
 ```css
-.df-lfg-sidebar {
-  background: rgba(201, 150, 26, 0.08);
-  border: 2px solid rgba(201, 150, 26, 0.5);
-  border-radius: 10px;
-  padding: 1rem 1.25rem;
-  min-width: 240px;
-  max-width: 300px;
+.lfg-big-card {
+  background: var(--be-bg-2);
+  border: 1px solid rgba(201,150,26,0.35);
+  border-radius: 14px;
+  padding: 1.75rem 2rem;
+  margin-bottom: 1.25rem;
 }
 
-.df-lfg-sidebar-title {
-  font-family: 'Cinzel', serif;
-  font-size: 0.8rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
+.lfg-big-dungeon {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(1.4rem, 2.5vw, 2.2rem);
   color: var(--be-gold);
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
+  line-height: 1.2;
 }
 
-.df-lfg-sidebar-post {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  padding: 0.6rem 0;
-  border-top: 1px solid rgba(201,150,26,0.15);
-}
-
-.df-lfg-sidebar-dungeon {
-  font-family: 'Cinzel', serif;
-  font-size: 0.78rem;
-  color: var(--be-gold);
-}
-
-.df-lfg-sidebar-caller,
-.df-lfg-sidebar-window {
+.lfg-big-meta {
   font-family: 'Spectral', serif;
-  font-size: 0.78rem;
+  font-size: 1rem;
   color: var(--be-muted);
   font-style: italic;
-}
-
-.df-lfg-sidebar-group {
-  font-family: 'Cinzel', serif;
-  font-size: 0.68rem;
-  color: var(--be-muted);
+  margin-bottom: 1.25rem;
   display: flex;
-  gap: 0.5rem;
+  gap: 1.5rem;
+  flex-wrap: wrap;
 }
 
-.df-lfg-sidebar-link {
+.lfg-big-roles {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.5fr;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.lfg-role-block {
+  background: var(--be-bg-1);
+  border: 1px solid rgba(201,150,26,0.2);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+}
+
+.lfg-role-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.6rem;
+}
+
+.lfg-role-icon {
+  font-size: 1.2rem;
+}
+
+.lfg-role-label {
   font-family: 'Cinzel', serif;
-  font-size: 0.68rem;
-  color: var(--be-portal);
-  text-decoration: none;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--be-gold);
+}
+
+.lfg-role-slot {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+  font-family: 'Cinzel', serif;
+  font-size: 0.9rem;
+}
+
+.lfg-dps-label {
+  color: var(--be-muted);
+  font-size: 0.8rem;
+  min-width: 48px;
+}
+
+.lfg-slot-name {
+  color: var(--be-ink);
+  font-weight: 600;
+}
+
+.lfg-slot-need {
+  color: #ff4400;
+  font-weight: 700;
+  font-size: 0.9rem;
   letter-spacing: 0.08em;
 }
 
-.df-lfg-sidebar-empty {
-  font-family: 'Spectral', serif;
-  font-style: italic;
-  font-size: 0.8rem;
-  color: var(--be-muted);
+.lfg-big-link {
+  font-family: 'Cinzel', serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.12em;
+  color: var(--be-portal);
+  text-decoration: none;
+  text-transform: uppercase;
 }
 ```
 
-Make the dungeon finder header row a flex layout:
-```css
-.df-header-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 2rem;
-  margin-bottom: 1.5rem;
-}
+---
 
-.df-header-left { flex: 1; }
+## Fix 6 — Role icons: more distinct, better contrast
+
+Replace emoji icons with SVG icons that are clearly distinct:
+
+Tank (shield with a plus/cross): 🛡 — keep but make sure it renders large
+Healer (cross/plus): ✚ — use a distinct plus sign
+DPS (single sword pointing up, not crossed): ⚔ or a single blade
+
+Actually use these Unicode characters that render better:
+- Tank: ⊕ or custom SVG shield
+- Healer: ✙ (heavy Greek cross)
+- DPS: ⚔ (crossed swords)
+
+Better: use inline SVG for each:
+
+```tsx
+const TankIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+    <path d="M10 1L2 5v6c0 4.5 3.3 8.7 8 9.9C14.7 19.7 18 15.5 18 11V5L10 1z"
+      stroke="currentColor" strokeWidth="1.5" fill="rgba(201,150,26,0.2)" />
+    <line x1="10" y1="6" x2="10" y2="14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+    <line x1="6" y1="10" x2="14" y2="10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+);
+
+const HealerIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+    <rect x="8" y="2" width="4" height="16" rx="2" fill="currentColor" opacity="0.85"/>
+    <rect x="2" y="8" width="16" height="4" rx="2" fill="currentColor" opacity="0.85"/>
+  </svg>
+);
+
+const DPSIcon = () => (
+  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+    <line x1="4" y1="16" x2="16" y2="4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+    <path d="M14 3l3 0 0 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <path d="M3 17l2-2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+);
 ```
+
+Apply these in the role blocks. Tank gets gold color, Healer gets
+portal green, DPS gets mage blue so they are all visually distinct.
 
 ---
 
 ## Verification
 
-1. No em dashes anywhere in the codebase (grep confirms zero results)
-2. Dungeon tagline reads "Every den of darkness, every vault of peril. Sorted for your level."
-3. Hall page shows all active LFG posts to all logged-in users
-4. "Dungeon sign-ups coming soon" text is gone
-5. LFG form has day checkboxes and time dropdowns instead of free text
-6. Server time (Mountain) displays live on the form
-7. User's timezone detected and shown with local equivalent
-8. Confirmation screen shows both server time and local time
-9. Dungeons page shows active calls box in top-right area
-10. Active calls update when new LFG posts are submitted
+1. Locked cards show a gold filled pill "Requires Level X" clearly visible
+2. Individual dungeon pages use the same wide layout as the grid
+3. LFG form says "Server Time" everywhere, not MT
+4. Timezone comparison shows even when user is Mountain Time
+5. ActiveLFGCalls component renders on Hall AND My Roster
+6. LFG cards are large. Dungeon name is headline-sized (1.4-2.2rem)
+7. Tank/Healer/DPS show names, not numbers
+8. Requester's name already fills their role slot on creation
+9. Empty slots say NEED in bold orange/red
+10. SVG role icons are clearly distinct and colored differently
 
 ## SQL to run after deploy
 ```sql
-ALTER TABLE public.dungeon_lfg
-  ADD COLUMN IF NOT EXISTS days_available text[] DEFAULT '{}',
-  ADD COLUMN IF NOT EXISTS time_start text,
-  ADD COLUMN IF NOT EXISTS time_end text,
-  ADD COLUMN IF NOT EXISTS timezone_label text;
+-- current_group is already jsonb, no migration needed
+-- Just ensure the INSERT logic in the API stores names not counts
 ```
 
 ## Do not touch
