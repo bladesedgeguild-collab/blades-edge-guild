@@ -34,11 +34,14 @@ export default function GMCorner({ scrollActivate = false }: Props) {
   return (
     <div
       className="rc-gm-corner"
-      style={scrollActivate ? {
-        opacity: visible ? 1 : 0,
-        transition: 'opacity 0.6s ease',
-        animationFillMode: 'both',
-      } : {}}
+      style={{
+        width: 'clamp(400px, 38vw, 580px)',
+        ...(scrollActivate ? {
+          opacity: visible ? 1 : 0,
+          transition: 'opacity 0.6s ease',
+          animationFillMode: 'both',
+        } : {}),
+      }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
@@ -46,14 +49,18 @@ export default function GMCorner({ scrollActivate = false }: Props) {
         className="rc-gm-corner-img"
         alt="Åvatarødys"
       />
-      <div className="rc-gm-quote-overlay">
+
+      {/* Byline in the LEFT dark triangle area */}
+      <div className="rc-gm-byline-left">
+        <span className="rc-gm-name">Åvatarødys</span>
+        <span className="rc-gm-title">Blådes Edge Guild Master</span>
+      </div>
+
+      {/* Quote in the RIGHT narrow parchment column */}
+      <div className="rc-gm-quote-right">
         <blockquote className="rc-gm-quote">
           &ldquo;{GM_MESSAGE}&rdquo;
         </blockquote>
-        <div className="rc-gm-byline">
-          <span className="rc-gm-name">Åvatarødys</span>
-          <span className="rc-gm-title">Blådes Edge Guild Master</span>
-        </div>
       </div>
     </div>
   )

@@ -60,9 +60,19 @@ function CalendarBadge({ daysAvailable, timeStart }: {
   timeStart: string | null
 }) {
   const { label, countdown } = getNextOccurrence(daysAvailable, timeStart)
+  const isMultiDay = (daysAvailable?.length ?? 0) > 1 && !daysAvailable?.includes('Any')
+
   return (
     <div className="lfg-cal-badge">
-      <div className="lfg-cal-day">{label}</div>
+      {isMultiDay ? (
+        <div className="lfg-cal-days-row">
+          {daysAvailable!.map(day => (
+            <span key={day} className="lfg-cal-day-pill">{day.toUpperCase()}</span>
+          ))}
+        </div>
+      ) : (
+        <div className="lfg-cal-day">{label}</div>
+      )}
       {countdown && <div className="lfg-cal-countdown">{countdown}</div>}
     </div>
   )

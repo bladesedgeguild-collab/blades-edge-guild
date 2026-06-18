@@ -2640,7 +2640,7 @@ input[type=number] { -moz-appearance: textfield; }
   to   { transform: scale(1.06); }
 }
 
-/* ── GM Corner (Fix 5 & 6) — shared with recruit page ── */
+/* ── GM Corner — shared with recruit page ── */
 .rc-gm-corner {
   position: fixed;
   bottom: 0;
@@ -2656,6 +2656,7 @@ input[type=number] { -moz-appearance: textfield; }
   display: block;
 }
 
+/* Original overlay layout (recruit page) */
 .rc-gm-quote-overlay {
   position: absolute;
   bottom: 12%;
@@ -2667,29 +2668,98 @@ input[type=number] { -moz-appearance: textfield; }
 .rc-gm-quote {
   font-family: 'Spectral', serif;
   font-style: italic;
-  font-size: clamp(0.7rem, 1.1vw, 0.9rem);
+  font-size: clamp(0.72rem, 1vw, 0.92rem);
   color: rgba(240, 220, 170, 0.95);
   line-height: 1.55;
-  margin: 0 0 0.4rem;
+  margin: 0;
   quotes: none;
 }
 
+/* Larger name/title for Hall/homepage GMCorner (recruit.css overrides to smaller on /recruit) */
 .rc-gm-name {
   display: block;
   font-family: 'Cinzel', serif;
-  font-size: clamp(0.65rem, 0.9vw, 0.8rem);
-  color: #c9961a;
+  font-size: clamp(0.75rem, 1.1vw, 1rem);
+  color: var(--be-gold, #c9961a);
   letter-spacing: 0.08em;
 }
 
 .rc-gm-title {
   display: block;
   font-family: 'Cinzel', serif;
-  font-size: clamp(0.55rem, 0.75vw, 0.68rem);
+  font-size: clamp(0.6rem, 0.85vw, 0.78rem);
   color: rgba(201, 150, 26, 0.65);
   letter-spacing: 0.06em;
 }
 
+/* Left dark triangle — name and title (Hall/homepage GMCorner) */
+.rc-gm-byline-left {
+  position: absolute;
+  bottom: 18%;
+  left: 6%;
+  width: 30%;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+/* Right parchment column — quote (Hall/homepage GMCorner) */
+.rc-gm-quote-right {
+  position: absolute;
+  bottom: 14%;
+  right: 5%;
+  width: 28%;
+  text-align: right;
+}
+
 @media (max-width: 900px) {
   .rc-gm-corner { display: none; }
+}
+
+/* ── LFG Calendar Badge — hover card larger size (Fix 2) ── */
+.lfg-hover-card .lfg-cal-badge {
+  top: 1rem;
+  right: 1rem;
+}
+
+.lfg-hover-card .lfg-cal-day {
+  font-size: 1.1rem;
+  padding: 0.35rem 0.85rem;
+  border-radius: 6px;
+  letter-spacing: 0.1em;
+}
+
+.lfg-hover-card .lfg-cal-countdown {
+  font-size: 0.9rem;
+  padding: 0.25rem 0.7rem;
+  border-radius: 6px;
+  text-align: center;
+}
+
+.lfg-hover-card .lfg-cal-day-pill {
+  font-size: 0.88rem;
+  padding: 0.28rem 0.65rem;
+  border-radius: 5px;
+}
+
+/* ── LFG Calendar Badge — multi-day pills (Fix 3) ── */
+.lfg-cal-days-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem;
+  justify-content: flex-end;
+  max-width: 120px;
+}
+
+.lfg-cal-day-pill {
+  background: var(--be-gold, #c9961a);
+  color: #1a1208;
+  font-family: 'Cinzel', serif;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 0.15rem 0.35rem;
+  border-radius: 3px;
+  white-space: nowrap;
 }
