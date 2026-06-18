@@ -3,11 +3,11 @@
 import { useState, useEffect } from 'react'
 
 const AVATAR_IMAGES = [
-  '/images/AvatarOdys_speaking1_withScroll.png',
-  '/images/AvatarOdys_speaking2_withScroll.png',
-  '/images/AvatarOdys_speaking3_withScroll.png',
-  '/images/AvatarOdys_speaking4_withScroll.png',
-  '/images/AvatarOdys_speaking5_withScroll.png',
+  '/images/AvatarOdys_speaking1_withScroll_noVertBar.png',
+  '/images/AvatarOdys_speaking2_withScroll_noVertBar.png',
+  '/images/AvatarOdys_speaking3_withScroll_noVertBar.png',
+  '/images/AvatarOdys_speaking4_withScroll_noVertBar.png',
+  '/images/AvatarOdys_speaking5_withScroll_noVertBar.png',
 ]
 
 const GM_MESSAGE = "Thanks for coming to the guild website! I am currently working on it so let me know of issues!"
@@ -53,7 +53,8 @@ export default function GMCorner({ scrollActivate = false }: Props) {
       {/* Byline in the LEFT dark triangle area */}
       <div className="rc-gm-byline-left">
         <span className="rc-gm-name">Åvatarødys</span>
-        <span className="rc-gm-title">Blådes Edge Guild Master</span>
+        <span className="rc-gm-guild">Blådes Edge</span>
+        <span className="rc-gm-title">Guild Master</span>
       </div>
 
       {/* Quote in the RIGHT narrow parchment column */}

@@ -22,12 +22,12 @@ const CYCLING_IMAGES = [
 ]
 
 const AVATAR_PER_Q = [
-  '/images/AvatarOdys_speaking1_withScroll.png',
-  '/images/AvatarOdys_speaking4_withScroll.png',
-  '/images/AvatarOdys_speaking2_withScroll.png',
-  '/images/AvatarOdys_speaking5_withScroll.png',
-  '/images/AvatarOdys_speaking3_withScroll.png',
-  '/images/AvatarOdys_speaking4_withScroll.png',
+  '/images/AvatarOdys_speaking1_withScroll_noVertBar.png',
+  '/images/AvatarOdys_speaking4_withScroll_noVertBar.png',
+  '/images/AvatarOdys_speaking2_withScroll_noVertBar.png',
+  '/images/AvatarOdys_speaking5_withScroll_noVertBar.png',
+  '/images/AvatarOdys_speaking3_withScroll_noVertBar.png',
+  '/images/AvatarOdys_speaking4_withScroll_noVertBar.png',
 ]
 
 const PERK_IMAGES: Record<string, string> = {

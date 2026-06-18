@@ -2692,24 +2692,32 @@ input[type=number] { -moz-appearance: textfield; }
   letter-spacing: 0.06em;
 }
 
-/* Left dark triangle — name and title (Hall/homepage GMCorner) */
+/* Left triangle — name, guild, title (Hall/homepage GMCorner) */
 .rc-gm-byline-left {
   position: absolute;
-  bottom: 18%;
+  bottom: 100px;
   left: 6%;
-  width: 30%;
+  width: 32%;
   text-align: left;
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.15rem;
+}
+
+.rc-gm-guild {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(0.65rem, 0.9vw, 0.82rem);
+  color: rgba(240, 220, 170, 0.85);
+  letter-spacing: 0.06em;
+  display: block;
 }
 
 /* Right parchment column — quote (Hall/homepage GMCorner) */
 .rc-gm-quote-right {
   position: absolute;
-  bottom: 14%;
-  right: 5%;
-  width: 28%;
+  bottom: calc(14% + 300px);
+  right: calc(5% + 25px);
+  width: 32%;
   text-align: right;
 }
 
