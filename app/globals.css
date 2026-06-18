@@ -2425,6 +2425,26 @@ input[type=number] { -moz-appearance: textfield; }
   align-items: center;
 }
 
+/* ── Hall page full-width LFG row (between stats row and feed/upcoming row) ── */
+.hall-lfg-full {
+  width: 100%;
+  margin: 0.25rem 0;
+}
+
+.hall-lfg-full .lfg-mini-grid-title {
+  font-size: 0.8rem;
+}
+
+.hall-lfg-full .lfg-mini-grid {
+  overflow-y: visible;
+}
+
+@media (max-width: 900px) {
+  .hall-lfg-full .lfg-mini-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
 /* ── Dungeons page full-width LFG section ── */
 .df-lfg-full-section {
   width: 100%;
@@ -2487,6 +2507,25 @@ input[type=number] { -moz-appearance: textfield; }
 }
 
 /* ── Inline character assignment form ── */
+.lfg-assign-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lfg-assign-prompt {
+  font-family: 'Cinzel', serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: var(--be-muted, #8a7a5a);
+  margin: 0;
+}
+
+.lfg-assign-btns {
+  display: flex;
+  gap: 6px;
+}
+
 .lfg-assign-form {
   display: flex;
   align-items: center;
