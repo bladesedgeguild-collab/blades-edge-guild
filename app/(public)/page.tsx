@@ -9,6 +9,7 @@ import { CtaLoginPanel } from '@/components/landing/CtaLoginPanel'
 import { CinematicRoster, type RosterChar } from '@/components/landing/CinematicRoster'
 import { CLASS_COLORS, CharacterClass } from '@/types'
 import { createClient } from '@supabase/supabase-js'
+import GMCorner from '@/components/GMCorner'
 
 const AARON_CHARS = new Set([
   'Åvatarødys', 'Guildßank', 'Sumkalimdor', 'Sumwinter', 'Sumzulgurub',
@@ -418,6 +419,8 @@ export default async function LandingPage() {
           </p>
         </div>
       </section>
+
+      <GMCorner scrollActivate />
     </div>
   )
 }

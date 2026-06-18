@@ -1,10 +1,11 @@
 import type { CSSProperties } from 'react'
-import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { CharacterClass } from '@/types'
 import ActiveLFGCalls from '@/components/ActiveLFGCalls'
 import LFGMiniBox from '@/components/LFGMiniBox'
+import CampaignBanner from '@/components/CampaignBanner'
+import GMCorner from '@/components/GMCorner'
 
 type MainChar = {
   id: string
@@ -188,45 +189,7 @@ export default async function DashboardPage() {
       <div className="hall-main-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20 }}>
 
         {/* Campaign banner */}
-        <div style={{
-          ...tile,
-          minHeight: 260,
-          position: 'relative',
-          overflow: 'hidden',
-          backgroundImage: `linear-gradient(95deg, rgba(10,8,5,0.95) 0%, rgba(10,8,5,0.82) 38%, rgba(10,8,5,0.4) 70%, rgba(10,8,5,0.15) 100%), url('/images/BladesEdge_DiscordServerBanner.jpg')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}>
-          <div style={{
-            position: 'absolute', top: 16, right: 16,
-            display: 'flex', alignItems: 'center', gap: 6,
-            padding: '4px 10px',
-            backgroundColor: 'rgba(10,8,5,0.75)',
-            backdropFilter: 'blur(4px)',
-            border: '1px solid rgba(61,46,21,0.5)',
-            borderRadius: 2,
-          }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#4ade80', display: 'inline-block', flexShrink: 0 }} />
-            <span style={{ fontFamily: 'var(--be-font-display)', fontSize: '0.6rem', letterSpacing: '0.15em', color: '#4ade80' }}>ONLINE</span>
-          </div>
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: '30%', padding: 24 }}>
-            <p style={{ ...eyebrow, color: 'var(--be-portal)' }}>Current Campaign</p>
-            <h2 style={{ fontFamily: 'var(--be-font-display)', fontSize: '1.5rem', color: '#f0e6c8', margin: '0 0 10px', lineHeight: 1.2 }}>
-              Welcome, New Guildies!
-            </h2>
-            <p style={{ fontFamily: "'Spectral', serif", fontSize: '0.9rem', color: 'rgba(138,122,90,0.8)', margin: '0 0 18px', lineHeight: 1.5 }}>
-              The guild is in heavy recruitment mode and reactivating old guildies before the name change. Our goal is 200+ active members, enough to have guildies online at nearly all times, day or night. The more the merrier. Spread the word.
-            </p>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <Link href="/dungeons" style={{ padding: '9px 20px', backgroundColor: 'var(--be-gold)', color: '#0d0b07', borderRadius: 'var(--be-radius)', fontFamily: 'var(--be-font-display)', fontSize: '0.72rem', letterSpacing: '0.08em', textDecoration: 'none', display: 'inline-block' }}>
-                Sign up for raid
-              </Link>
-              <Link href="/roster" style={{ padding: '9px 20px', backgroundColor: 'transparent', color: '#f0e6c8', border: '1px solid rgba(201,150,26,0.4)', borderRadius: 'var(--be-radius)', fontFamily: 'var(--be-font-display)', fontSize: '0.72rem', letterSpacing: '0.08em', textDecoration: 'none', display: 'inline-block' }}>
-                View roster
-              </Link>
-            </div>
-          </div>
-        </div>
+        <CampaignBanner />
 
         {/* Quick stats column */}
         <div className="hall-stats-grid" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -309,6 +272,8 @@ export default async function DashboardPage() {
 
       {/* ── Active Dungeon Calls (full detail cards) ── */}
       <ActiveLFGCalls />
+
+      <GMCorner />
     </div>
   )
 }

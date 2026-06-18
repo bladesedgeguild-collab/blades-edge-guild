@@ -1,331 +1,380 @@
-# TASK: LFG layout + answer the call + Hall placement
+# TASK: LFG polish — calendar badge, server time label, hover notes size
 
 ---
 
-## Fix 1 — /dungeons: Active LFG Calls fills the FULL WIDTH above the dungeon grid
+## Fix 1 — Calendar badge on all LFG cards
 
-Currently the LFG calls are in a narrow sidebar column.
-They must occupy the ENTIRE width above the level selector and dungeon grid.
-4 columns wide (matching the 4-column dungeon grid), 2 rows maximum,
-then scroll internally.
+Every LFG card (mini and full) gets a small calendar graphic in the
+top-right corner showing two stacked pills:
+- Top pill: next upcoming day abbreviation + date (e.g. "TUE 23")
+- Bottom pill: countdown until the time window opens
 
-Remove the sidebar layout entirely. Replace with a full-width block:
-
-```tsx
-{/* FULL WIDTH LFG section — above the level selector */}
-{activeLFG.length > 0 && (
-  <section className="df-lfg-full-section">
-    <h2 className="df-lfg-full-title">Active LFG Calls</h2>
-    <div className="df-lfg-full-grid">
-      {activeLFG.map(post => (
-        <LFGMiniCard
-          key={post.id}
-          post={post}
-          onHoverEnter={handleLFGHover}
-          onHoverLeave={() => setHoveredLFG(null)}
-          onClick={() => router.push(`/dungeons/${post.dungeon_slug}?lfg=${post.id}`)}
-        />
-      ))}
-    </div>
-  </section>
-)}
-
-{/* Level selector + continent tabs + dungeon grid below */}
-<div className="df-level-selector">...</div>
-```
-
-```css
-.df-lfg-full-section {
-  width: 100%;
-  margin-bottom: 1.5rem;
-}
-
-.df-lfg-full-title {
-  font-family: 'Cinzel', serif;
-  font-size: 0.8rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--be-gold);
-  margin-bottom: 0.75rem;
-}
-
-.df-lfg-full-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);  /* match dungeon grid columns */
-  gap: 0.75rem;
-  max-height: calc(2 * 150px + 0.75rem);
-  overflow-y: auto;
-}
-
-@media (max-width: 900px) {
-  .df-lfg-full-grid { grid-template-columns: repeat(2, 1fr); }
-}
-```
-
----
-
-## Fix 2 — My Roster: remove secondary scroll on Active Dungeon Calls
-
-The Active Dungeon Calls section on My Roster has its own scroll bar
-inside the section. Remove any max-height and overflow from the
-LFG grid container specifically on My Roster:
-
-```css
-/* My Roster LFG strip — no internal scroll, let page scroll */
-.roster-lfg-strip .roster-lfg-row {
-  max-height: none;
-  overflow: visible;
-}
-```
-
-Or apply a `variant="roster"` prop to ActiveLFGCalls that skips
-the max-height constraint:
-
-```tsx
-<ActiveLFGCalls
-  posts={activeLFG}
-  variant="roster"  /* no internal scroll */
-/>
-```
+### Calculate the next occurrence
 
 ```ts
-// In ActiveLFGCalls:
-const maxHeight = variant === 'roster' ? 'none' : 'calc(2 * 150px + 0.75rem)';
-```
-
----
-
-## Fix 3 — Answer the Call: fix link + add character assignment
-
-### A — Fix "ANSWER THE CALL" link going to wrong URL
-Find the green "ANSWER THE CALL" text/button in the LFG card.
-It must navigate to /dungeons/[slug]?lfg=[id], not /dungeons/[slug].
-
-```tsx
-// Wrong:
-<Link href={`/dungeons/${post.dungeon_slug}`}>Answer the Call</Link>
-
-// Correct:
-<Link href={`/dungeons/${post.dungeon_slug}?lfg=${post.id}`}>
-  Answer the Call
-</Link>
-```
-
-Find every instance of this link and ensure the ?lfg= param is included.
-
-### B — Add character assignment on the dungeon page
-
-When a user views /dungeons/[slug]?lfg=[id] and they are NOT the
-post owner, show clickable NEED slots that let them assign a character.
-
-Each NEED slot becomes a button. Clicking it opens an inline dropdown:
-
-```tsx
-const NeedSlot = ({ role, postId, currentNames, userChars }) => {
-  const [assigning, setAssigning] = useState(false);
-  const [selectedChar, setSelectedChar] = useState('');
-
-  if (currentNames?.length >= roleMax) {
-    return <span className="lfg-slot-name">{currentNames[idx]}</span>;
+const getNextOccurrence = (
+  daysAvailable: string[],
+  timeStart: string
+): { label: string; countdown: string } => {
+  if (!daysAvailable?.length || daysAvailable.includes('Any') || !timeStart) {
+    return { label: 'ANY DAY', countdown: 'Flexible' };
   }
 
-  return assigning ? (
-    <div className="lfg-assign-form">
-      <select
-        value={selectedChar}
-        onChange={e => setSelectedChar(e.target.value)}
-        className="lfg-assign-select"
-      >
-        <option value="">Choose character...</option>
-        {userChars.map(c => (
-          <option key={c.id} value={c.id}>
-            {c.name} (Lvl {c.level} {c.class})
-          </option>
-        ))}
-      </select>
-      <button
-        className="lfg-assign-confirm"
-        disabled={!selectedChar}
-        onClick={() => handleAssign(postId, role, selectedChar)}
-      >
-        Join
-      </button>
-      <button className="lfg-assign-cancel" onClick={() => setAssigning(false)}>
-        Back
-      </button>
+  const DAY_MAP: Record<string, number> = {
+    Sun:0, Mon:1, Tue:2, Wed:3, Thu:4, Fri:5, Sat:6
+  };
+
+  const now = new Date();
+  // Convert timeStart (e.g. "7:00 PM") to hours/minutes in MT
+  const [time, ampm] = timeStart.split(' ');
+  const [h, m] = time.split(':').map(Number);
+  let hours = h;
+  if (ampm === 'PM' && h !== 12) hours += 12;
+  if (ampm === 'AM' && h === 12) hours = 0;
+
+  // Find the soonest upcoming day+time in MT
+  let soonest: Date | null = null;
+  for (const day of daysAvailable) {
+    const target = new Date();
+    // Set to MT timezone offset (UTC-6 standard, UTC-7 MDT)
+    const mtOffset = -6; // adjust for MDT if needed
+    const targetDay = DAY_MAP[day];
+    if (targetDay === undefined) continue;
+
+    const daysUntil = (targetDay - now.getDay() + 7) % 7;
+    target.setDate(target.getDate() + daysUntil);
+    target.setHours(hours + Math.abs(mtOffset), m, 0, 0);
+
+    // If same day but time already passed, push to next week
+    if (target <= now) target.setDate(target.getDate() + 7);
+
+    if (!soonest || target < soonest) soonest = target;
+  }
+
+  if (!soonest) return { label: 'SOON', countdown: '' };
+
+  const dayAbbr = ['SUN','MON','TUE','WED','THU','FRI','SAT'][soonest.getDay()];
+  const dateNum = soonest.getDate();
+  const label = `${dayAbbr} ${dateNum}`;
+
+  // Countdown
+  const diff = soonest.getTime() - now.getTime();
+  const totalHours = Math.floor(diff / (1000 * 60 * 60));
+  const days = Math.floor(totalHours / 24);
+  const hrs = totalHours % 24;
+
+  let countdown = '';
+  if (days > 0) countdown = `in ${days}d ${hrs}h`;
+  else if (hrs > 0) countdown = `in ${hrs}h`;
+  else countdown = 'Starting soon';
+
+  return { label, countdown };
+};
+```
+
+### Calendar badge component
+
+```tsx
+const CalendarBadge = ({ daysAvailable, timeStart }: {
+  daysAvailable: string[];
+  timeStart: string;
+}) => {
+  const { label, countdown } = getNextOccurrence(daysAvailable, timeStart);
+
+  return (
+    <div className="lfg-cal-badge">
+      <div className="lfg-cal-day">{label}</div>
+      {countdown && (
+        <div className="lfg-cal-countdown">{countdown}</div>
+      )}
     </div>
-  ) : (
-    <button
-      className="lfg-slot-need-btn"
-      onClick={() => setAssigning(true)}
-    >
-      NEED — Click to Join
-    </button>
   );
 };
 ```
 
-The default selected character is the user's main:
-```ts
-const defaultChar = userChars.find(c => c.is_main) ?? userChars[0];
-useEffect(() => {
-  if (defaultChar) setSelectedChar(defaultChar.id);
-}, [defaultChar]);
-```
-
-### C — API: PATCH /api/dungeons/lfg/[id]/join
-
-```ts
-export async function PATCH(req, { params }) {
-  const { role, characterId, characterName } = await req.json();
-  // role: 'tank' | 'healer' | 'dps'
-
-  const { data: post } = await supabaseAdmin
-    .from('dungeon_lfg')
-    .select('current_group')
-    .eq('id', params.id)
-    .single();
-
-  const group = post.current_group;
-  const roleKey = role.toLowerCase();
-
-  // Check slot availability
-  const max = roleKey === 'dps' ? 3 : 1;
-  if ((group[roleKey]?.length ?? 0) >= max) {
-    return Response.json({ error: 'Slot full' }, { status: 400 });
-  }
-
-  group[roleKey] = [...(group[roleKey] ?? []), characterName];
-
-  await supabaseAdmin
-    .from('dungeon_lfg')
-    .update({ current_group: group })
-    .eq('id', params.id);
-
-  // Also record in dungeon_lfg_responses as 'accepted'
-  await supabaseAdmin
-    .from('dungeon_lfg_responses')
-    .upsert({
-      lfg_id: params.id,
-      user_id: userId,
-      response: 'accepted',
-      character_name: characterName,
-    });
-
-  return Response.json({ success: true, group });
-}
-```
-
 ```css
-.lfg-slot-need-btn {
-  font-family: 'Cinzel', serif;
-  font-size: 0.85rem;
-  color: #ff4400;
-  font-weight: 700;
-  background: rgba(255,68,0,0.08);
-  border: 1px solid rgba(255,68,0,0.3);
-  border-radius: 6px;
-  padding: 0.35rem 0.75rem;
-  cursor: pointer;
-  transition: all 150ms ease;
-  letter-spacing: 0.05em;
-}
-.lfg-slot-need-btn:hover {
-  background: rgba(255,68,0,0.15);
-  border-color: rgba(255,68,0,0.6);
-}
-
-.lfg-assign-form {
+.lfg-cal-badge {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  align-items: center;
+  gap: 0.2rem;
 }
-.lfg-assign-select {
-  font-family: 'Spectral', serif;
-  font-size: 0.85rem;
-  padding: 0.4rem 0.5rem;
-  background: var(--be-bg-2);
-  border: 1px solid rgba(201,150,26,0.3);
-  color: var(--be-ink);
-  border-radius: 6px;
-}
-.lfg-assign-confirm {
+
+.lfg-cal-day {
   background: var(--be-gold);
   color: #1a1208;
   font-family: 'Cinzel', serif;
-  font-size: 0.75rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  border: none;
-  border-radius: 6px;
-  padding: 0.35rem 0.85rem;
-  cursor: pointer;
+  letter-spacing: 0.08em;
+  padding: 0.18rem 0.45rem;
+  border-radius: 4px;
+  white-space: nowrap;
 }
-.lfg-assign-confirm:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-.lfg-assign-cancel {
-  background: none;
-  border: none;
-  font-family: 'Cinzel', serif;
-  font-size: 0.7rem;
+
+.lfg-cal-countdown {
+  background: rgba(201,150,26,0.12);
+  border: 1px solid rgba(201,150,26,0.3);
   color: var(--be-muted);
-  cursor: pointer;
-  padding: 0;
+  font-family: 'Spectral', serif;
+  font-style: italic;
+  font-size: 0.65rem;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  white-space: nowrap;
 }
 ```
+
+Add `position: relative` to the card containers so the badge
+anchors correctly. Apply CalendarBadge to:
+- LFGMiniCard
+- The full lfg-big-card
+- The hover popup card
 
 ---
 
-## Fix 4 — Hall page: compact LFG block moves ABOVE Upcoming
+## Fix 2 — Remove floating "Server Time:" label, fix dropdown labels
 
-The compact LFG mini box must be visible without scrolling.
-It replaces the space currently occupied by Upcoming in the right column.
-Upcoming moves below it.
+### Remove the orphaned label
+Find the element in the LFG form that shows "Server Time:" as a
+standalone label/button above the day checkboxes.
+Delete it entirely.
 
-New right column order (top to bottom):
-1. Stat tiles (Your Characters, Guildies on Site) — unchanged
-2. Active LFG Calls compact box (if posts exist)
-3. Upcoming calendar
+### Update time dropdown labels
+Find the two time dropdowns (start time and end time).
+Their labels currently say "(Server)" — change to "(Server Time)":
 
 ```tsx
-{/* Right column */}
-<div className="hall-right-col">
-  <StatTiles yourChars={yourChars} guildies={guildies} />
+// Before:
+<label>Start Time (Server)</label>
+<label>End Time (Server)</label>
 
-  {activeLFG.length > 0 && (
-    <div className="hall-lfg-compact">
-      <h3 className="hall-lfg-compact-title">Active Dungeon Calls</h3>
-      {activeLFG.slice(0, 4).map(post => (
-        <LFGMiniCard key={post.id} post={post} ... />
-      ))}
-    </div>
-  )}
-
-  <Upcoming events={events} />
-</div>
+// After:
+<label className="lfg-field-label">Start Time (Server Time)</label>
+<label className="lfg-field-label">End Time (Server Time)</label>
 ```
 
-The compact box uses the same LFGMiniCard as everywhere else.
-Max 4 cards shown (scroll within the box if more).
-When no active posts: Upcoming sits directly below stat tiles as before.
+The time info is now only stated once, clearly, on the dropdowns
+themselves. No redundant floating label.
+
+---
+
+## Fix 3 — Hover card: notes section much larger
+
+In the hover popup, the notes section currently renders at small
+italic text. Make it prominent and impossible to miss:
+
+```css
+.lfg-hover-note {
+  border-top: 1px solid rgba(201,150,26,0.2);
+  padding-top: 0.85rem;
+  margin-top: 0.75rem;
+}
+
+.lfg-hover-note-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--be-gold);
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.lfg-hover-note-text {
+  font-family: 'Spectral', serif;
+  font-size: 1.15rem;       /* was ~0.85rem — much larger */
+  font-style: italic;
+  color: var(--be-ink);     /* full ink color, not muted */
+  line-height: 1.6;
+  margin: 0;
+}
+```
 
 ---
 
 ## Verification
 
-1. /dungeons: LFG Calls span the FULL WIDTH above the dungeon grid, 4 columns
-2. My Roster: no secondary scrollbar, page scrolls normally through all cards
-3. "ANSWER THE CALL" link goes to /dungeons/[slug]?lfg=[id] everywhere
-4. On that page, NEED slots are clickable buttons
-5. Clicking NEED opens a character dropdown defaulting to user's main
-6. Selecting a character and clicking Join updates the group roster
-7. Character name appears in the slot after joining
-8. Hall compact LFG box appears ABOVE Upcoming, below stat tiles
-9. Hall compact LFG box only renders when posts exist
-10. When no posts: Upcoming is directly below stat tiles (no empty space)
+1. Every LFG card shows a gold "TUE 23" pill in top-right corner
+2. Below it a muted "in 2d 4h" or "in 3h" countdown pill
+3. "Any Day" posts show "ANY DAY / Flexible" badge
+4. No standalone "Server Time:" label in the LFG form
+5. Time dropdowns say "Start Time (Server Time)" and "End Time (Server Time)"
+6. Hovering any LFG card shows the note at 1.15rem full ink color
+7. Badge appears on mini cards, full cards, and hover popup
 
 ## Do not touch
 - /recruit page
 - Oath cinematic
 - animation-fill-mode: both on all animations
+
+---
+
+## Fix 4 — Current Campaign: rotating background images
+
+The Campaign tile on the Hall page currently uses a single static
+BladesEdge_DiscordServerBanner.jpg as its background.
+
+Replace with a slow crossfading rotation of these four images:
+- /images/GuildiesInShattrath.jpg
+- /images/Recruiting_TophinDarkshire.jpg
+- /images/Summon_toBlastedLands.jpg
+- /images/Summon_toWinterspring.jpg
+
+Use the same Ken Burns + crossfade pattern from the /recruit page:
+each image slow-zooms (scale 1.0 to 1.06 over ~14s) and crossfades
+over 3s into the next. Cycle continuously.
+
+```tsx
+const CAMPAIGN_IMAGES = [
+  '/images/GuildiesInShattrath.jpg',
+  '/images/Recruiting_TophinDarkshire.jpg',
+  '/images/Summon_toBlastedLands.jpg',
+  '/images/Summon_toWinterspring.jpg',
+];
+
+// Rotate every 12 seconds
+const [activeBg, setActiveBg] = useState(0);
+useEffect(() => {
+  const t = setInterval(() => setActiveBg(i => (i + 1) % CAMPAIGN_IMAGES.length), 12000);
+  return () => clearInterval(t);
+}, []);
+```
+
+```css
+.campaign-bg-slide {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transition: opacity 3s ease-in-out;
+  animation: campaign-kenburns 14s ease-in-out infinite alternate;
+  animation-fill-mode: both;
+}
+.campaign-bg-slide.is-active { opacity: 1; }
+
+@keyframes campaign-kenburns {
+  from { transform: scale(1.0); }
+  to   { transform: scale(1.06); }
+}
+```
+
+Keep the existing dark overlay on top so text stays readable.
+
+---
+
+## Fix 5 — AvatarOdys GM corner on Hall page
+
+Add the same bottom-right corner component from the /recruit page
+to the Hall/dashboard page.
+
+### Image rotation (one per page load, not cycling)
+Pick one image randomly on mount:
+```ts
+const AVATAR_IMAGES = [
+  '/images/AvatarOdys_speaking1_withScroll.png',
+  '/images/AvatarOdys_speaking2_withScroll.png',
+  '/images/AvatarOdys_speaking3_withScroll.png',
+  '/images/AvatarOdys_speaking4_withScroll.png',
+  '/images/AvatarOdys_speaking5_withScroll.png',
+];
+
+const [avatarImg] = useState(
+  () => AVATAR_IMAGES[Math.floor(Math.random() * AVATAR_IMAGES.length)]
+);
+```
+
+### Message text (static for now)
+```ts
+const GM_MESSAGE = "Thanks for coming to the guild website! I am currently working on it so let me know of issues!";
+```
+
+### Component — identical layout to /recruit quiz corner
+
+```tsx
+<div className="rc-gm-corner">
+  <img
+    src={avatarImg}
+    className="rc-gm-corner-img"
+    alt="Åvatarødys"
+  />
+  <div className="rc-gm-quote-overlay">
+    <blockquote className="rc-gm-quote">
+      "{GM_MESSAGE}"
+    </blockquote>
+    <div className="rc-gm-byline">
+      <span className="rc-gm-name">Åvatarødys</span>
+      <span className="rc-gm-title">Blådes Edge Guild Master</span>
+    </div>
+  </div>
+</div>
+```
+
+Reuse the existing `.rc-gm-corner` CSS from the recruit page — import
+or copy those styles so they match exactly. The component should look
+identical: scroll PNG flush in bottom-right corner, quote text overlaid
+on the parchment area, name and title below the quote.
+
+Hide on mobile (max-width: 900px).
+
+---
+
+## Fix 6 — Homepage: AvatarOdys corner only appears after scrolling
+
+On the landing page (app/(public)/page.tsx), add the same AvatarOdys
+GM corner BUT only render it after the user has scrolled down enough
+that the bottom-left hero text ("Est. 2023 · Burning Crusade Classic")
+is no longer visible in the viewport.
+
+```tsx
+const [showGMCorner, setShowGMCorner] = useState(false);
+
+useEffect(() => {
+  const handleScroll = () => {
+    // Show after scrolling past ~80% of viewport height
+    setShowGMCorner(window.scrollY > window.innerHeight * 0.8);
+  };
+  window.addEventListener('scroll', handleScroll, { passive: true });
+  return () => window.removeEventListener('scroll', handleScroll);
+}, []);
+```
+
+```tsx
+{showGMCorner && (
+  <div className="rc-gm-corner" style={{
+    opacity: showGMCorner ? 1 : 0,
+    transition: 'opacity 0.6s ease',
+    animationFillMode: 'both',
+  }}>
+    <img src={avatarImg} className="rc-gm-corner-img" alt="Åvatarødys" />
+    <div className="rc-gm-quote-overlay">
+      <blockquote className="rc-gm-quote">"{GM_MESSAGE}"</blockquote>
+      <div className="rc-gm-byline">
+        <span className="rc-gm-name">Åvatarødys</span>
+        <span className="rc-gm-title">Blådes Edge Guild Master</span>
+      </div>
+    </div>
+  </div>
+)}
+```
+
+Fades in smoothly at 0.6s once the scroll threshold is passed.
+Fades back out if user scrolls back to the top.
+
+---
+
+## Additional verification
+
+8. Campaign tile shows rotating background images with Ken Burns
+9. Crossfade between images takes ~3 seconds
+10. Hall page shows AvatarOdys corner with random speaking image
+11. GM message text matches exactly
+12. Name "Åvatarødys" and title "Blådes Edge Guild Master" visible in parchment area
+13. Homepage: corner does NOT show on initial load
+14. Homepage: corner fades in after user scrolls ~80vh down
+15. Homepage: corner fades out if user scrolls back to top
+16. Mobile: GM corner hidden on all pages (max-width 900px)

@@ -123,7 +123,7 @@ function FeaturedEditForm({
       </div>
       <div className="lfg-time-row">
         <div className="dd-lfg-field" style={{ flex: 1 }}>
-          <label className="dd-lfg-label lfg-field-label">Start Time (Server)</label>
+          <label className="dd-lfg-label lfg-field-label">Start Time (Server Time)</label>
           <select className="dd-lfg-select lfg-time-select" value={timeStart} onChange={e => setTimeStart(e.target.value)}>
             <option value="">Select...</option>
             {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
@@ -131,7 +131,7 @@ function FeaturedEditForm({
         </div>
         <span className="lfg-time-to">to</span>
         <div className="dd-lfg-field" style={{ flex: 1 }}>
-          <label className="dd-lfg-label lfg-field-label">End Time (Server)</label>
+          <label className="dd-lfg-label lfg-field-label">End Time (Server Time)</label>
           <select className="dd-lfg-select lfg-time-select" value={timeEnd} onChange={e => setTimeEnd(e.target.value)}>
             <option value="">Select...</option>
             {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
@@ -783,25 +783,6 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
                       </select>
                     </div>
 
-                    {/* Server time */}
-                    <div className="lfg-server-time">
-                      <span className="lfg-server-label">Server Time:</span>
-                      <span className="lfg-server-value" id="server-time-display" />
-                      <script dangerouslySetInnerHTML={{ __html: `
-                        function updateServerTime() {
-                          var now = new Date();
-                          var st = now.toLocaleTimeString('en-US', {
-                            timeZone: 'America/Denver',
-                            hour: '2-digit', minute: '2-digit', hour12: true
-                          });
-                          var el = document.getElementById('server-time-display');
-                          if (el) el.textContent = st;
-                        }
-                        updateServerTime();
-                        setInterval(updateServerTime, 10000);
-                      `}} />
-                    </div>
-
                     {/* Days */}
                     <div className="dd-lfg-field">
                       <label className="dd-lfg-label lfg-field-label">Day(s) Available</label>
@@ -835,7 +816,7 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
                     {/* Time range */}
                     <div className="lfg-time-row">
                       <div className="dd-lfg-field" style={{ flex: 1 }}>
-                        <label className="dd-lfg-label lfg-field-label">Start Time (Server)</label>
+                        <label className="dd-lfg-label lfg-field-label">Start Time (Server Time)</label>
                         <select
                           className="dd-lfg-select lfg-time-select"
                           value={timeStart}
@@ -847,7 +828,7 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
                       </div>
                       <span className="lfg-time-to">to</span>
                       <div className="dd-lfg-field" style={{ flex: 1 }}>
-                        <label className="dd-lfg-label lfg-field-label">End Time (Server)</label>
+                        <label className="dd-lfg-label lfg-field-label">End Time (Server Time)</label>
                         <select
                           className="dd-lfg-select lfg-time-select"
                           value={timeEnd}

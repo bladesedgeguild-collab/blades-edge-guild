@@ -4,6 +4,68 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { DUNGEONS } from '@/data/dungeons/index'
 
+const DAY_MAP: Record<string, number> = {
+  Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6,
+}
+
+function getNextOccurrence(
+  daysAvailable: string[] | null,
+  timeStart: string | null
+): { label: string; countdown: string } {
+  if (!daysAvailable?.length || daysAvailable.includes('Any') || !timeStart) {
+    return { label: 'ANY DAY', countdown: 'Flexible' }
+  }
+
+  const now = new Date()
+  const [time, ampm] = timeStart.split(' ')
+  const [h, m] = time.split(':').map(Number)
+  let hours = h
+  if (ampm === 'PM' && h !== 12) hours += 12
+  if (ampm === 'AM' && h === 12) hours = 0
+
+  let soonest: Date | null = null
+  for (const day of daysAvailable) {
+    const targetDay = DAY_MAP[day]
+    if (targetDay === undefined) continue
+    const target = new Date()
+    const daysUntil = (targetDay - now.getDay() + 7) % 7
+    target.setDate(target.getDate() + daysUntil)
+    target.setHours(hours + 6, m, 0, 0)
+    if (target <= now) target.setDate(target.getDate() + 7)
+    if (!soonest || target < soonest) soonest = target
+  }
+
+  if (!soonest) return { label: 'SOON', countdown: '' }
+
+  const dayAbbr = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'][soonest.getDay()]
+  const label = `${dayAbbr} ${soonest.getDate()}`
+
+  const diff = soonest.getTime() - now.getTime()
+  const totalHours = Math.floor(diff / (1000 * 60 * 60))
+  const days = Math.floor(totalHours / 24)
+  const hrs = totalHours % 24
+
+  let countdown = ''
+  if (days > 0) countdown = `in ${days}d ${hrs}h`
+  else if (hrs > 0) countdown = `in ${hrs}h`
+  else countdown = 'Starting soon'
+
+  return { label, countdown }
+}
+
+function CalendarBadge({ daysAvailable, timeStart }: {
+  daysAvailable: string[] | null
+  timeStart: string | null
+}) {
+  const { label, countdown } = getNextOccurrence(daysAvailable, timeStart)
+  return (
+    <div className="lfg-cal-badge">
+      <div className="lfg-cal-day">{label}</div>
+      {countdown && <div className="lfg-cal-countdown">{countdown}</div>}
+    </div>
+  )
+}
+
 type NameGroup = { tank: string[]; healer: string[]; dps: string[] }
 type NumberGroup = { tank: number; healer: number; dps: number }
 type RawGroup = NameGroup | NumberGroup | null
@@ -129,6 +191,7 @@ export default function LFGMiniBox({ title, columns = 3, maxRows = 2, maxItems, 
               onMouseEnter={e => handleMouseEnter(e, post.id)}
               onMouseLeave={() => setHoveredId(null)}
             >
+              <CalendarBadge daysAvailable={post.days_available} timeStart={post.time_start} />
               <span className="lfg-mini-dungeon">{formatDungeonName(post.dungeon_slug)}</span>
               <span className="lfg-mini-caller">{post.role} · {post.character_name}</span>
               <span className="lfg-mini-needs">{getNeedsText(post.current_group)}</span>
@@ -154,6 +217,7 @@ export default function LFGMiniBox({ title, columns = 3, maxRows = 2, maxItems, 
               pointerEvents: 'none',
             }}
           >
+            <CalendarBadge daysAvailable={hoveredPost.days_available} timeStart={hoveredPost.time_start} />
             <h2 className="lfg-hover-dungeon">{formatDungeonName(hoveredPost.dungeon_slug)}</h2>
             <p className="lfg-hover-meta">
               {hoveredPost.role} {hoveredPost.character_name} is seeking more.{' '}
