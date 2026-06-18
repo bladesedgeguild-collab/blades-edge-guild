@@ -43,6 +43,22 @@ type LfgPost = {
   time_end?: string | null
 }
 
+type FeaturedLFG = {
+  id: string
+  character_name: string
+  role: string
+  available_window: string | null
+  notes: string | null
+  days_available: string[] | null
+  time_start: string | null
+  time_end: string | null
+  current_group: {
+    tank: string[] | number
+    healer: string[] | number
+    dps: string[] | number
+  } | null
+}
+
 function formatWindow(post: LfgPost): string {
   const days = post.days_available?.length
     ? post.days_available.join(', ')
@@ -55,6 +71,42 @@ function formatWindow(post: LfgPost): string {
   return post.available_window ?? ''
 }
 
+function formatFeaturedWindow(post: FeaturedLFG): string {
+  const days = post.days_available?.length
+    ? post.days_available.join(', ')
+    : post.days_available !== null
+    ? 'Any day'
+    : null
+  if (post.time_start && post.time_end)
+    return `${days || 'Any day'}, ${post.time_start}–${post.time_end} Server Time`
+  if (days) return days
+  return post.available_window ?? ''
+}
+
+function normalizeGroup(g: FeaturedLFG['current_group']): { tank: string[]; healer: string[]; dps: string[] } {
+  if (!g) return { tank: [], healer: [], dps: [] }
+  return {
+    tank: Array.isArray(g.tank) ? g.tank : [],
+    healer: Array.isArray(g.healer) ? g.healer : [],
+    dps: Array.isArray(g.dps) ? g.dps : [],
+  }
+}
+
+function getFeaturedNeedsText(g: FeaturedLFG['current_group']): string {
+  const group = normalizeGroup(g)
+  const needsTank = group.tank.length === 0
+  const needsHealer = group.healer.length === 0
+  const needsDPS = group.dps.length < 3
+  if (!needsTank && !needsHealer && !needsDPS) return 'Group is Full!'
+  const needs: string[] = []
+  if (needsTank) needs.push('Tank')
+  if (needsHealer) needs.push('Heals')
+  if (needsDPS) needs.push('DPS')
+  if (needs.length === 3) return 'Needs All.'
+  if (needs.length === 1) return `Needs ${needs[0]} then Good To Go.`
+  return `Needs ${needs[0]} and ${needs[1]}.`
+}
+
 const MT_ZONES = ['America/Denver', 'America/Phoenix', 'America/Boise', 'America/Creston']
 
 interface Props {
@@ -62,9 +114,10 @@ interface Props {
   initialPosts: LfgPost[]
   isLoggedIn: boolean
   characterName?: string
+  featuredLFG?: FeaturedLFG | null
 }
 
-export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, characterName }: Props) {
+export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, characterName, featuredLFG }: Props) {
   const [selectedClass, setSelectedClass] = useState<WoWClass>('Warrior')
   const [openBoss, setOpenBoss] = useState<number | null>(null)
   const [role, setRole] = useState('DPS')
@@ -77,6 +130,7 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState(false)
   const [posts, setPosts] = useState<LfgPost[]>(initialPosts)
+  const [showBannerForm, setShowBannerForm] = useState(!featuredLFG)
 
   useEffect(() => {
     setDetectedTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone)
@@ -192,6 +246,9 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
 
   const daysLabel = anyDay ? 'Any day' : selectedDays.length > 0 ? selectedDays.join(', ') : ''
 
+  const featuredGroup = featuredLFG ? normalizeGroup(featuredLFG.current_group) : null
+  const featuredWindow = featuredLFG ? formatFeaturedWindow(featuredLFG) : null
+
   return (
     <div className="dd-page">
       {/* Hero Bar */}
@@ -222,6 +279,50 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
 
       {/* Body */}
       <div className="dd-body">
+
+        {/* Featured LFG */}
+        {featuredLFG && featuredGroup && (
+          <div className="dungeon-featured-lfg">
+            <div className="dungeon-featured-title">Active Call for This Dungeon</div>
+            <div className="dungeon-featured-caller">
+              <strong>{featuredLFG.role} {featuredLFG.character_name}</strong> is seeking more.{' '}
+              <span className="dungeon-featured-needs">{getFeaturedNeedsText(featuredLFG.current_group)}</span>
+            </div>
+            <div className="dungeon-featured-group">
+              <div className="dungeon-featured-role">
+                <span className="dungeon-featured-role-label">Tank</span>
+                {featuredGroup.tank[0]
+                  ? <span className="dungeon-featured-filled">{featuredGroup.tank[0]}</span>
+                  : <span className="dungeon-featured-need">NEED</span>
+                }
+              </div>
+              <div className="dungeon-featured-role">
+                <span className="dungeon-featured-role-label">Healer</span>
+                {featuredGroup.healer[0]
+                  ? <span className="dungeon-featured-filled">{featuredGroup.healer[0]}</span>
+                  : <span className="dungeon-featured-need">NEED</span>
+                }
+              </div>
+              <div className="dungeon-featured-role">
+                <span className="dungeon-featured-role-label">DPS</span>
+                {[0, 1, 2].map(i => (
+                  <span key={i} className={featuredGroup.dps[i] ? 'dungeon-featured-filled' : 'dungeon-featured-need'}>
+                    {featuredGroup.dps[i] ?? 'NEED'}
+                  </span>
+                ))}
+              </div>
+            </div>
+            {featuredLFG.notes && (
+              <div className="dungeon-featured-notes">{featuredLFG.notes}</div>
+            )}
+            {featuredWindow && (
+              <div className="dungeon-featured-window">{featuredWindow}</div>
+            )}
+            <button className="dungeon-join-btn" onClick={() => setShowBannerForm(true)}>
+              Answer the Call
+            </button>
+          </div>
+        )}
 
         {/* Quick Card */}
         <div className="dd-section">
@@ -367,156 +468,162 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
           <div className="dd-section-title">Call the Guild</div>
           <div className="dd-lfg-board">
             {/* Form */}
-            <div className="dd-lfg-form-wrap">
-              <div className="dd-lfg-form-title">Raise the Banner</div>
-              {!isLoggedIn ? (
-                <p className="dd-lfg-auth-note">
-                  <Link href="/login">Log in</Link> to post a LFG request.
-                </p>
-              ) : success ? (
-                <div className="dd-lfg-success">
-                  <div>Banner raised! Your guildmates have been alerted.</div>
-                  {daysLabel && (
-                    <div className="lfg-confirm-time">
-                      <strong>Your window:</strong>{' '}
-                      {daysLabel}
-                      {timeStart && timeEnd ? ` from ${timeStart} to ${timeEnd} Server Time` : ''}
-                      {detectedTimezone && localStartEquiv && localEndEquiv && (
-                        <>
-                          <br />
-                          <span className="lfg-confirm-local">
-                            That is {localStartEquiv} to {localEndEquiv} in your local time
-                            {isSameMT ? ' (same timezone)' : ''}.
-                          </span>
-                        </>
-                      )}
+            {showBannerForm ? (
+              <div className="dd-lfg-form-wrap">
+                <div className="dd-lfg-form-title">Raise the Banner</div>
+                {!isLoggedIn ? (
+                  <p className="dd-lfg-auth-note">
+                    <Link href="/login">Log in</Link> to post a LFG request.
+                  </p>
+                ) : success ? (
+                  <div className="dd-lfg-success">
+                    <div>Banner raised! Your guildmates have been alerted.</div>
+                    {daysLabel && (
+                      <div className="lfg-confirm-time">
+                        <strong>Your window:</strong>{' '}
+                        {daysLabel}
+                        {timeStart && timeEnd ? ` from ${timeStart} to ${timeEnd} Server Time` : ''}
+                        {detectedTimezone && localStartEquiv && localEndEquiv && (
+                          <>
+                            <br />
+                            <span className="lfg-confirm-local">
+                              That is {localStartEquiv} to {localEndEquiv} in your local time
+                              {isSameMT ? ' (same timezone)' : ''}.
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <form onSubmit={handleLFGSubmit}>
+                    {/* Role */}
+                    <div className="dd-lfg-field">
+                      <label className="dd-lfg-label">Role</label>
+                      <select
+                        className="dd-lfg-select lfg-role-select"
+                        value={role}
+                        onChange={e => setRole(e.target.value)}
+                      >
+                        <option>Tank</option>
+                        <option>Healer</option>
+                        <option>DPS</option>
+                        <option>Flex</option>
+                      </select>
                     </div>
-                  )}
-                </div>
-              ) : (
-                <form onSubmit={handleLFGSubmit}>
-                  {/* Role */}
-                  <div className="dd-lfg-field">
-                    <label className="dd-lfg-label">Role</label>
-                    <select
-                      className="dd-lfg-select"
-                      value={role}
-                      onChange={e => setRole(e.target.value)}
-                    >
-                      <option>Tank</option>
-                      <option>Healer</option>
-                      <option>DPS</option>
-                      <option>Flex</option>
-                    </select>
-                  </div>
 
-                  {/* Server time */}
-                  <div className="lfg-server-time">
-                    <span className="lfg-server-label">Server Time:</span>
-                    <span className="lfg-server-value" id="server-time-display" />
-                    <script dangerouslySetInnerHTML={{ __html: `
-                      function updateServerTime() {
-                        var now = new Date();
-                        var st = now.toLocaleTimeString('en-US', {
-                          timeZone: 'America/Denver',
-                          hour: '2-digit', minute: '2-digit', hour12: true
-                        });
-                        var el = document.getElementById('server-time-display');
-                        if (el) el.textContent = st;
-                      }
-                      updateServerTime();
-                      setInterval(updateServerTime, 10000);
-                    `}} />
-                  </div>
+                    {/* Server time */}
+                    <div className="lfg-server-time">
+                      <span className="lfg-server-label">Server Time:</span>
+                      <span className="lfg-server-value" id="server-time-display" />
+                      <script dangerouslySetInnerHTML={{ __html: `
+                        function updateServerTime() {
+                          var now = new Date();
+                          var st = now.toLocaleTimeString('en-US', {
+                            timeZone: 'America/Denver',
+                            hour: '2-digit', minute: '2-digit', hour12: true
+                          });
+                          var el = document.getElementById('server-time-display');
+                          if (el) el.textContent = st;
+                        }
+                        updateServerTime();
+                        setInterval(updateServerTime, 10000);
+                      `}} />
+                    </div>
 
-                  {/* Days */}
-                  <div className="dd-lfg-field">
-                    <label className="dd-lfg-label lfg-field-label">Day(s) Available</label>
-                    <div className="lfg-day-checkboxes">
-                      {DAYS.map(day => (
-                        <label key={day} className={`lfg-day-chip${selectedDays.includes(day) ? ' lfg-day-chip--on' : ''}`}>
+                    {/* Days */}
+                    <div className="dd-lfg-field">
+                      <label className="dd-lfg-label lfg-field-label">Day(s) Available</label>
+                      <div className="lfg-day-checkboxes">
+                        {DAYS.map(day => (
+                          <label key={day} className={`lfg-day-chip${selectedDays.includes(day) ? ' lfg-day-chip--on' : ''}`}>
+                            <input
+                              type="checkbox"
+                              value={day}
+                              checked={selectedDays.includes(day)}
+                              disabled={anyDay}
+                              onChange={() => toggleDay(day)}
+                            />
+                            {day}
+                          </label>
+                        ))}
+                        <label className={`lfg-day-chip lfg-day-any${anyDay ? ' lfg-day-chip--on' : ''}`}>
                           <input
                             type="checkbox"
-                            value={day}
-                            checked={selectedDays.includes(day)}
-                            disabled={anyDay}
-                            onChange={() => toggleDay(day)}
+                            checked={anyDay}
+                            onChange={e => {
+                              setAnyDay(e.target.checked)
+                              if (e.target.checked) setSelectedDays([])
+                            }}
                           />
-                          {day}
+                          Any Day
                         </label>
-                      ))}
-                      <label className={`lfg-day-chip lfg-day-any${anyDay ? ' lfg-day-chip--on' : ''}`}>
-                        <input
-                          type="checkbox"
-                          checked={anyDay}
-                          onChange={e => {
-                            setAnyDay(e.target.checked)
-                            if (e.target.checked) setSelectedDays([])
-                          }}
-                        />
-                        Any Day
-                      </label>
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Time range */}
-                  <div className="lfg-time-row">
-                    <div className="dd-lfg-field" style={{ flex: 1 }}>
-                      <label className="dd-lfg-label lfg-field-label">Start Time (Server)</label>
-                      <select
-                        className="dd-lfg-select"
-                        value={timeStart}
-                        onChange={e => setTimeStart(e.target.value)}
-                      >
-                        <option value="">Select...</option>
-                        {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-                      </select>
+                    {/* Time range */}
+                    <div className="lfg-time-row">
+                      <div className="dd-lfg-field" style={{ flex: 1 }}>
+                        <label className="dd-lfg-label lfg-field-label">Start Time (Server)</label>
+                        <select
+                          className="dd-lfg-select lfg-time-select"
+                          value={timeStart}
+                          onChange={e => setTimeStart(e.target.value)}
+                        >
+                          <option value="">Select...</option>
+                          {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                        </select>
+                      </div>
+                      <span className="lfg-time-to">to</span>
+                      <div className="dd-lfg-field" style={{ flex: 1 }}>
+                        <label className="dd-lfg-label lfg-field-label">End Time (Server)</label>
+                        <select
+                          className="dd-lfg-select lfg-time-select"
+                          value={timeEnd}
+                          onChange={e => setTimeEnd(e.target.value)}
+                        >
+                          <option value="">Select...</option>
+                          {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+                        </select>
+                      </div>
                     </div>
-                    <span className="lfg-time-to">to</span>
-                    <div className="dd-lfg-field" style={{ flex: 1 }}>
-                      <label className="dd-lfg-label lfg-field-label">End Time (Server)</label>
-                      <select
-                        className="dd-lfg-select"
-                        value={timeEnd}
-                        onChange={e => setTimeEnd(e.target.value)}
-                      >
-                        <option value="">Select...</option>
-                        {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-                      </select>
+
+                    {/* Timezone */}
+                    {detectedTimezone && (
+                      <div className="lfg-timezone">
+                        <span className="lfg-tz-label">Your timezone:</span>
+                        <span className="lfg-tz-value">{detectedTimezone}</span>
+                        {localStartEquiv && timeStart && (
+                          <span className="lfg-tz-equiv">
+                            {timeStart} Server Time is {localStartEquiv} in your local time
+                            {isSameMT ? ' (same timezone)' : ''}.
+                          </span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Notes */}
+                    <div className="dd-lfg-field">
+                      <label className="dd-lfg-label">Notes</label>
+                      <textarea
+                        className="dd-lfg-textarea"
+                        value={notes}
+                        onChange={e => setNotes(e.target.value)}
+                        placeholder="Any notes for your group..."
+                      />
                     </div>
-                  </div>
 
-                  {/* Timezone */}
-                  {detectedTimezone && (
-                    <div className="lfg-timezone">
-                      <span className="lfg-tz-label">Your timezone:</span>
-                      <span className="lfg-tz-value">{detectedTimezone}</span>
-                      {localStartEquiv && timeStart && (
-                        <span className="lfg-tz-equiv">
-                          {timeStart} Server Time is {localStartEquiv} in your local time
-                          {isSameMT ? ' (same timezone)' : ''}.
-                        </span>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Notes */}
-                  <div className="dd-lfg-field">
-                    <label className="dd-lfg-label">Notes</label>
-                    <textarea
-                      className="dd-lfg-textarea"
-                      value={notes}
-                      onChange={e => setNotes(e.target.value)}
-                      placeholder="Any notes for your group..."
-                    />
-                  </div>
-
-                  <button type="submit" className="dd-lfg-btn" disabled={submitting}>
-                    {submitting ? 'Raising...' : 'Raise the Banner'}
-                  </button>
-                </form>
-              )}
-            </div>
+                    <button type="submit" className="dd-lfg-btn df-lfg-btn" disabled={submitting}>
+                      {submitting ? 'Raising...' : 'Raise the Banner'}
+                    </button>
+                  </form>
+                )}
+              </div>
+            ) : (
+              <button className="dungeon-own-run-btn" onClick={() => setShowBannerForm(true)}>
+                Schedule your own run instead?
+              </button>
+            )}
 
             {/* Active Posts */}
             <div className="dd-lfg-posts-wrap">

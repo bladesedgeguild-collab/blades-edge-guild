@@ -1,11 +1,13 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { getDungeon } from '@/data/dungeons/index'
 import DungeonDetail from './DungeonDetail'
 
 interface Props {
   params: Promise<{ slug: string }>
+  searchParams: Promise<{ lfg?: string }>
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -18,8 +20,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-export default async function DungeonPage({ params }: Props) {
+export default async function DungeonPage({ params, searchParams }: Props) {
   const { slug } = await params
+  const { lfg: lfgId } = await searchParams
   const dungeon = getDungeon(slug)
   if (!dungeon) notFound()
 
@@ -54,12 +57,29 @@ export default async function DungeonPage({ params }: Props) {
     .gt('expires_at', new Date().toISOString())
     .order('created_at', { ascending: false })
 
+  // Fetch featured LFG post if lfg param present
+  let featuredLFG = null
+  if (lfgId) {
+    const adminDb = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+    const { data } = await adminDb
+      .from('dungeon_lfg')
+      .select('id, user_id, character_name, role, available_window, days_available, time_start, time_end, notes, current_group')
+      .eq('id', lfgId)
+      .gt('expires_at', new Date().toISOString())
+      .single()
+    featuredLFG = data ?? null
+  }
+
   return (
     <DungeonDetail
       dungeon={dungeon}
       initialPosts={activePosts ?? []}
       isLoggedIn={!!user}
       characterName={characterName}
+      featuredLFG={featuredLFG}
     />
   )
 }

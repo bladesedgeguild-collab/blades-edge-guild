@@ -712,6 +712,41 @@
 
 .dd-lfg-textarea { resize: vertical; min-height: 70px; }
 
+.lfg-time-select {
+  background: rgba(13, 11, 7, 0.7);
+  border: 1px solid rgba(201, 150, 26, 0.3);
+  border-radius: 8px;
+  color: var(--be-ink, #f0e6c8);
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  padding: 0.6rem 0.85rem;
+  min-height: 48px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.lfg-role-select {
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  padding: 0.6rem 0.85rem;
+  min-height: 48px;
+}
+
+.lfg-field-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.1em;
+  color: var(--be-gold, #c9961a);
+  display: block;
+  margin-bottom: 0.4rem;
+}
+
+.df-lfg-btn {
+  font-size: 1.1rem;
+  padding: 0.85rem 2rem;
+  min-height: 52px;
+}
+
 .dd-lfg-btn {
   width: 100%;
   background: linear-gradient(135deg, #c9961a, #a87814);
@@ -815,11 +850,6 @@
 
 /* ── LFG Form — structured time fields ── */
 
-.lfg-field-label {
-  display: block;
-  margin-bottom: 0.3rem;
-}
-
 .lfg-server-time {
   display: flex;
   align-items: center;
@@ -857,13 +887,15 @@
   align-items: center;
   gap: 0.3rem;
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(201, 150, 26, 0.2);
-  border-radius: 6px;
+  border: 1px solid rgba(201, 150, 26, 0.3);
+  border-radius: 8px;
   font-family: 'Cinzel', serif;
-  font-size: 0.65rem;
+  font-size: 1rem;
   letter-spacing: 0.06em;
   color: var(--be-muted, #8a7a5a);
-  padding: 0.25rem 0.55rem;
+  padding: 0.6rem 1rem;
+  min-width: 56px;
+  text-align: center;
   cursor: pointer;
   transition: all 120ms ease;
   user-select: none;
@@ -905,22 +937,25 @@
 }
 
 .lfg-timezone {
-  font-family: 'Spectral', serif;
-  font-size: 0.75rem;
-  font-style: italic;
-  color: var(--be-muted, #8a7a5a);
-  margin-bottom: 0.75rem;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.3rem 0.5rem;
-  align-items: baseline;
+  font-family: 'Cinzel', serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--be-gold, #c9961a);
+  background: rgba(201, 150, 26, 0.08);
+  border: 1px solid rgba(201, 150, 26, 0.3);
+  border-radius: 8px;
+  padding: 0.85rem 1.1rem;
+  margin: 0.75rem 0;
+  line-height: 1.6;
 }
 
 .lfg-tz-label {
   font-family: 'Cinzel', serif;
-  font-size: 0.6rem;
+  font-size: 0.8rem;
   letter-spacing: 0.06em;
-  font-style: normal;
+  color: var(--be-muted, #8a7a5a);
+  display: block;
+  margin-bottom: 0.15rem;
 }
 
 .lfg-tz-value {
@@ -928,8 +963,10 @@
 }
 
 .lfg-tz-equiv {
-  width: 100%;
-  font-size: 0.72rem;
+  display: block;
+  font-size: 1.2rem;
+  color: var(--be-ink, #f0e6c8);
+  margin-top: 0.25rem;
 }
 
 .lfg-confirm-time {

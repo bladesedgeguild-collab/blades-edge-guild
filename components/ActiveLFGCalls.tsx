@@ -1,7 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { createBrowserClient } from '@supabase/ssr'
 import { DUNGEONS } from '@/data/dungeons/index'
 
 const TankIcon = ({ size = 24 }: { size?: number }) => (
@@ -24,18 +26,27 @@ const TankIcon = ({ size = 24 }: { size?: number }) => (
 
 const HealerIcon = ({ size = 24 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
-    <rect x="8" y="2" width="4" height="16" rx="2" fill="#1aff6e" opacity="0.85"/>
-    <rect x="2" y="8" width="16" height="4" rx="2" fill="#1aff6e" opacity="0.85"/>
+    <rect x="8" y="2" width="4" height="16" rx="2" fill="#1aff6e" opacity="0.85" />
+    <rect x="2" y="8" width="16" height="4" rx="2" fill="#1aff6e" opacity="0.85" />
   </svg>
 )
 
 const DPSIcon = ({ size = 24 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
-    <line x1="4" y1="16" x2="16" y2="4" stroke="#3fc7eb" strokeWidth="1.8" strokeLinecap="round"/>
-    <path d="M14 3l3 0 0 3" stroke="#3fc7eb" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M3 17l2-2" stroke="#3fc7eb" strokeWidth="1.5" strokeLinecap="round"/>
+    <line x1="4" y1="16" x2="16" y2="4" stroke="#3fc7eb" strokeWidth="1.8" strokeLinecap="round" />
+    <path d="M14 3l3 0 0 3" stroke="#3fc7eb" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    <path d="M3 17l2-2" stroke="#3fc7eb" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
 )
+
+const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
+  const h = Math.floor(i / 2)
+  const m = i % 2 === 0 ? '00' : '30'
+  const ampm = h < 12 ? 'AM' : 'PM'
+  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h
+  return `${h12}:${m} ${ampm}`
+})
 
 type NameGroup = { tank: string[]; healer: string[]; dps: string[] }
 type NumberGroup = { tank: number; healer: number; dps: number }
@@ -67,14 +78,11 @@ function getNeedsText(group: NameGroup): string {
   const needsTank = !group.tank || group.tank.length === 0
   const needsHealer = !group.healer || group.healer.length === 0
   const needsDPS = !group.dps || group.dps.length < 3
-
   if (!needsTank && !needsHealer && !needsDPS) return 'Group is Full!'
-
   const needs: string[] = []
   if (needsTank) needs.push('Tank')
   if (needsHealer) needs.push('Heals')
   if (needsDPS) needs.push('DPS')
-
   if (needs.length === 3) return 'Needs All.'
   if (needs.length === 1) return `Needs ${needs[0]} then Good To Go.`
   return `Needs ${needs[0]} and ${needs[1]}.`
@@ -91,24 +99,131 @@ function formatWindow(post: LFGPost): string {
   return post.available_window ?? ''
 }
 
+function buildWindowSummary(
+  days: string[] | null,
+  start: string | null,
+  end: string | null
+): string | null {
+  const dayStr = !days || days.length === 0 ? 'Any day' : days.join(', ')
+  if (start && end) return `${dayStr}, ${start}–${end} Server Time`
+  if (days && days.length > 0) return dayStr
+  return null
+}
+
 function formatDungeonName(slug: string): string {
   return DUNGEONS.find(d => d.id === slug)?.name ?? slug.replace(/-/g, ' ')
 }
 
-interface Props {
-  posts: LFGPost[]
-  userId?: string
-  userRole?: string
+interface EditFormProps {
+  post: LFGPost
+  onSave: (updates: Partial<LFGPost> & { available_window: string | null }) => void
+  onCancel: () => void
 }
 
-export default function ActiveLFGCalls({ posts: initialPosts, userId, userRole }: Props) {
-  const [posts, setPosts] = useState<LFGPost[]>(initialPosts)
+function LFGEditForm({ post, onSave, onCancel }: EditFormProps) {
+  const [days, setDays] = useState<string[]>(post.days_available ?? [])
+  const [timeStart, setTimeStart] = useState(post.time_start ?? '')
+  const [timeEnd, setTimeEnd] = useState(post.time_end ?? '')
+  const [notes, setNotes] = useState(post.notes ?? '')
+
+  function toggleDay(day: string) {
+    setDays(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day])
+  }
+
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    e.stopPropagation()
+    const available_window = buildWindowSummary(days, timeStart || null, timeEnd || null)
+    onSave({
+      days_available: days,
+      time_start: timeStart || null,
+      time_end: timeEnd || null,
+      notes: notes || null,
+      available_window,
+    })
+  }
+
+  return (
+    <form className="lfg-edit-form" onSubmit={handleSubmit} onClick={e => e.stopPropagation()}>
+      <div className="lfg-edit-days">
+        {DAYS.map(day => (
+          <label key={day} className={`lfg-day-chip${days.includes(day) ? ' lfg-day-chip--on' : ''}`}>
+            <input type="checkbox" checked={days.includes(day)} onChange={() => toggleDay(day)} />
+            {day}
+          </label>
+        ))}
+      </div>
+      <div className="lfg-edit-times">
+        <select
+          className="lfg-time-select"
+          value={timeStart}
+          onChange={e => setTimeStart(e.target.value)}
+        >
+          <option value="">Start time...</option>
+          {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+        </select>
+        <span className="lfg-edit-to">to</span>
+        <select
+          className="lfg-time-select"
+          value={timeEnd}
+          onChange={e => setTimeEnd(e.target.value)}
+        >
+          <option value="">End time...</option>
+          {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+        </select>
+      </div>
+      <textarea
+        className="lfg-edit-notes"
+        value={notes}
+        onChange={e => setNotes(e.target.value)}
+        placeholder="Notes..."
+        rows={2}
+      />
+      <div className="lfg-edit-actions">
+        <button type="submit" className="lfg-edit-save-btn">Save</button>
+        <button
+          type="button"
+          className="lfg-edit-cancel-form-btn"
+          onClick={e => { e.stopPropagation(); onCancel() }}
+        >
+          Cancel
+        </button>
+      </div>
+    </form>
+  )
+}
+
+export default function ActiveLFGCalls() {
+  const router = useRouter()
+  const [posts, setPosts] = useState<LFGPost[]>([])
+  const [userId, setUserId] = useState<string | undefined>()
+  const [userRole, setUserRole] = useState<string | undefined>()
   const [hoveredId, setHoveredId] = useState<string | null>(null)
   const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 })
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   const isAdmin = ['admin', 'officer', 'gm'].includes(userRole ?? '')
 
-  async function handleDelete(postId: string) {
+  useEffect(() => {
+    fetch('/api/dungeons/lfg/active')
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setPosts(Array.isArray(data) ? data : []))
+      .catch(() => {})
+
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setUserId(session.user.id)
+        supabase.from('users').select('role').eq('id', session.user.id).single()
+          .then(({ data }) => { if (data?.role) setUserRole(data.role) })
+      }
+    })
+  }, [])
+
+  async function handleCancel(postId: string) {
     try {
       const res = await fetch(`/api/dungeons/lfg/${postId}`, { method: 'DELETE' })
       if (res.ok) {
@@ -120,13 +235,30 @@ export default function ActiveLFGCalls({ posts: initialPosts, userId, userRole }
     }
   }
 
+  async function handleSave(postId: string, updates: Partial<LFGPost> & { available_window: string | null }) {
+    try {
+      const res = await fetch(`/api/dungeons/lfg/${postId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      })
+      if (res.ok) {
+        setPosts(prev => prev.map(p => p.id === postId ? { ...p, ...updates } : p))
+        setEditingId(null)
+      }
+    } catch {
+      // Non-fatal
+    }
+  }
+
   function handleMouseEnter(e: React.MouseEvent, postId: string) {
+    if (editingId) return
     const rect = e.currentTarget.getBoundingClientRect()
     setHoverPos({ x: rect.left + rect.width / 2, y: rect.top })
     setHoveredId(postId)
   }
 
-  const hoveredPost = posts.find(p => p.id === hoveredId)
+  const hoveredPost = hoveredId ? posts.find(p => p.id === hoveredId) : null
 
   return (
     <section className="lfg-big-section">
@@ -146,6 +278,8 @@ export default function ActiveLFGCalls({ posts: initialPosts, userId, userRole }
             <div
               key={post.id}
               className="lfg-big-card"
+              style={{ cursor: 'pointer' }}
+              onClick={() => router.push(`/dungeons/${post.dungeon_slug}?lfg=${post.id}`)}
               onMouseEnter={(e) => handleMouseEnter(e, post.id)}
               onMouseLeave={() => setHoveredId(null)}
             >
@@ -208,27 +342,46 @@ export default function ActiveLFGCalls({ posts: initialPosts, userId, userRole }
 
               {post.notes && <p className="lfg-big-notes">{post.notes}</p>}
 
-              <div className="lfg-big-footer">
-                <Link href={`/dungeons/${post.dungeon_slug}`} className="lfg-big-link">
-                  Answer the Call
-                </Link>
-                {(isOwner || isAdmin) && (
-                  <button
-                    className="lfg-delete-btn"
-                    onClick={() => handleDelete(post.id)}
-                    title="Remove this LFG post"
+              {editingId === post.id ? (
+                <LFGEditForm
+                  post={post}
+                  onSave={(updates) => handleSave(post.id, updates)}
+                  onCancel={() => setEditingId(null)}
+                />
+              ) : (
+                <div className="lfg-big-footer">
+                  <Link
+                    href={`/dungeons/${post.dungeon_slug}`}
+                    className="lfg-big-link"
+                    onClick={e => e.stopPropagation()}
                   >
-                    ✕ Remove
-                  </button>
-                )}
-              </div>
+                    Answer the Call
+                  </Link>
+                  {(isOwner || isAdmin) && (
+                    <>
+                      <button
+                        className="lfg-edit-btn"
+                        onClick={e => { e.stopPropagation(); setEditingId(post.id) }}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="lfg-cancel-btn"
+                        onClick={e => { e.stopPropagation(); handleCancel(post.id) }}
+                      >
+                        Cancel Request
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
           )
         })
       )}
 
       {/* Hover expansion card */}
-      {hoveredPost && (() => {
+      {hoveredPost && !editingId && (() => {
         const g = normalizeGroup(hoveredPost.current_group)
         return (
           <div
@@ -280,6 +433,12 @@ export default function ActiveLFGCalls({ posts: initialPosts, userId, userRole }
             </div>
             {formatWindow(hoveredPost) && (
               <p className="lfg-hover-window">{formatWindow(hoveredPost)}</p>
+            )}
+            {hoveredPost.notes && (
+              <div className="lfg-hover-note">
+                <span className="lfg-hover-note-label">Note:</span>
+                <p className="lfg-hover-note-text">{hoveredPost.notes}</p>
+              </div>
             )}
           </div>
         )

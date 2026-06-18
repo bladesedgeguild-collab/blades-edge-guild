@@ -161,7 +161,7 @@ export default function DungeonsClient({ playerLevel, activeLFG, dungeonNames }:
 
       {showOnlyMyLevel && (
         <p className="df-level-note">
-          Showing only dungeons for level {effectiveLevel}.
+          Showing only dungeons for level {effectiveLevel}. Click ★ Your Level again to see all dungeons.
         </p>
       )}
 
