@@ -2181,6 +2181,31 @@ input[type=number] { -moz-appearance: textfield; }
   border-color: rgba(201, 150, 26, 0.4);
 }
 
+/* ── Nav click loading feedback ── */
+@keyframes nav-load-bar {
+  0%   { transform: scaleX(0); transform-origin: left; }
+  50%  { transform: scaleX(1); transform-origin: left; }
+  51%  { transform-origin: right; }
+  100% { transform: scaleX(0); transform-origin: right; }
+}
+
+.nav-loading {
+  opacity: 0.6;
+  position: relative;
+}
+
+.nav-loading::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--be-gold, #c9961a);
+  animation: nav-load-bar 0.8s ease-in-out infinite;
+  animation-fill-mode: both;
+}
+
 /* ── Settings ── */
 @media (max-width: 768px) {
   .settings-section {
@@ -2276,67 +2301,108 @@ input[type=number] { -moz-appearance: textfield; }
   animation: lfg-pulse-border 1.5s ease both;
 }
 
-/* ── LFG mini box (Hall right column + Dungeon Finder sidebar) ── */
-.lfg-mini-box {
-  background: var(--be-bg-2, #2a1e0e);
-  border: 1px solid rgba(201, 150, 26, 0.3);
+/* ── LFG mini grid (sidebar + hall + roster strip) ── */
+.lfg-mini-grid-wrap {
+  background: rgba(201, 150, 26, 0.04);
+  border: 1px solid rgba(201, 150, 26, 0.2);
   border-radius: 12px;
-  padding: 1rem 1.25rem;
-  min-width: 220px;
-  max-width: 320px;
+  padding: 1rem 1.25rem 1rem;
 }
 
-.lfg-mini-box-title {
+.lfg-mini-grid-title {
   font-family: 'Cinzel', serif;
-  font-size: 0.75rem;
-  letter-spacing: 0.14em;
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--be-gold, #c9961a);
   margin-bottom: 0.75rem;
+  padding-bottom: 0.4rem;
+  border-bottom: 1px solid rgba(201, 150, 26, 0.14);
 }
+
+.lfg-mini-grid {
+  display: grid;
+  gap: 0.75rem;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201, 150, 26, 0.3) transparent;
+}
+
+.lfg-mini-grid::-webkit-scrollbar { width: 4px; }
+.lfg-mini-grid::-webkit-scrollbar-track { background: transparent; }
+.lfg-mini-grid::-webkit-scrollbar-thumb { background: rgba(201, 150, 26, 0.3); border-radius: 2px; }
 
 .lfg-mini-card {
-  background: rgba(201, 150, 26, 0.04);
-  border: 1px solid rgba(201, 150, 26, 0.18);
+  background: var(--be-bg-2, #2a1e0e);
+  border: 1px solid rgba(201, 150, 26, 0.2);
   border-radius: 8px;
-  padding: 0.6rem 0.75rem;
-  margin-bottom: 0.5rem;
+  padding: 0.75rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
   cursor: pointer;
-  transition: border-color 150ms ease, background 150ms ease;
-  position: relative;
+  transition: border-color 150ms ease;
 }
 
-.lfg-mini-card:last-child { margin-bottom: 0; }
-
 .lfg-mini-card:hover {
-  border-color: rgba(201, 150, 26, 0.45);
-  background: rgba(201, 150, 26, 0.08);
+  border-color: rgba(201, 150, 26, 0.5);
 }
 
 .lfg-mini-dungeon {
-  font-family: 'Cinzel', serif;
+  font-family: 'Cinzel Decorative', serif;
   font-size: 0.82rem;
-  letter-spacing: 0.06em;
   color: var(--be-gold, #c9961a);
-  margin-bottom: 0.2rem;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.lfg-mini-meta {
-  font-family: 'Spectral', serif;
-  font-size: 0.82rem;
-  color: var(--be-muted, #8a7a5a);
-  font-style: italic;
+.lfg-mini-caller {
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  color: var(--be-ink, #f0e6c8);
+  font-weight: 600;
 }
 
 .lfg-mini-needs {
   font-family: 'Cinzel', serif;
-  font-size: 0.72rem;
+  font-size: 0.78rem;
   color: #ff8c00;
-  letter-spacing: 0.06em;
-  margin-top: 0.15rem;
+  font-weight: 700;
+}
+
+.lfg-mini-window {
+  font-family: 'Spectral', serif;
+  font-style: italic;
+  font-size: 0.75rem;
+  color: var(--be-muted, #8a7a5a);
+}
+
+.lfg-mini-view {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  color: var(--be-portal, #1aff6e);
+  letter-spacing: 0.08em;
+  margin-top: 0.2rem;
+}
+
+/* ── My Roster LFG strip ── */
+.roster-lfg-strip {
+  margin: 0.5rem 0;
+  padding: 0.75rem 1rem;
+  background: rgba(201, 150, 26, 0.05);
+  border: 1px solid rgba(201, 150, 26, 0.2);
+  border-radius: 10px;
+}
+
+.roster-lfg-strip .lfg-mini-grid {
+  overflow-y: visible;
+}
+
+@media (max-width: 900px) {
+  .roster-lfg-strip .lfg-mini-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
 }
 
 /* ── Dungeon Featured LFG header row with actions ── */

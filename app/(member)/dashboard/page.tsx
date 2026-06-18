@@ -264,7 +264,6 @@ export default async function DashboardPage() {
             <p className="be-stat" style={{ margin: 0 }}>{guildieCount ?? 0}</p>
             <p className="be-stat-label">members registered</p>
           </div>
-          <LFGMiniBox title="Active LFG Calls" />
         </div>
       </div>
 
@@ -337,7 +336,10 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      {/* ── Active Dungeon Calls ── */}
+      {/* ── LFG mini grid — full width below feed + upcoming ── */}
+      <LFGMiniBox title="Active Dungeon Calls" columns={3} maxRows={2} />
+
+      {/* ── Active Dungeon Calls (full detail cards) ── */}
       <ActiveLFGCalls />
     </div>
   )

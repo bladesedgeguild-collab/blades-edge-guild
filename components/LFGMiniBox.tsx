@@ -22,29 +22,6 @@ type LFGPost = {
   current_group: RawGroup
 }
 
-const TankIcon = ({ size = 24 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-    <path d="M12 2L3 6.5v6C3 17.5 7 21.5 12 23c5-1.5 9-5.5 9-10.5v-6L12 2z"
-      fill="rgba(201,150,26,0.25)" stroke="#c9961a" strokeWidth="2" strokeLinejoin="round" />
-    <path d="M12 7v10M8 12h8" stroke="#c9961a" strokeWidth="1.8" strokeLinecap="round" />
-  </svg>
-)
-
-const HealerIcon = ({ size = 24 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
-    <rect x="8" y="2" width="4" height="16" rx="2" fill="#1aff6e" opacity="0.85" />
-    <rect x="2" y="8" width="16" height="4" rx="2" fill="#1aff6e" opacity="0.85" />
-  </svg>
-)
-
-const DPSIcon = ({ size = 24 }: { size?: number }) => (
-  <svg width={size} height={size} viewBox="0 0 20 20" fill="none">
-    <line x1="4" y1="16" x2="16" y2="4" stroke="#3fc7eb" strokeWidth="1.8" strokeLinecap="round" />
-    <path d="M14 3l3 0 0 3" stroke="#3fc7eb" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-    <path d="M3 17l2-2" stroke="#3fc7eb" strokeWidth="1.5" strokeLinecap="round" />
-  </svg>
-)
-
 function normalizeGroup(group: RawGroup): NameGroup {
   if (!group) return { tank: [], healer: [], dps: [] }
   return {
@@ -59,7 +36,7 @@ function getNeedsText(group: RawGroup): string {
   const needsTank = g.tank.length === 0
   const needsHealer = g.healer.length === 0
   const needsDPS = g.dps.length < 3
-  if (!needsTank && !needsHealer && !needsDPS) return 'Full!'
+  if (!needsTank && !needsHealer && !needsDPS) return 'Group is Full!'
   const needs: string[] = []
   if (needsTank) needs.push('Tank')
   if (needsHealer) needs.push('Heals')
@@ -72,7 +49,7 @@ function getNeedsText(group: RawGroup): string {
 function formatWindow(post: LFGPost): string {
   const days = post.days_available?.length
     ? post.days_available.join(', ')
-    : post.days_available !== null && post.days_available !== undefined
+    : (post.days_available !== null && post.days_available !== undefined)
     ? 'Any day' : null
   if (post.time_start && post.time_end)
     return `${days || 'Any day'}, ${post.time_start}–${post.time_end} Server Time`
@@ -86,9 +63,13 @@ function formatDungeonName(slug: string): string {
 
 interface Props {
   title?: string
+  columns?: number
+  maxRows?: number
+  maxItems?: number
+  className?: string
 }
 
-export default function LFGMiniBox({ title = 'Active LFG Calls' }: Props) {
+export default function LFGMiniBox({ title, columns = 3, maxRows = 2, maxItems, className = '' }: Props) {
   const router = useRouter()
   const [posts, setPosts] = useState<LFGPost[]>([])
   const [hoveredId, setHoveredId] = useState<string | null>(null)
@@ -103,7 +84,14 @@ export default function LFGMiniBox({ title = 'Active LFG Calls' }: Props) {
 
   if (posts.length === 0) return null
 
-  function handleCardClick(post: LFGPost) {
+  const displayPosts = maxItems ? posts.slice(0, maxItems) : posts
+  const hoveredPost = posts.find(p => p.id === hoveredId)
+
+  const CARD_HEIGHT = 140
+  const GAP = 12
+  const maxHeightVal = maxRows * CARD_HEIGHT + (maxRows - 1) * GAP
+
+  function handleClick(post: LFGPost) {
     const el = document.getElementById(`lfg-full-${post.id}`)
     if (el) {
       el.scrollIntoView({ behavior: 'smooth', block: 'center' })
@@ -120,26 +108,36 @@ export default function LFGMiniBox({ title = 'Active LFG Calls' }: Props) {
     setHoveredId(postId)
   }
 
-  const hoveredPost = posts.find(p => p.id === hoveredId)
-
   return (
-    <div className="lfg-mini-box">
-      <div className="lfg-mini-box-title">{title}</div>
-      {posts.map(post => (
-        <div
-          key={post.id}
-          className="lfg-mini-card"
-          onClick={() => handleCardClick(post)}
-          onMouseEnter={e => handleMouseEnter(e, post.id)}
-          onMouseLeave={() => setHoveredId(null)}
-        >
-          <span className="lfg-mini-dungeon">{formatDungeonName(post.dungeon_slug)}</span>
-          <span className="lfg-mini-meta">{post.role} {post.character_name}</span>
-          <span className="lfg-mini-needs">{getNeedsText(post.current_group)}</span>
-        </div>
-      ))}
+    <div className={`lfg-mini-grid-wrap${className ? ` ${className}` : ''}`}>
+      {title && <div className="lfg-mini-grid-title">{title}</div>}
+      <div
+        className="lfg-mini-grid"
+        style={{
+          gridTemplateColumns: `repeat(${columns}, 1fr)`,
+          maxHeight: `${maxHeightVal}px`,
+        }}
+      >
+        {displayPosts.map(post => {
+          const win = formatWindow(post)
+          return (
+            <div
+              key={post.id}
+              className="lfg-mini-card"
+              onClick={() => handleClick(post)}
+              onMouseEnter={e => handleMouseEnter(e, post.id)}
+              onMouseLeave={() => setHoveredId(null)}
+            >
+              <span className="lfg-mini-dungeon">{formatDungeonName(post.dungeon_slug)}</span>
+              <span className="lfg-mini-caller">{post.role} · {post.character_name}</span>
+              <span className="lfg-mini-needs">{getNeedsText(post.current_group)}</span>
+              {win && <span className="lfg-mini-window">{win}</span>}
+              <span className="lfg-mini-view">View →</span>
+            </div>
+          )
+        })}
+      </div>
 
-      {/* Hover popup */}
       {hoveredPost && (() => {
         const g = normalizeGroup(hoveredPost.current_group)
         const win = formatWindow(hoveredPost)
@@ -163,32 +161,20 @@ export default function LFGMiniBox({ title = 'Active LFG Calls' }: Props) {
             <div className="lfg-hover-roles">
               <div className="lfg-roles-left">
                 <div className="lfg-hover-role">
-                  <TankIcon size={28} />
                   <span className="lfg-hover-role-label">Tank</span>
-                  {g.tank[0]
-                    ? <span className="lfg-hover-filled">{g.tank[0]}</span>
-                    : <span className="lfg-hover-need">NEED</span>
-                  }
+                  {g.tank[0] ? <span className="lfg-hover-filled">{g.tank[0]}</span> : <span className="lfg-hover-need">NEED</span>}
                 </div>
                 <div className="lfg-hover-role">
-                  <HealerIcon size={28} />
                   <span className="lfg-hover-role-label">Healer</span>
-                  {g.healer[0]
-                    ? <span className="lfg-hover-filled">{g.healer[0]}</span>
-                    : <span className="lfg-hover-need">NEED</span>
-                  }
+                  {g.healer[0] ? <span className="lfg-hover-filled">{g.healer[0]}</span> : <span className="lfg-hover-need">NEED</span>}
                 </div>
               </div>
               <div className="lfg-hover-role lfg-hover-role--dps">
-                <DPSIcon size={28} />
                 <span className="lfg-hover-role-label">DPS</span>
                 {[0, 1, 2].map(i => (
                   <div key={i} className="lfg-hover-dps-slot">
                     <span className="lfg-hover-dps-num">DPS {i + 1}</span>
-                    {g.dps[i]
-                      ? <span className="lfg-hover-filled">{g.dps[i]}</span>
-                      : <span className="lfg-hover-need">NEED</span>
-                    }
+                    {g.dps[i] ? <span className="lfg-hover-filled">{g.dps[i]}</span> : <span className="lfg-hover-need">NEED</span>}
                   </div>
                 ))}
               </div>

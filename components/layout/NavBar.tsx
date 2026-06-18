@@ -4,6 +4,7 @@ import { CLASS_COLORS, CharacterClass } from '@/types'
 import { NavScrollGlow } from './NavScrollGlow'
 import { NavUserMenu } from './NavUserMenu'
 import { NavMobileMenu } from './NavMobileMenu'
+import { NavLinks } from './NavLinks'
 
 type ProfileData = {
   display_name: string | null
@@ -67,89 +68,13 @@ export async function NavBar() {
 
         {/* Desktop nav — hidden on mobile via .nav-desktop-links */}
         <div className="nav-desktop-links">
-          {user ? (
-            <>
-              <Link
-                href="/dashboard"
-                className="text-sm transition-colors hover:text-[#c9961a]"
-                style={{ fontFamily: "'Cinzel', serif", color: '#f0e6c8' }}
-              >
-                Hall
-              </Link>
-              <Link
-                href="/my-roster"
-                className="text-sm transition-colors hover:text-[#c9961a]"
-                style={{ fontFamily: "'Cinzel', serif", color: '#f0e6c8' }}
-              >
-                My Roster
-              </Link>
-              <Link
-                href="/guildies"
-                className="text-sm transition-colors hover:text-[#c9961a]"
-                style={{ fontFamily: "'Cinzel', serif", color: '#f0e6c8' }}
-              >
-                Guildies
-              </Link>
-              <Link
-                href="/dungeons"
-                className="text-sm transition-colors hover:text-[#c9961a]"
-                style={{ fontFamily: "'Cinzel', serif", color: '#f0e6c8' }}
-              >
-                Dungeons
-              </Link>
-              {isOfficer && (
-                <Link
-                  href="/officers"
-                  className="text-sm transition-colors hover:text-[#c9961a]"
-                  style={{ fontFamily: "'Cinzel', serif", color: '#f0e6c8' }}
-                >
-                  Officers
-                </Link>
-              )}
-              <NavUserMenu
-                displayName={displayName ?? ''}
-                charColor={charColor}
-                avatarUrl={avatarUrl}
-              />
-            </>
-          ) : (
-            <>
-              <Link
-                href="/"
-                className="text-sm transition-colors hover:text-[#c9961a]"
-                style={{ fontFamily: "'Cinzel', serif", color: '#f0e6c8' }}
-              >
-                Home
-              </Link>
-              <Link
-                href="/roster"
-                className="text-sm transition-colors hover:text-[#c9961a]"
-                style={{ fontFamily: "'Cinzel', serif", color: '#f0e6c8' }}
-              >
-                Roster
-              </Link>
-              <Link
-                href="/recruit"
-                className="text-sm transition-colors hover:text-[#c9961a]"
-                style={{ fontFamily: "'Cinzel', serif", color: '#1aff6e' }}
-              >
-                Join
-              </Link>
-              <Link
-                href="/dungeons"
-                className="text-sm transition-colors hover:text-[#c9961a]"
-                style={{ fontFamily: "'Cinzel', serif", color: '#f0e6c8' }}
-              >
-                Dungeons
-              </Link>
-              <Link
-                href="/login"
-                className="text-sm font-medium transition-colors hover:text-white"
-                style={{ fontFamily: "'Cinzel', serif", color: '#c9961a' }}
-              >
-                Login
-              </Link>
-            </>
+          <NavLinks isLoggedIn={!!user} isOfficer={isOfficer} />
+          {user && (
+            <NavUserMenu
+              displayName={displayName ?? ''}
+              charColor={charColor}
+              avatarUrl={avatarUrl}
+            />
           )}
         </div>
 

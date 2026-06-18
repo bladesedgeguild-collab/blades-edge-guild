@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { getCharacterArt } from '@/lib/character-art'
 import { AddAltSection } from './AddAltSection'
 import ActiveLFGCalls from '@/components/ActiveLFGCalls'
+import LFGMiniBox from '@/components/LFGMiniBox'
 
 const CLASS_COLORS: Record<string, string> = {
   MAGE: '#3fc7eb', PALADIN: '#f48cba', WARRIOR: '#c69b3a',
@@ -134,6 +135,9 @@ export default async function MyRosterPage() {
           Edit Profile →
         </Link>
       </div>
+
+      {/* ── LFG strip ── */}
+      <LFGMiniBox title="Active Dungeon Calls" columns={5} maxRows={1} maxItems={5} className="roster-lfg-strip" />
 
       {/* ── Body row: Vitals + Alts ── */}
       <div className="roster-body">

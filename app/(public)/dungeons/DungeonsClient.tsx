@@ -53,7 +53,7 @@ export default function DungeonsClient({ playerLevel }: Props) {
             Every den of darkness, every vault of peril. Sorted for your level.
           </p>
         </div>
-        <LFGMiniBox title="Active LFG Calls" />
+        <LFGMiniBox title="Active LFG Calls" columns={3} maxRows={2} className="df-lfg-sidebar" />
       </div>
 
       <div className="df-level-selector">

@@ -998,8 +998,8 @@
 }
 
 .df-lfg-sidebar {
-  width: 280px;
-  flex-shrink: 0;
+  flex: 0 0 auto;
+  width: min(460px, 40%);
   background: rgba(201, 150, 26, 0.04);
   border: 1px solid rgba(201, 150, 26, 0.18);
   border-radius: 10px;

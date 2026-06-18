@@ -167,8 +167,6 @@ export default function ActiveLFGCalls() {
   const [posts, setPosts] = useState<LFGPost[]>([])
   const [userId, setUserId] = useState<string | undefined>()
   const [userRole, setUserRole] = useState<string | undefined>()
-  const [hoveredId, setHoveredId] = useState<string | null>(null)
-  const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 })
   const [editingId, setEditingId] = useState<string | null>(null)
 
   const isAdmin = ['admin', 'officer', 'gm'].includes(userRole ?? '')
@@ -197,7 +195,6 @@ export default function ActiveLFGCalls() {
       const res = await fetch(`/api/dungeons/lfg/${postId}`, { method: 'DELETE' })
       if (res.ok) {
         setPosts(prev => prev.filter(p => p.id !== postId))
-        if (hoveredId === postId) setHoveredId(null)
       }
     } catch {
       // Non-fatal
@@ -219,15 +216,6 @@ export default function ActiveLFGCalls() {
       // Non-fatal
     }
   }
-
-  function handleMouseEnter(e: React.MouseEvent, postId: string) {
-    if (editingId) return
-    const rect = e.currentTarget.getBoundingClientRect()
-    setHoverPos({ x: rect.left + rect.width / 2, y: rect.top })
-    setHoveredId(postId)
-  }
-
-  const hoveredPost = hoveredId ? posts.find(p => p.id === hoveredId) : null
 
   return (
     <section className="lfg-big-section">
@@ -251,8 +239,6 @@ export default function ActiveLFGCalls() {
                 className="lfg-big-card"
                 style={{ cursor: 'pointer' }}
                 onClick={() => router.push(`/dungeons/${post.dungeon_slug}?lfg=${post.id}`)}
-                onMouseEnter={e => handleMouseEnter(e, post.id)}
-                onMouseLeave={() => setHoveredId(null)}
               >
                 <Link
                   href={`/dungeons/${post.dungeon_slug}`}
@@ -348,61 +334,6 @@ export default function ActiveLFGCalls() {
         </div>
       )}
 
-      {/* Hover expansion card */}
-      {hoveredPost && !editingId && (() => {
-        const g = normalizeGroup(hoveredPost.current_group)
-        const win = formatWindow(hoveredPost)
-        return (
-          <div
-            className="lfg-hover-card"
-            style={{
-              position: 'fixed',
-              left: hoverPos.x,
-              top: hoverPos.y - 16,
-              transform: 'translate(-50%, -100%)',
-              zIndex: 9999,
-              pointerEvents: 'none',
-            }}
-          >
-            <h2 className="lfg-hover-dungeon">{formatDungeonName(hoveredPost.dungeon_slug)}</h2>
-            <p className="lfg-hover-meta">
-              {hoveredPost.role} {hoveredPost.character_name} is seeking more.{' '}
-              <strong>{getNeedsText(g)}</strong>
-            </p>
-            <div className="lfg-hover-roles">
-              <div className="lfg-roles-left">
-                <div className="lfg-hover-role">
-                  <TankIcon size={28} />
-                  <span className="lfg-hover-role-label">Tank</span>
-                  {g.tank[0] ? <span className="lfg-hover-filled">{g.tank[0]}</span> : <span className="lfg-hover-need">NEED</span>}
-                </div>
-                <div className="lfg-hover-role">
-                  <HealerIcon size={28} />
-                  <span className="lfg-hover-role-label">Healer</span>
-                  {g.healer[0] ? <span className="lfg-hover-filled">{g.healer[0]}</span> : <span className="lfg-hover-need">NEED</span>}
-                </div>
-              </div>
-              <div className="lfg-hover-role lfg-hover-role--dps">
-                <DPSIcon size={28} />
-                <span className="lfg-hover-role-label">DPS</span>
-                {[0, 1, 2].map(i => (
-                  <div key={i} className="lfg-hover-dps-slot">
-                    <span className="lfg-hover-dps-num">DPS {i + 1}</span>
-                    {g.dps[i] ? <span className="lfg-hover-filled">{g.dps[i]}</span> : <span className="lfg-hover-need">NEED</span>}
-                  </div>
-                ))}
-              </div>
-            </div>
-            {win && <p className="lfg-hover-window">{win}</p>}
-            {hoveredPost.notes && (
-              <div className="lfg-hover-note">
-                <span className="lfg-hover-note-label">Note:</span>
-                <p className="lfg-hover-note-text">{hoveredPost.notes}</p>
-              </div>
-            )}
-          </div>
-        )
-      })()}
     </section>
   )
 }
