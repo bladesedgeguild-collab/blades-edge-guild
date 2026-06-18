@@ -45,16 +45,16 @@ export default function DungeonsClient({ playerLevel }: Props) {
 
   return (
     <>
-      {/* Header row: title + LFG mini sidebar */}
-      <div className="df-header-row">
-        <div className="df-header-left">
-          <h1 className="df-title">Dungeon Finder</h1>
-          <p className="df-subtitle">
-            Every den of darkness, every vault of peril. Sorted for your level.
-          </p>
-        </div>
-        <LFGMiniBox title="Active LFG Calls" columns={3} maxRows={2} className="df-lfg-sidebar" />
+      {/* Header */}
+      <div className="df-header">
+        <h1 className="df-title">Dungeon Finder</h1>
+        <p className="df-subtitle">
+          Every den of darkness, every vault of peril. Sorted for your level.
+        </p>
       </div>
+
+      {/* Full-width LFG section above level selector */}
+      <LFGMiniBox title="Active LFG Calls" columns={4} maxRows={2} className="df-lfg-full-section" />
 
       <div className="df-level-selector">
         <span className="df-level-label">

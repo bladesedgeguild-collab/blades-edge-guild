@@ -184,76 +184,84 @@ export default async function DashboardPage() {
         )}
       </div>
 
-      {/* ── Main grid: 2fr 1fr ── */}
-      <div className="hall-main-grid" style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20 }}>
+      {/* ── Main 2-col grid: left = campaign + feed, right = stats + LFG + upcoming ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 20, alignItems: 'start' }}>
 
-        {/* Campaign banner */}
-        <div style={{
-          ...tile,
-          minHeight: 260,
-          position: 'relative',
-          overflow: 'hidden',
-          backgroundImage: `linear-gradient(95deg, rgba(10,8,5,0.95) 0%, rgba(10,8,5,0.82) 38%, rgba(10,8,5,0.4) 70%, rgba(10,8,5,0.15) 100%), url('/images/BladesEdge_DiscordServerBanner.jpg')`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}>
-          {/* ONLINE pill */}
+        {/* Left column: Campaign banner + Hall Feed */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+
+          {/* Campaign banner */}
           <div style={{
-            position: 'absolute', top: 16, right: 16,
-            display: 'flex', alignItems: 'center', gap: 6,
-            padding: '4px 10px',
-            backgroundColor: 'rgba(10,8,5,0.75)',
-            backdropFilter: 'blur(4px)',
-            border: '1px solid rgba(61,46,21,0.5)',
-            borderRadius: 2,
+            ...tile,
+            minHeight: 260,
+            position: 'relative',
+            overflow: 'hidden',
+            backgroundImage: `linear-gradient(95deg, rgba(10,8,5,0.95) 0%, rgba(10,8,5,0.82) 38%, rgba(10,8,5,0.4) 70%, rgba(10,8,5,0.15) 100%), url('/images/BladesEdge_DiscordServerBanner.jpg')`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
           }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#4ade80', display: 'inline-block', flexShrink: 0 }} />
-            <span style={{ fontFamily: 'var(--be-font-display)', fontSize: '0.6rem', letterSpacing: '0.15em', color: '#4ade80' }}>ONLINE</span>
+            <div style={{
+              position: 'absolute', top: 16, right: 16,
+              display: 'flex', alignItems: 'center', gap: 6,
+              padding: '4px 10px',
+              backgroundColor: 'rgba(10,8,5,0.75)',
+              backdropFilter: 'blur(4px)',
+              border: '1px solid rgba(61,46,21,0.5)',
+              borderRadius: 2,
+            }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', backgroundColor: '#4ade80', display: 'inline-block', flexShrink: 0 }} />
+              <span style={{ fontFamily: 'var(--be-font-display)', fontSize: '0.6rem', letterSpacing: '0.15em', color: '#4ade80' }}>ONLINE</span>
+            </div>
+            <div style={{ position: 'absolute', bottom: 0, left: 0, right: '30%', padding: 24 }}>
+              <p style={{ ...eyebrow, color: 'var(--be-portal)' }}>Current Campaign</p>
+              <h2 style={{ fontFamily: 'var(--be-font-display)', fontSize: '1.5rem', color: '#f0e6c8', margin: '0 0 10px', lineHeight: 1.2 }}>
+                Welcome, New Guildies!
+              </h2>
+              <p style={{ fontFamily: "'Spectral', serif", fontSize: '0.9rem', color: 'rgba(138,122,90,0.8)', margin: '0 0 18px', lineHeight: 1.5 }}>
+                The guild is in heavy recruitment mode and reactivating old guildies before the name change. Our goal is 200+ active members, enough to have guildies online at nearly all times, day or night. The more the merrier. Spread the word.
+              </p>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <Link href="/dungeons" style={{ padding: '9px 20px', backgroundColor: 'var(--be-gold)', color: '#0d0b07', borderRadius: 'var(--be-radius)', fontFamily: 'var(--be-font-display)', fontSize: '0.72rem', letterSpacing: '0.08em', textDecoration: 'none', display: 'inline-block' }}>
+                  Sign up for raid
+                </Link>
+                <Link href="/roster" style={{ padding: '9px 20px', backgroundColor: 'transparent', color: '#f0e6c8', border: '1px solid rgba(201,150,26,0.4)', borderRadius: 'var(--be-radius)', fontFamily: 'var(--be-font-display)', fontSize: '0.72rem', letterSpacing: '0.08em', textDecoration: 'none', display: 'inline-block' }}>
+                  View roster
+                </Link>
+              </div>
+            </div>
           </div>
 
-          {/* Bottom-left content */}
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: '30%', padding: 24 }}>
-            <p style={{ ...eyebrow, color: 'var(--be-portal)' }}>Current Campaign</p>
-            <h2 style={{ fontFamily: 'var(--be-font-display)', fontSize: '1.5rem', color: '#f0e6c8', margin: '0 0 10px', lineHeight: 1.2 }}>
-              Welcome, New Guildies!
-            </h2>
-            <p style={{ fontFamily: "'Spectral', serif", fontSize: '0.9rem', color: 'rgba(138,122,90,0.8)', margin: '0 0 18px', lineHeight: 1.5 }}>
-              The guild is in heavy recruitment mode and reactivating old guildies before the name change. Our goal is 200+ active members, enough to have guildies online at nearly all times, day or night. The more the merrier. Spread the word.
-            </p>
-            <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-              <Link href="/dungeons" style={{
-                padding: '9px 20px',
-                backgroundColor: 'var(--be-gold)',
-                color: '#0d0b07',
-                borderRadius: 'var(--be-radius)',
-                fontFamily: 'var(--be-font-display)',
-                fontSize: '0.72rem',
-                letterSpacing: '0.08em',
-                textDecoration: 'none',
-                display: 'inline-block',
-              }}>
-                Sign up for raid
-              </Link>
-              <Link href="/roster" style={{
-                padding: '9px 20px',
-                backgroundColor: 'transparent',
-                color: '#f0e6c8',
-                border: '1px solid rgba(201,150,26,0.4)',
-                borderRadius: 'var(--be-radius)',
-                fontFamily: 'var(--be-font-display)',
-                fontSize: '0.72rem',
-                letterSpacing: '0.08em',
-                textDecoration: 'none',
-                display: 'inline-block',
-              }}>
-                View roster
-              </Link>
+          {/* Hall Feed */}
+          <div style={tile}>
+            <div style={{ padding: '22px 22px 0' }}>
+              <p style={eyebrow}>Hall Feed</p>
             </div>
+            {feedEntries.map((entry) => {
+              const color = entry.cls ? (CLASS_COLORS[entry.cls] ?? 'var(--be-gold)') : 'var(--be-gold)'
+              const isPinned = entry.key === 'guild-founded'
+              return (
+                <div key={entry.key} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 22px', borderTop: '1px solid rgba(61,46,21,0.4)', opacity: isPinned ? 0.65 : 1 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: '50%', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: `${color}33`, border: `1px solid ${color}99`, fontFamily: 'var(--be-font-display)', fontSize: '0.75rem', color }}>
+                    {entry.who.slice(0, 1)}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ margin: 0, fontFamily: "'Spectral', serif", fontSize: '0.9rem', color: '#f0e6c8', lineHeight: 1.3 }}>
+                      <span style={{ fontFamily: 'var(--be-font-display)', color }}>{entry.who}</span>
+                      <span style={{ color: 'rgba(138,122,90,0.8)', marginLeft: 5 }}>{entry.what}</span>
+                    </p>
+                  </div>
+                  <span style={{ fontFamily: 'monospace', fontSize: '0.65rem', color: 'rgba(138,122,90,0.6)', textTransform: 'uppercase', flexShrink: 0, whiteSpace: 'nowrap' }}>
+                    {relativeTime(entry.when)}
+                  </span>
+                </div>
+              )
+            })}
           </div>
         </div>
 
-        {/* Quick stats column */}
-        <div className="hall-stats-grid" style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        {/* Right column: Stat tiles → LFG compact → Upcoming */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+
           <div style={{ ...tile, padding: 22 }}>
             <p style={eyebrow}>Your Characters</p>
             <p className="be-stat" style={{ margin: 0 }}>{charCount}</p>
@@ -264,80 +272,41 @@ export default async function DashboardPage() {
             <p className="be-stat" style={{ margin: 0 }}>{guildieCount ?? 0}</p>
             <p className="be-stat-label">members registered</p>
           </div>
-        </div>
-      </div>
 
-      {/* ── Bottom grid: 1fr 1fr ── */}
-      <div className="hall-bottom-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+          {/* LFG compact — only renders when posts exist */}
+          <LFGMiniBox title="Active Dungeon Calls" columns={2} maxRows={2} className="hall-lfg-compact" />
 
-        {/* Hall Feed */}
-        <div style={tile}>
-          <div style={{ padding: '22px 22px 0' }}>
-            <p style={eyebrow}>Hall Feed</p>
-          </div>
-          {feedEntries.map((entry) => {
-            const color = entry.cls ? (CLASS_COLORS[entry.cls] ?? 'var(--be-gold)') : 'var(--be-gold)'
-            const isPinned = entry.key === 'guild-founded'
-            return (
-              <div key={entry.key} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 22px', borderTop: '1px solid rgba(61,46,21,0.4)', opacity: isPinned ? 0.65 : 1 }}>
-                <div style={{
-                  width: 32, height: 32, borderRadius: '50%', flexShrink: 0,
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  backgroundColor: `${color}33`,
-                  border: `1px solid ${color}99`,
-                  fontFamily: 'var(--be-font-display)',
-                  fontSize: '0.75rem',
-                  color,
-                }}>
-                  {entry.who.slice(0, 1)}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ margin: 0, fontFamily: "'Spectral', serif", fontSize: '0.9rem', color: '#f0e6c8', lineHeight: 1.3 }}>
-                    <span style={{ fontFamily: 'var(--be-font-display)', color }}>{entry.who}</span>
-                    <span style={{ color: 'rgba(138,122,90,0.8)', marginLeft: 5 }}>{entry.what}</span>
+          {/* Upcoming */}
+          <div style={tile}>
+            <div style={{ padding: '22px 22px 0' }}>
+              <p style={eyebrow}>Upcoming</p>
+            </div>
+            {PLACEHOLDER_EVENTS.map((event, i) => (
+              <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '12px 22px', borderTop: '1px solid rgba(61,46,21,0.4)' }}>
+                <div style={{ textAlign: 'center', minWidth: 36, flexShrink: 0 }}>
+                  <p style={{ margin: 0, fontFamily: 'var(--be-font-display)', fontSize: '0.6rem', letterSpacing: '0.12em', color: 'rgba(138,122,90,0.8)', textTransform: 'uppercase' }}>
+                    {event.date}
+                  </p>
+                  <p style={{ margin: 0, fontFamily: 'monospace', fontSize: '0.75rem', color: '#f0e6c8' }}>
+                    {event.time}
                   </p>
                 </div>
-                <span style={{ fontFamily: 'monospace', fontSize: '0.65rem', color: 'rgba(138,122,90,0.6)', textTransform: 'uppercase', flexShrink: 0, whiteSpace: 'nowrap' }}>
-                  {relativeTime(entry.when)}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ margin: '0 0 5px', fontFamily: 'var(--be-font-display)', fontSize: '0.85rem', color: '#f0e6c8' }}>
+                    {event.name}
+                  </p>
+                  <div style={{ height: 2, backgroundColor: 'rgba(61,46,21,0.6)', borderRadius: 1, overflow: 'hidden' }}>
+                    <div style={{ height: '100%', width: `${(event.signups / event.cap) * 100}%`, backgroundColor: 'var(--be-gold)' }} />
+                  </div>
+                </div>
+                <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'rgba(138,122,90,0.8)', flexShrink: 0 }}>
+                  {event.signups}/{event.cap}
                 </span>
               </div>
-            )
-          })}
-        </div>
-
-        {/* Upcoming */}
-        <div style={tile}>
-          <div style={{ padding: '22px 22px 0' }}>
-            <p style={eyebrow}>Upcoming</p>
+            ))}
           </div>
-          {PLACEHOLDER_EVENTS.map((event, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '12px 22px', borderTop: '1px solid rgba(61,46,21,0.4)' }}>
-              <div style={{ textAlign: 'center', minWidth: 36, flexShrink: 0 }}>
-                <p style={{ margin: 0, fontFamily: 'var(--be-font-display)', fontSize: '0.6rem', letterSpacing: '0.12em', color: 'rgba(138,122,90,0.8)', textTransform: 'uppercase' }}>
-                  {event.date}
-                </p>
-                <p style={{ margin: 0, fontFamily: 'monospace', fontSize: '0.75rem', color: '#f0e6c8' }}>
-                  {event.time}
-                </p>
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <p style={{ margin: '0 0 5px', fontFamily: 'var(--be-font-display)', fontSize: '0.85rem', color: '#f0e6c8' }}>
-                  {event.name}
-                </p>
-                <div style={{ height: 2, backgroundColor: 'rgba(61,46,21,0.6)', borderRadius: 1, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${(event.signups / event.cap) * 100}%`, backgroundColor: 'var(--be-gold)' }} />
-                </div>
-              </div>
-              <span style={{ fontFamily: 'monospace', fontSize: '0.75rem', color: 'rgba(138,122,90,0.8)', flexShrink: 0 }}>
-                {event.signups}/{event.cap}
-              </span>
-            </div>
-          ))}
         </div>
       </div>
-
-      {/* ── LFG mini grid — full width below feed + upcoming ── */}
-      <LFGMiniBox title="Active Dungeon Calls" columns={3} maxRows={2} />
 
       {/* ── Active Dungeon Calls (full detail cards) ── */}
       <ActiveLFGCalls />

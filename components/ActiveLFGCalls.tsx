@@ -310,7 +310,7 @@ export default function ActiveLFGCalls() {
                 ) : (
                   <div className="lfg-big-footer">
                     <Link
-                      href={`/dungeons/${post.dungeon_slug}`}
+                      href={`/dungeons/${post.dungeon_slug}?lfg=${post.id}`}
                       className="lfg-big-link"
                       onClick={e => e.stopPropagation()}
                     >

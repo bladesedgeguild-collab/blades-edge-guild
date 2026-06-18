@@ -137,7 +137,7 @@ export default async function MyRosterPage() {
       </div>
 
       {/* ── LFG strip ── */}
-      <LFGMiniBox title="Active Dungeon Calls" columns={5} maxRows={1} maxItems={5} className="roster-lfg-strip" />
+      <LFGMiniBox title="Active Dungeon Calls" columns={5} maxRows={1} maxItems={5} className="roster-lfg-strip" noScroll />
 
       {/* ── Body row: Vitals + Alts ── */}
       <div className="roster-body">

@@ -67,9 +67,10 @@ interface Props {
   maxRows?: number
   maxItems?: number
   className?: string
+  noScroll?: boolean
 }
 
-export default function LFGMiniBox({ title, columns = 3, maxRows = 2, maxItems, className = '' }: Props) {
+export default function LFGMiniBox({ title, columns = 3, maxRows = 2, maxItems, className = '', noScroll = false }: Props) {
   const router = useRouter()
   const [posts, setPosts] = useState<LFGPost[]>([])
   const [hoveredId, setHoveredId] = useState<string | null>(null)
@@ -89,7 +90,7 @@ export default function LFGMiniBox({ title, columns = 3, maxRows = 2, maxItems, 
 
   const CARD_HEIGHT = 140
   const GAP = 12
-  const maxHeightVal = maxRows * CARD_HEIGHT + (maxRows - 1) * GAP
+  const maxHeightVal = noScroll ? undefined : maxRows * CARD_HEIGHT + (maxRows - 1) * GAP
 
   function handleClick(post: LFGPost) {
     const el = document.getElementById(`lfg-full-${post.id}`)
@@ -109,13 +110,13 @@ export default function LFGMiniBox({ title, columns = 3, maxRows = 2, maxItems, 
   }
 
   return (
-    <div className={`lfg-mini-grid-wrap${className ? ` ${className}` : ''}`}>
+    <div className={className || 'lfg-mini-grid-wrap'}>
       {title && <div className="lfg-mini-grid-title">{title}</div>}
       <div
         className="lfg-mini-grid"
         style={{
           gridTemplateColumns: `repeat(${columns}, 1fr)`,
-          maxHeight: `${maxHeightVal}px`,
+          ...(maxHeightVal !== undefined ? { maxHeight: `${maxHeightVal}px` } : {}),
         }}
       >
         {displayPosts.map(post => {

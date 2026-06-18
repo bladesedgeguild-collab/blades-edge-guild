@@ -202,6 +202,8 @@ function getFeaturedNeedsText(g: FeaturedLFG['current_group']): string {
 
 const MT_ZONES = ['America/Denver', 'America/Phoenix', 'America/Boise', 'America/Creston']
 
+type UserChar = { id: string; name: string; level: number; class: string; is_main: boolean }
+
 interface Props {
   dungeon: Dungeon
   initialPosts: LfgPost[]
@@ -210,9 +212,10 @@ interface Props {
   featuredLFG?: FeaturedLFG | null
   userId?: string
   userRole?: string
+  userChars?: UserChar[]
 }
 
-export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, characterName, featuredLFG, userId, userRole }: Props) {
+export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, characterName, featuredLFG, userId, userRole, userChars = [] }: Props) {
   const [selectedClass, setSelectedClass] = useState<WoWClass>('Warrior')
   const [openBoss, setOpenBoss] = useState<number | null>(null)
   const [role, setRole] = useState('DPS')
@@ -228,6 +231,9 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
   const [showBannerForm, setShowBannerForm] = useState(!featuredLFG)
   const [featuredPost, setFeaturedPost] = useState(featuredLFG ?? null)
   const [featuredEditMode, setFeaturedEditMode] = useState(false)
+  const [joiningRole, setJoiningRole] = useState<'tank' | 'healer' | 'dps' | null>(null)
+  const [joinCharId, setJoinCharId] = useState<string>('')
+  const [joining, setJoining] = useState(false)
 
   const isAdmin = ['admin', 'officer', 'gm'].includes(userRole ?? '')
   const isFeaturedOwner = !!userId && featuredPost?.user_id === userId
@@ -262,6 +268,31 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
         setFeaturedEditMode(false)
       }
     } catch { }
+  }
+
+  async function handleJoin(role: 'tank' | 'healer' | 'dps') {
+    if (!featuredPost || !joinCharId) return
+    setJoining(true)
+    try {
+      const res = await fetch(`/api/dungeons/lfg/${featuredPost.id}/join`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role, characterId: joinCharId }),
+      })
+      if (res.ok) {
+        const { current_group } = await res.json()
+        setFeaturedPost(prev => prev ? { ...prev, current_group } : null)
+        setJoiningRole(null)
+      }
+    } finally {
+      setJoining(false)
+    }
+  }
+
+  function openJoinSlot(role: 'tank' | 'healer' | 'dps') {
+    const mainChar = userChars.find(c => c.is_main)
+    setJoinCharId(mainChar?.id ?? userChars[0]?.id ?? '')
+    setJoiningRole(role)
   }
 
   useEffect(() => {
@@ -442,10 +473,21 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
                     <span className="lfg-role-label">Tank</span>
                   </div>
                   <div className="lfg-role-slot">
-                    {featuredGroup.tank[0]
-                      ? <span className="lfg-slot-name">{featuredGroup.tank[0]}</span>
-                      : <span className="lfg-slot-need">NEED</span>
-                    }
+                    {featuredGroup.tank[0] ? (
+                      <span className="lfg-slot-name">{featuredGroup.tank[0]}</span>
+                    ) : joiningRole === 'tank' ? (
+                      <div className="lfg-assign-form" onClick={e => e.stopPropagation()}>
+                        <select className="lfg-assign-select" value={joinCharId} onChange={e => setJoinCharId(e.target.value)}>
+                          {userChars.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                        </select>
+                        <button className="lfg-assign-confirm" onClick={() => handleJoin('tank')} disabled={joining}>{joining ? '…' : 'Join'}</button>
+                        <button className="lfg-assign-cancel" onClick={() => setJoiningRole(null)}>✕</button>
+                      </div>
+                    ) : !isFeaturedOwner && isLoggedIn && userChars.length > 0 ? (
+                      <button className="lfg-slot-need-btn" onClick={e => { e.stopPropagation(); openJoinSlot('tank') }}>NEED</button>
+                    ) : (
+                      <span className="lfg-slot-need">NEED</span>
+                    )}
                   </div>
                 </div>
                 <div className="lfg-role-block">
@@ -453,10 +495,21 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
                     <span className="lfg-role-label">Healer</span>
                   </div>
                   <div className="lfg-role-slot">
-                    {featuredGroup.healer[0]
-                      ? <span className="lfg-slot-name">{featuredGroup.healer[0]}</span>
-                      : <span className="lfg-slot-need">NEED</span>
-                    }
+                    {featuredGroup.healer[0] ? (
+                      <span className="lfg-slot-name">{featuredGroup.healer[0]}</span>
+                    ) : joiningRole === 'healer' ? (
+                      <div className="lfg-assign-form" onClick={e => e.stopPropagation()}>
+                        <select className="lfg-assign-select" value={joinCharId} onChange={e => setJoinCharId(e.target.value)}>
+                          {userChars.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                        </select>
+                        <button className="lfg-assign-confirm" onClick={() => handleJoin('healer')} disabled={joining}>{joining ? '…' : 'Join'}</button>
+                        <button className="lfg-assign-cancel" onClick={() => setJoiningRole(null)}>✕</button>
+                      </div>
+                    ) : !isFeaturedOwner && isLoggedIn && userChars.length > 0 ? (
+                      <button className="lfg-slot-need-btn" onClick={e => { e.stopPropagation(); openJoinSlot('healer') }}>NEED</button>
+                    ) : (
+                      <span className="lfg-slot-need">NEED</span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -467,10 +520,21 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
                 {[0, 1, 2].map(i => (
                   <div key={i} className="lfg-role-slot">
                     <span className="lfg-dps-label">DPS {i + 1}:</span>
-                    {featuredGroup.dps[i]
-                      ? <span className="lfg-slot-name">{featuredGroup.dps[i]}</span>
-                      : <span className="lfg-slot-need">NEED</span>
-                    }
+                    {featuredGroup.dps[i] ? (
+                      <span className="lfg-slot-name">{featuredGroup.dps[i]}</span>
+                    ) : joiningRole === 'dps' && i === featuredGroup.dps.length ? (
+                      <div className="lfg-assign-form" onClick={e => e.stopPropagation()}>
+                        <select className="lfg-assign-select" value={joinCharId} onChange={e => setJoinCharId(e.target.value)}>
+                          {userChars.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                        </select>
+                        <button className="lfg-assign-confirm" onClick={() => handleJoin('dps')} disabled={joining}>{joining ? '…' : 'Join'}</button>
+                        <button className="lfg-assign-cancel" onClick={() => setJoiningRole(null)}>✕</button>
+                      </div>
+                    ) : !isFeaturedOwner && isLoggedIn && userChars.length > 0 ? (
+                      <button className="lfg-slot-need-btn" onClick={e => { e.stopPropagation(); openJoinSlot('dps') }}>NEED</button>
+                    ) : (
+                      <span className="lfg-slot-need">NEED</span>
+                    )}
                   </div>
                 ))}
               </div>

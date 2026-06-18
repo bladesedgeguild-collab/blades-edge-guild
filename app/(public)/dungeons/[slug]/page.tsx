@@ -31,6 +31,7 @@ export default async function DungeonPage({ params, searchParams }: Props) {
 
   let characterName: string | undefined
   let userRole: string | undefined
+  let userChars: { id: string; name: string; level: number; class: string; is_main: boolean }[] = []
   if (user) {
     const { data: profile } = await supabase
       .from('users')
@@ -50,6 +51,13 @@ export default async function DungeonPage({ params, searchParams }: Props) {
     } else {
       characterName = profile?.display_name ?? undefined
     }
+
+    const { data: chars } = await supabase
+      .from('characters')
+      .select('id, name, level, class, is_main')
+      .eq('claimed_by', user.id)
+      .order('is_main', { ascending: false })
+    userChars = (chars ?? []) as typeof userChars
   }
 
   // Fetch active LFG posts for this dungeon
@@ -85,6 +93,7 @@ export default async function DungeonPage({ params, searchParams }: Props) {
       featuredLFG={featuredLFG}
       userId={user?.id}
       userRole={userRole}
+      userChars={userChars}
     />
   )
 }

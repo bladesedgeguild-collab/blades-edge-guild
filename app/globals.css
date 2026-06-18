@@ -2424,3 +2424,121 @@ input[type=number] { -moz-appearance: textfield; }
   gap: 0.5rem;
   align-items: center;
 }
+
+/* ── Dungeons page full-width LFG section ── */
+.df-lfg-full-section {
+  width: 100%;
+  margin-bottom: 1.5rem;
+  background: rgba(201, 150, 26, 0.04);
+  border: 1px solid rgba(201, 150, 26, 0.2);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+}
+
+.df-lfg-full-section .lfg-mini-grid {
+  overflow-y: visible;
+}
+
+@media (max-width: 900px) {
+  .df-lfg-full-section .lfg-mini-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* ── Hall right column compact LFG ── */
+.hall-lfg-compact {
+  background: rgba(201, 150, 26, 0.04);
+  border: 1px solid rgba(201, 150, 26, 0.2);
+  border-radius: 4px;
+  padding: 16px 18px;
+}
+
+.hall-lfg-compact .lfg-mini-grid-title {
+  font-size: 0.62rem;
+  margin-bottom: 0.6rem;
+}
+
+.hall-lfg-compact .lfg-mini-card {
+  padding: 0.55rem 0.7rem;
+}
+
+.hall-lfg-compact .lfg-mini-dungeon {
+  font-size: 0.75rem;
+}
+
+/* ── Need slot join buttons ── */
+.lfg-slot-need-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  color: #ff8c00;
+  background: rgba(255, 140, 0, 0.08);
+  border: 1px dashed rgba(255, 140, 0, 0.4);
+  border-radius: 4px;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.lfg-slot-need-btn:hover {
+  background: rgba(255, 140, 0, 0.18);
+  border-color: rgba(255, 140, 0, 0.7);
+  color: #ffaa33;
+}
+
+/* ── Inline character assignment form ── */
+.lfg-assign-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.lfg-assign-select {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  background: rgba(26, 18, 8, 0.9);
+  border: 1px solid rgba(201, 150, 26, 0.4);
+  border-radius: 4px;
+  color: var(--be-ink, #f0e6c8);
+  padding: 3px 6px;
+  cursor: pointer;
+}
+
+.lfg-assign-confirm {
+  font-family: 'Cinzel', serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  background: rgba(26, 255, 110, 0.12);
+  border: 1px solid rgba(26, 255, 110, 0.4);
+  border-radius: 4px;
+  color: #1aff6e;
+  padding: 3px 10px;
+  cursor: pointer;
+  transition: background 150ms ease;
+}
+
+.lfg-assign-confirm:hover:not(:disabled) {
+  background: rgba(26, 255, 110, 0.22);
+}
+
+.lfg-assign-confirm:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.lfg-assign-cancel {
+  font-size: 0.75rem;
+  background: transparent;
+  border: 1px solid rgba(138, 122, 90, 0.3);
+  border-radius: 4px;
+  color: rgba(138, 122, 90, 0.7);
+  padding: 2px 7px;
+  cursor: pointer;
+  transition: border-color 150ms ease;
+}
+
+.lfg-assign-cancel:hover {
+  border-color: rgba(138, 122, 90, 0.6);
+  color: rgba(138, 122, 90, 1);
+}
