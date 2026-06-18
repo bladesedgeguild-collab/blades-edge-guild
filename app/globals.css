@@ -1966,7 +1966,7 @@ input[type=number] { -moz-appearance: textfield; }
 
 .lfg-hover-roles {
   display: grid;
-  grid-template-columns: 1fr 1fr 1.4fr;
+  grid-template-columns: 1fr 1fr;
   gap: 1rem;
   margin-bottom: 1rem;
 }
@@ -2199,4 +2199,162 @@ input[type=number] { -moz-appearance: textfield; }
     padding: 0.75rem;
     text-align: center;
   }
+}
+
+/* ── LFG 2-col role layout ── */
+.lfg-roles-2col {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
+.lfg-roles-left {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* ── Active LFG 3-col grid ── */
+.active-lfg-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.25rem;
+  max-height: calc(2 * 280px + 1.25rem);
+  overflow-y: auto;
+  padding-right: 0.25rem;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201, 150, 26, 0.3) transparent;
+}
+
+.active-lfg-grid::-webkit-scrollbar {
+  width: 6px;
+}
+
+.active-lfg-grid::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.active-lfg-grid::-webkit-scrollbar-thumb {
+  background: rgba(201, 150, 26, 0.3);
+  border-radius: 3px;
+}
+
+.active-lfg-grid .lfg-big-card {
+  margin-bottom: 0;
+}
+
+@media (max-width: 900px) {
+  .active-lfg-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .active-lfg-grid { grid-template-columns: 1fr; }
+}
+
+/* ── LFG card dungeon link ── */
+.lfg-card-dungeon-link {
+  text-decoration: none;
+  color: var(--be-gold, #c9961a);
+  transition: background 150ms ease, color 150ms ease, border-radius 150ms ease;
+  padding: 0 0.15em;
+  border-radius: 3px;
+}
+
+.lfg-card-dungeon-link:hover {
+  background: var(--be-gold, #c9961a);
+  color: #1a1208;
+}
+
+/* ── LFG card highlight flash (mini → full card) ── */
+@keyframes lfg-pulse-border {
+  0%   { box-shadow: 0 0 0 0 rgba(201, 150, 26, 0.7); border-color: rgba(201, 150, 26, 0.9); }
+  50%  { box-shadow: 0 0 0 8px rgba(201, 150, 26, 0); border-color: rgba(201, 150, 26, 0.5); }
+  100% { box-shadow: 0 0 0 0 rgba(201, 150, 26, 0); border-color: rgba(201, 150, 26, 0.35); }
+}
+
+.lfg-card-highlight {
+  animation: lfg-pulse-border 1.5s ease both;
+}
+
+/* ── LFG mini box (Hall right column + Dungeon Finder sidebar) ── */
+.lfg-mini-box {
+  background: var(--be-bg-2, #2a1e0e);
+  border: 1px solid rgba(201, 150, 26, 0.3);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  min-width: 220px;
+  max-width: 320px;
+}
+
+.lfg-mini-box-title {
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--be-gold, #c9961a);
+  margin-bottom: 0.75rem;
+}
+
+.lfg-mini-card {
+  background: rgba(201, 150, 26, 0.04);
+  border: 1px solid rgba(201, 150, 26, 0.18);
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: border-color 150ms ease, background 150ms ease;
+  position: relative;
+}
+
+.lfg-mini-card:last-child { margin-bottom: 0; }
+
+.lfg-mini-card:hover {
+  border-color: rgba(201, 150, 26, 0.45);
+  background: rgba(201, 150, 26, 0.08);
+}
+
+.lfg-mini-dungeon {
+  font-family: 'Cinzel', serif;
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  color: var(--be-gold, #c9961a);
+  margin-bottom: 0.2rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.lfg-mini-meta {
+  font-family: 'Spectral', serif;
+  font-size: 0.82rem;
+  color: var(--be-muted, #8a7a5a);
+  font-style: italic;
+}
+
+.lfg-mini-needs {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  color: #ff8c00;
+  letter-spacing: 0.06em;
+  margin-top: 0.15rem;
+}
+
+/* ── Dungeon Featured LFG header row with actions ── */
+.dungeon-featured-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.dungeon-featured-header .dungeon-featured-title {
+  margin-bottom: 0;
+}
+
+.dungeon-featured-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
 }

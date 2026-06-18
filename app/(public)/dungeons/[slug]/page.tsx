@@ -30,12 +30,15 @@ export default async function DungeonPage({ params, searchParams }: Props) {
   const { data: { user } } = await supabase.auth.getUser()
 
   let characterName: string | undefined
+  let userRole: string | undefined
   if (user) {
     const { data: profile } = await supabase
       .from('users')
-      .select('claimed_character_id, display_name')
+      .select('claimed_character_id, display_name, role')
       .eq('id', user.id)
       .single()
+
+    userRole = (profile as { role?: string } | null)?.role ?? undefined
 
     if (profile?.claimed_character_id) {
       const { data: char } = await supabase
@@ -80,6 +83,8 @@ export default async function DungeonPage({ params, searchParams }: Props) {
       isLoggedIn={!!user}
       characterName={characterName}
       featuredLFG={featuredLFG}
+      userId={user?.id}
+      userRole={userRole}
     />
   )
 }

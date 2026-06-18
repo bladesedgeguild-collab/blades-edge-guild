@@ -1,25 +1,11 @@
 import { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
-import { createClient as adminClient } from '@supabase/supabase-js'
 import DungeonsClient from './DungeonsClient'
-import { DUNGEONS } from '@/data/dungeons/index'
 import './dungeons.css'
 
 export const metadata: Metadata = {
   title: 'Dungeon Finder | Blådes Edge',
   description: 'Find your next dungeon run. View level requirements, quests, loot, and call guildmates to join you.',
-}
-
-export type LfgSidebarPost = {
-  id: string
-  dungeon_slug: string
-  character_name: string
-  role: string
-  available_window: string | null
-  days_available: string[] | null
-  time_start: string | null
-  time_end: string | null
-  current_group: { tank: number | string[]; healer: number | string[]; dps: number | string[] } | null
 }
 
 export default async function DungeonsPage() {
@@ -45,28 +31,10 @@ export default async function DungeonsPage() {
     }
   }
 
-  const service = adminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-
-  const { data: lfgData, error: lfgError } = await service
-    .from('dungeon_lfg')
-    .select('id, dungeon_slug, character_name, role, available_window, days_available, time_start, time_end, current_group')
-    .gt('expires_at', new Date().toISOString())
-    .order('created_at', { ascending: false })
-    .limit(10)
-
-  if (lfgError) console.error('Dungeons page LFG fetch error:', lfgError)
-
-  const activeLFG = (lfgData ?? []) as LfgSidebarPost[]
-
-  const dungeonNames = Object.fromEntries(DUNGEONS.map(d => [d.id, d.name]))
-
   return (
     <div className="df-page">
       <div className="page-container" style={{ paddingTop: '2rem', paddingBottom: '4rem' }}>
-        <DungeonsClient playerLevel={playerLevel} activeLFG={activeLFG} dungeonNames={dungeonNames} />
+        <DungeonsClient playerLevel={playerLevel} />
       </div>
     </div>
   )

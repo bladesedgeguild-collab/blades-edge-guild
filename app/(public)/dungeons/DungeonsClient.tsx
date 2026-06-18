@@ -4,7 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { DUNGEONS } from '@/data/dungeons/index'
 import type { Dungeon, DungeonContinent } from '@/data/dungeons/types'
-import type { LfgSidebarPost } from './page'
+import LFGMiniBox from '@/components/LFGMiniBox'
 import './dungeons.css'
 
 type Continent = 'All' | DungeonContinent
@@ -25,44 +25,11 @@ const CONTINENT_BAND: Record<string, string> = {
 
 const CONTINENTS: Continent[] = ['All', 'Eastern Kingdoms', 'Kalimdor', 'Outland']
 
-function formatWindow(post: LfgSidebarPost): string {
-  const days = post.days_available?.length
-    ? post.days_available.join(', ')
-    : post.days_available !== null && post.days_available !== undefined
-    ? 'Any day'
-    : null
-  if (post.time_start && post.time_end)
-    return `${days || 'Any day'}, ${post.time_start}–${post.time_end} Server Time`
-  if (days) return days
-  return post.available_window ?? ''
-}
-
 interface Props {
   playerLevel: number
-  activeLFG: LfgSidebarPost[]
-  dungeonNames: Record<string, string>
 }
 
-function getSidebarNeedsText(post: LfgSidebarPost): string {
-  const g = post.current_group
-  if (!g) return ''
-  const tank = Array.isArray(g.tank) ? g.tank : []
-  const healer = Array.isArray(g.healer) ? g.healer : []
-  const dps = Array.isArray(g.dps) ? g.dps : []
-  const needsTank = tank.length === 0
-  const needsHealer = healer.length === 0
-  const needsDPS = dps.length < 3
-  if (!needsTank && !needsHealer && !needsDPS) return 'Full!'
-  const needs: string[] = []
-  if (needsTank) needs.push('Tank')
-  if (needsHealer) needs.push('Heals')
-  if (needsDPS) needs.push('DPS')
-  if (needs.length === 3) return 'Needs All.'
-  if (needs.length === 1) return `Needs ${needs[0]}.`
-  return `Needs ${needs[0]} + ${needs[1]}.`
-}
-
-export default function DungeonsClient({ playerLevel, activeLFG, dungeonNames }: Props) {
+export default function DungeonsClient({ playerLevel }: Props) {
   const [continent, setContinent] = useState<Continent>('All')
   const [overrideLevel, setOverrideLevel] = useState<number | null>(null)
   const [showOnlyMyLevel, setShowOnlyMyLevel] = useState(false)
@@ -78,7 +45,7 @@ export default function DungeonsClient({ playerLevel, activeLFG, dungeonNames }:
 
   return (
     <>
-      {/* Header row: title + LFG sidebar */}
+      {/* Header row: title + LFG mini sidebar */}
       <div className="df-header-row">
         <div className="df-header-left">
           <h1 className="df-title">Dungeon Finder</h1>
@@ -86,37 +53,7 @@ export default function DungeonsClient({ playerLevel, activeLFG, dungeonNames }:
             Every den of darkness, every vault of peril. Sorted for your level.
           </p>
         </div>
-        {activeLFG.length > 0 && (
-          <div className="df-lfg-sidebar">
-            <div className="df-lfg-sidebar-title">Active LFG Calls</div>
-            {activeLFG.map(post => {
-              const window = formatWindow(post)
-              const needsText = getSidebarNeedsText(post)
-              return (
-                <div key={post.id} className="df-lfg-sidebar-post">
-                  <div className="df-lfg-sidebar-dungeon">
-                    {dungeonNames[post.dungeon_slug] ?? post.dungeon_slug}
-                  </div>
-                  <div className="df-lfg-sidebar-caller">
-                    <strong>{post.role} {post.character_name}</strong>
-                  </div>
-                  {needsText && (
-                    <div className="df-lfg-sidebar-needs">{needsText}</div>
-                  )}
-                  {window && (
-                    <div className="df-lfg-sidebar-window">{window}</div>
-                  )}
-                  <Link
-                    href={`/dungeons/${post.dungeon_slug}`}
-                    className="df-lfg-sidebar-link"
-                  >
-                    View &rarr;
-                  </Link>
-                </div>
-              )
-            })}
-          </div>
-        )}
+        <LFGMiniBox title="Active LFG Calls" />
       </div>
 
       <div className="df-level-selector">

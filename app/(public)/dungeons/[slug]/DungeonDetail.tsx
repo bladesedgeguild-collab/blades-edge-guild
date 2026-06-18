@@ -45,6 +45,7 @@ type LfgPost = {
 
 type FeaturedLFG = {
   id: string
+  user_id?: string
   character_name: string
   role: string
   available_window: string | null
@@ -57,6 +58,98 @@ type FeaturedLFG = {
     healer: string[] | number
     dps: string[] | number
   } | null
+}
+
+type FeaturedEditUpdates = {
+  days_available: string[] | null
+  time_start: string | null
+  time_end: string | null
+  notes: string | null
+  available_window: string | null
+}
+
+function FeaturedEditForm({
+  post,
+  onSave,
+  onCancel,
+}: {
+  post: FeaturedLFG
+  onSave: (updates: FeaturedEditUpdates) => Promise<void>
+  onCancel: () => void
+}) {
+  const [days, setDays] = useState<string[]>(post.days_available ?? [])
+  const [anyDay, setAnyDay] = useState((post.days_available ?? []).length === 0)
+  const [timeStart, setTimeStart] = useState(post.time_start ?? '')
+  const [timeEnd, setTimeEnd] = useState(post.time_end ?? '')
+  const [notes, setNotes] = useState(post.notes ?? '')
+  const [saving, setSaving] = useState(false)
+
+  function toggleDay(day: string) {
+    setDays(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day])
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setSaving(true)
+    await onSave({
+      days_available: anyDay ? [] : days,
+      time_start: timeStart || null,
+      time_end: timeEnd || null,
+      notes: notes || null,
+      available_window: null,
+    })
+    setSaving(false)
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="lfg-edit-form">
+      <div className="dd-lfg-field">
+        <label className="dd-lfg-label">Days Available</label>
+        <div className="lfg-day-row">
+          {DAYS.map(d => (
+            <button
+              key={d}
+              type="button"
+              className={`lfg-day-btn${days.includes(d) && !anyDay ? ' lfg-day-btn--active' : ''}`}
+              onClick={() => { setAnyDay(false); toggleDay(d) }}
+            >{d}</button>
+          ))}
+          <button
+            type="button"
+            className={`lfg-day-btn${anyDay ? ' lfg-day-btn--active' : ''}`}
+            onClick={() => { setAnyDay(true); setDays([]) }}
+          >Any</button>
+        </div>
+      </div>
+      <div className="lfg-time-row">
+        <div className="dd-lfg-field" style={{ flex: 1 }}>
+          <label className="dd-lfg-label lfg-field-label">Start Time (Server)</label>
+          <select className="dd-lfg-select lfg-time-select" value={timeStart} onChange={e => setTimeStart(e.target.value)}>
+            <option value="">Select...</option>
+            {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </div>
+        <span className="lfg-time-to">to</span>
+        <div className="dd-lfg-field" style={{ flex: 1 }}>
+          <label className="dd-lfg-label lfg-field-label">End Time (Server)</label>
+          <select className="dd-lfg-select lfg-time-select" value={timeEnd} onChange={e => setTimeEnd(e.target.value)}>
+            <option value="">Select...</option>
+            {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
+          </select>
+        </div>
+      </div>
+      <div className="dd-lfg-field">
+        <label className="dd-lfg-label">Notes</label>
+        <textarea className="dd-lfg-textarea" value={notes} onChange={e => setNotes(e.target.value)} rows={3} />
+      </div>
+      <div className="lfg-edit-actions">
+        <button type="submit" className="dd-lfg-btn df-lfg-btn" disabled={saving}>
+          {saving ? 'Saving…' : 'Save Changes'}
+        </button>
+        <button type="button" className="lfg-cancel-btn" onClick={onCancel}>Discard</button>
+      </div>
+    </form>
+  )
 }
 
 function formatWindow(post: LfgPost): string {
@@ -115,9 +208,11 @@ interface Props {
   isLoggedIn: boolean
   characterName?: string
   featuredLFG?: FeaturedLFG | null
+  userId?: string
+  userRole?: string
 }
 
-export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, characterName, featuredLFG }: Props) {
+export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, characterName, featuredLFG, userId, userRole }: Props) {
   const [selectedClass, setSelectedClass] = useState<WoWClass>('Warrior')
   const [openBoss, setOpenBoss] = useState<number | null>(null)
   const [role, setRole] = useState('DPS')
@@ -131,6 +226,43 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
   const [success, setSuccess] = useState(false)
   const [posts, setPosts] = useState<LfgPost[]>(initialPosts)
   const [showBannerForm, setShowBannerForm] = useState(!featuredLFG)
+  const [featuredPost, setFeaturedPost] = useState(featuredLFG ?? null)
+  const [featuredEditMode, setFeaturedEditMode] = useState(false)
+
+  const isAdmin = ['admin', 'officer', 'gm'].includes(userRole ?? '')
+  const isFeaturedOwner = !!userId && featuredPost?.user_id === userId
+
+  async function handleFeaturedCancel() {
+    if (!featuredPost) return
+    try {
+      const res = await fetch(`/api/dungeons/lfg/${featuredPost.id}`, { method: 'DELETE' })
+      if (res.ok) {
+        setFeaturedPost(null)
+        setShowBannerForm(true)
+      }
+    } catch { }
+  }
+
+  async function handleFeaturedSave(updates: {
+    days_available: string[] | null
+    time_start: string | null
+    time_end: string | null
+    notes: string | null
+    available_window: string | null
+  }) {
+    if (!featuredPost) return
+    try {
+      const res = await fetch(`/api/dungeons/lfg/${featuredPost.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates),
+      })
+      if (res.ok) {
+        setFeaturedPost(prev => prev ? { ...prev, ...updates } : null)
+        setFeaturedEditMode(false)
+      }
+    } catch { }
+  }
 
   useEffect(() => {
     setDetectedTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone)
@@ -246,8 +378,8 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
 
   const daysLabel = anyDay ? 'Any day' : selectedDays.length > 0 ? selectedDays.join(', ') : ''
 
-  const featuredGroup = featuredLFG ? normalizeGroup(featuredLFG.current_group) : null
-  const featuredWindow = featuredLFG ? formatFeaturedWindow(featuredLFG) : null
+  const featuredGroup = featuredPost ? normalizeGroup(featuredPost.current_group) : null
+  const featuredWindow = featuredPost ? formatFeaturedWindow(featuredPost as FeaturedLFG) : null
 
   return (
     <div className="dd-page">
@@ -281,46 +413,89 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
       <div className="dd-body">
 
         {/* Featured LFG */}
-        {featuredLFG && featuredGroup && (
+        {featuredPost && featuredGroup && (
           <div className="dungeon-featured-lfg">
-            <div className="dungeon-featured-title">Active Call for This Dungeon</div>
-            <div className="dungeon-featured-caller">
-              <strong>{featuredLFG.role} {featuredLFG.character_name}</strong> is seeking more.{' '}
-              <span className="dungeon-featured-needs">{getFeaturedNeedsText(featuredLFG.current_group)}</span>
+            <div className="dungeon-featured-header">
+              <div className="dungeon-featured-title">Active Call for This Dungeon</div>
+              {(isFeaturedOwner || isAdmin) && (
+                <div className="dungeon-featured-actions">
+                  {isFeaturedOwner && !featuredEditMode && (
+                    <button className="lfg-edit-btn" onClick={() => setFeaturedEditMode(true)}>Edit</button>
+                  )}
+                  {(isFeaturedOwner || isAdmin) && (
+                    <button className="lfg-cancel-btn" onClick={handleFeaturedCancel}>Cancel Request</button>
+                  )}
+                </div>
+              )}
             </div>
-            <div className="dungeon-featured-group">
-              <div className="dungeon-featured-role">
-                <span className="dungeon-featured-role-label">Tank</span>
-                {featuredGroup.tank[0]
-                  ? <span className="dungeon-featured-filled">{featuredGroup.tank[0]}</span>
-                  : <span className="dungeon-featured-need">NEED</span>
-                }
+
+            <p className="lfg-big-meta">
+              <strong>{featuredPost.role} {featuredPost.character_name}</strong> is seeking more.{' '}
+              <span className="lfg-needs-text">{getFeaturedNeedsText(featuredPost.current_group)}</span>
+            </p>
+
+            {/* 2-column role layout */}
+            <div className="lfg-roles-2col" style={{ marginBottom: '1rem' }}>
+              <div className="lfg-roles-left">
+                <div className="lfg-role-block">
+                  <div className="lfg-role-header">
+                    <span className="lfg-role-label">Tank</span>
+                  </div>
+                  <div className="lfg-role-slot">
+                    {featuredGroup.tank[0]
+                      ? <span className="lfg-slot-name">{featuredGroup.tank[0]}</span>
+                      : <span className="lfg-slot-need">NEED</span>
+                    }
+                  </div>
+                </div>
+                <div className="lfg-role-block">
+                  <div className="lfg-role-header">
+                    <span className="lfg-role-label">Healer</span>
+                  </div>
+                  <div className="lfg-role-slot">
+                    {featuredGroup.healer[0]
+                      ? <span className="lfg-slot-name">{featuredGroup.healer[0]}</span>
+                      : <span className="lfg-slot-need">NEED</span>
+                    }
+                  </div>
+                </div>
               </div>
-              <div className="dungeon-featured-role">
-                <span className="dungeon-featured-role-label">Healer</span>
-                {featuredGroup.healer[0]
-                  ? <span className="dungeon-featured-filled">{featuredGroup.healer[0]}</span>
-                  : <span className="dungeon-featured-need">NEED</span>
-                }
-              </div>
-              <div className="dungeon-featured-role">
-                <span className="dungeon-featured-role-label">DPS</span>
+              <div className="lfg-role-block lfg-role-block--dps">
+                <div className="lfg-role-header">
+                  <span className="lfg-role-label">DPS</span>
+                </div>
                 {[0, 1, 2].map(i => (
-                  <span key={i} className={featuredGroup.dps[i] ? 'dungeon-featured-filled' : 'dungeon-featured-need'}>
-                    {featuredGroup.dps[i] ?? 'NEED'}
-                  </span>
+                  <div key={i} className="lfg-role-slot">
+                    <span className="lfg-dps-label">DPS {i + 1}:</span>
+                    {featuredGroup.dps[i]
+                      ? <span className="lfg-slot-name">{featuredGroup.dps[i]}</span>
+                      : <span className="lfg-slot-need">NEED</span>
+                    }
+                  </div>
                 ))}
               </div>
             </div>
-            {featuredLFG.notes && (
-              <div className="dungeon-featured-notes">{featuredLFG.notes}</div>
+
+            {featuredEditMode ? (
+              <FeaturedEditForm post={featuredPost} onSave={handleFeaturedSave} onCancel={() => setFeaturedEditMode(false)} />
+            ) : (
+              <>
+                {featuredPost.notes && (
+                  <div className="lfg-hover-note" style={{ marginBottom: '1rem' }}>
+                    <span className="lfg-hover-note-label">Note:</span>
+                    <p className="lfg-hover-note-text">{featuredPost.notes}</p>
+                  </div>
+                )}
+                {featuredWindow && (
+                  <div className="dungeon-featured-window">{featuredWindow}</div>
+                )}
+                {!isFeaturedOwner && (
+                  <button className="dungeon-join-btn" onClick={() => setShowBannerForm(true)}>
+                    Answer the Call
+                  </button>
+                )}
+              </>
             )}
-            {featuredWindow && (
-              <div className="dungeon-featured-window">{featuredWindow}</div>
-            )}
-            <button className="dungeon-join-btn" onClick={() => setShowBannerForm(true)}>
-              Answer the Call
-            </button>
           </div>
         )}
 

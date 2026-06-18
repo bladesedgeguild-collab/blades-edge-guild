@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { CharacterClass } from '@/types'
 import ActiveLFGCalls from '@/components/ActiveLFGCalls'
+import LFGMiniBox from '@/components/LFGMiniBox'
 
 type MainChar = {
   id: string
@@ -124,7 +125,7 @@ export default async function DashboardPage() {
     .select('id, display_name, updated_at, claimed_character_id')
     .eq('has_completed_onboarding', true)
     .order('updated_at', { ascending: false })
-    .limit(20)
+    .limit(8)
 
   const charIds = ((feedUsers ?? []) as { claimed_character_id: string | null }[])
     .map(u => u.claimed_character_id)
@@ -263,6 +264,7 @@ export default async function DashboardPage() {
             <p className="be-stat" style={{ margin: 0 }}>{guildieCount ?? 0}</p>
             <p className="be-stat-label">members registered</p>
           </div>
+          <LFGMiniBox title="Active LFG Calls" />
         </div>
       </div>
 

@@ -15,12 +15,7 @@ const TankIcon = ({ size = 24 }: { size?: number }) => (
       strokeWidth="2"
       strokeLinejoin="round"
     />
-    <path
-      d="M12 7v10M8 12h8"
-      stroke="#c9961a"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-    />
+    <path d="M12 7v10M8 12h8" stroke="#c9961a" strokeWidth="1.8" strokeLinecap="round" />
   </svg>
 )
 
@@ -134,13 +129,7 @@ function LFGEditForm({ post, onSave, onCancel }: EditFormProps) {
     e.preventDefault()
     e.stopPropagation()
     const available_window = buildWindowSummary(days, timeStart || null, timeEnd || null)
-    onSave({
-      days_available: days,
-      time_start: timeStart || null,
-      time_end: timeEnd || null,
-      notes: notes || null,
-      available_window,
-    })
+    onSave({ days_available: days, time_start: timeStart || null, time_end: timeEnd || null, notes: notes || null, available_window })
   }
 
   return (
@@ -154,40 +143,20 @@ function LFGEditForm({ post, onSave, onCancel }: EditFormProps) {
         ))}
       </div>
       <div className="lfg-edit-times">
-        <select
-          className="lfg-time-select"
-          value={timeStart}
-          onChange={e => setTimeStart(e.target.value)}
-        >
+        <select className="lfg-time-select" value={timeStart} onChange={e => setTimeStart(e.target.value)}>
           <option value="">Start time...</option>
           {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
         </select>
         <span className="lfg-edit-to">to</span>
-        <select
-          className="lfg-time-select"
-          value={timeEnd}
-          onChange={e => setTimeEnd(e.target.value)}
-        >
+        <select className="lfg-time-select" value={timeEnd} onChange={e => setTimeEnd(e.target.value)}>
           <option value="">End time...</option>
           {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
         </select>
       </div>
-      <textarea
-        className="lfg-edit-notes"
-        value={notes}
-        onChange={e => setNotes(e.target.value)}
-        placeholder="Notes..."
-        rows={2}
-      />
+      <textarea className="lfg-edit-notes" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notes..." rows={2} />
       <div className="lfg-edit-actions">
         <button type="submit" className="lfg-edit-save-btn">Save</button>
-        <button
-          type="button"
-          className="lfg-edit-cancel-form-btn"
-          onClick={e => { e.stopPropagation(); onCancel() }}
-        >
-          Cancel
-        </button>
+        <button type="button" className="lfg-edit-cancel-form-btn" onClick={e => { e.stopPropagation(); onCancel() }}>Cancel</button>
       </div>
     </form>
   )
@@ -268,121 +237,121 @@ export default function ActiveLFGCalls() {
           No active dungeon calls right now. Be the first to Raise the Banner.
         </p>
       ) : (
-        posts.map(post => {
-          const group = normalizeGroup(post.current_group)
-          const needsText = getNeedsText(group)
-          const window = formatWindow(post)
-          const isOwner = !!userId && post.user_id === userId
+        <div className="active-lfg-grid">
+          {posts.map(post => {
+            const group = normalizeGroup(post.current_group)
+            const needsText = getNeedsText(group)
+            const win = formatWindow(post)
+            const isOwner = !!userId && post.user_id === userId
 
-          return (
-            <div
-              key={post.id}
-              className="lfg-big-card"
-              style={{ cursor: 'pointer' }}
-              onClick={() => router.push(`/dungeons/${post.dungeon_slug}?lfg=${post.id}`)}
-              onMouseEnter={(e) => handleMouseEnter(e, post.id)}
-              onMouseLeave={() => setHoveredId(null)}
-            >
-              <h3 className="lfg-big-dungeon">{formatDungeonName(post.dungeon_slug)}</h3>
-              <div className="lfg-big-meta">
-                <strong>{post.role} {post.character_name}</strong> is seeking more.{' '}
-                <span className="lfg-needs-text">{needsText}</span>
-              </div>
-              {window && <div className="lfg-big-window">{window}</div>}
-
-              <div className="lfg-big-roles">
-                <div className="lfg-role-block">
-                  <div className="lfg-role-header">
-                    <span className="lfg-role-icon lfg-role-icon--tank">
-                      <TankIcon size={32} />
-                    </span>
-                    <span className="lfg-role-label">Tank</span>
-                  </div>
-                  <div className="lfg-role-slot">
-                    {group.tank[0]
-                      ? <span className="lfg-slot-name">{group.tank[0]}</span>
-                      : <span className="lfg-slot-need">NEED</span>
-                    }
-                  </div>
+            return (
+              <div
+                id={`lfg-full-${post.id}`}
+                key={post.id}
+                className="lfg-big-card"
+                style={{ cursor: 'pointer' }}
+                onClick={() => router.push(`/dungeons/${post.dungeon_slug}?lfg=${post.id}`)}
+                onMouseEnter={e => handleMouseEnter(e, post.id)}
+                onMouseLeave={() => setHoveredId(null)}
+              >
+                <Link
+                  href={`/dungeons/${post.dungeon_slug}`}
+                  className="lfg-card-dungeon-link"
+                  onClick={e => e.stopPropagation()}
+                >
+                  {formatDungeonName(post.dungeon_slug)}
+                </Link>
+                <div className="lfg-big-meta">
+                  <strong>{post.role} {post.character_name}</strong> is seeking more.{' '}
+                  <span className="lfg-needs-text">{needsText}</span>
                 </div>
+                {win && <div className="lfg-big-window">{win}</div>}
 
-                <div className="lfg-role-block">
-                  <div className="lfg-role-header">
-                    <span className="lfg-role-icon lfg-role-icon--healer">
-                      <HealerIcon size={32} />
-                    </span>
-                    <span className="lfg-role-label">Healer</span>
-                  </div>
-                  <div className="lfg-role-slot">
-                    {group.healer[0]
-                      ? <span className="lfg-slot-name">{group.healer[0]}</span>
-                      : <span className="lfg-slot-need">NEED</span>
-                    }
-                  </div>
-                </div>
-
-                <div className="lfg-role-block lfg-role-block--dps">
-                  <div className="lfg-role-header">
-                    <span className="lfg-role-icon lfg-role-icon--dps">
-                      <DPSIcon size={32} />
-                    </span>
-                    <span className="lfg-role-label">DPS</span>
-                  </div>
-                  {[0, 1, 2].map(i => (
-                    <div key={i} className="lfg-role-slot">
-                      <span className="lfg-dps-label">DPS {i + 1}:</span>
-                      {group.dps[i]
-                        ? <span className="lfg-slot-name">{group.dps[i]}</span>
-                        : <span className="lfg-slot-need">NEED</span>
-                      }
+                {/* 2-column role layout */}
+                <div className="lfg-roles-2col">
+                  <div className="lfg-roles-left">
+                    <div className="lfg-role-block">
+                      <div className="lfg-role-header">
+                        <span className="lfg-role-icon lfg-role-icon--tank"><TankIcon size={28} /></span>
+                        <span className="lfg-role-label">Tank</span>
+                      </div>
+                      <div className="lfg-role-slot">
+                        {group.tank[0]
+                          ? <span className="lfg-slot-name">{group.tank[0]}</span>
+                          : <span className="lfg-slot-need">NEED</span>
+                        }
+                      </div>
                     </div>
-                  ))}
+                    <div className="lfg-role-block">
+                      <div className="lfg-role-header">
+                        <span className="lfg-role-icon lfg-role-icon--healer"><HealerIcon size={28} /></span>
+                        <span className="lfg-role-label">Healer</span>
+                      </div>
+                      <div className="lfg-role-slot">
+                        {group.healer[0]
+                          ? <span className="lfg-slot-name">{group.healer[0]}</span>
+                          : <span className="lfg-slot-need">NEED</span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="lfg-role-block lfg-role-block--dps">
+                    <div className="lfg-role-header">
+                      <span className="lfg-role-icon lfg-role-icon--dps"><DPSIcon size={28} /></span>
+                      <span className="lfg-role-label">DPS</span>
+                    </div>
+                    {[0, 1, 2].map(i => (
+                      <div key={i} className="lfg-role-slot">
+                        <span className="lfg-dps-label">DPS {i + 1}:</span>
+                        {group.dps[i]
+                          ? <span className="lfg-slot-name">{group.dps[i]}</span>
+                          : <span className="lfg-slot-need">NEED</span>
+                        }
+                      </div>
+                    ))}
+                  </div>
                 </div>
+
+                {post.notes && <p className="lfg-big-notes">{post.notes}</p>}
+
+                {editingId === post.id ? (
+                  <LFGEditForm
+                    post={post}
+                    onSave={updates => handleSave(post.id, updates)}
+                    onCancel={() => setEditingId(null)}
+                  />
+                ) : (
+                  <div className="lfg-big-footer">
+                    <Link
+                      href={`/dungeons/${post.dungeon_slug}`}
+                      className="lfg-big-link"
+                      onClick={e => e.stopPropagation()}
+                    >
+                      Answer the Call
+                    </Link>
+                    {(isOwner || isAdmin) && (
+                      <>
+                        <button className="lfg-edit-btn" onClick={e => { e.stopPropagation(); setEditingId(post.id) }}>
+                          Edit
+                        </button>
+                        <button className="lfg-cancel-btn" onClick={e => { e.stopPropagation(); handleCancel(post.id) }}>
+                          Cancel Request
+                        </button>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
-
-              {post.notes && <p className="lfg-big-notes">{post.notes}</p>}
-
-              {editingId === post.id ? (
-                <LFGEditForm
-                  post={post}
-                  onSave={(updates) => handleSave(post.id, updates)}
-                  onCancel={() => setEditingId(null)}
-                />
-              ) : (
-                <div className="lfg-big-footer">
-                  <Link
-                    href={`/dungeons/${post.dungeon_slug}`}
-                    className="lfg-big-link"
-                    onClick={e => e.stopPropagation()}
-                  >
-                    Answer the Call
-                  </Link>
-                  {(isOwner || isAdmin) && (
-                    <>
-                      <button
-                        className="lfg-edit-btn"
-                        onClick={e => { e.stopPropagation(); setEditingId(post.id) }}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="lfg-cancel-btn"
-                        onClick={e => { e.stopPropagation(); handleCancel(post.id) }}
-                      >
-                        Cancel Request
-                      </button>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-          )
-        })
+            )
+          })}
+        </div>
       )}
 
       {/* Hover expansion card */}
       {hoveredPost && !editingId && (() => {
         const g = normalizeGroup(hoveredPost.current_group)
+        const win = formatWindow(hoveredPost)
         return (
           <div
             className="lfg-hover-card"
@@ -401,39 +370,30 @@ export default function ActiveLFGCalls() {
               <strong>{getNeedsText(g)}</strong>
             </p>
             <div className="lfg-hover-roles">
-              <div className="lfg-hover-role">
-                <TankIcon size={36} />
-                <span className="lfg-hover-role-label">Tank</span>
-                {g.tank[0]
-                  ? <span className="lfg-hover-filled">{g.tank[0]}</span>
-                  : <span className="lfg-hover-need">NEED</span>
-                }
-              </div>
-              <div className="lfg-hover-role">
-                <HealerIcon size={36} />
-                <span className="lfg-hover-role-label">Healer</span>
-                {g.healer[0]
-                  ? <span className="lfg-hover-filled">{g.healer[0]}</span>
-                  : <span className="lfg-hover-need">NEED</span>
-                }
+              <div className="lfg-roles-left">
+                <div className="lfg-hover-role">
+                  <TankIcon size={28} />
+                  <span className="lfg-hover-role-label">Tank</span>
+                  {g.tank[0] ? <span className="lfg-hover-filled">{g.tank[0]}</span> : <span className="lfg-hover-need">NEED</span>}
+                </div>
+                <div className="lfg-hover-role">
+                  <HealerIcon size={28} />
+                  <span className="lfg-hover-role-label">Healer</span>
+                  {g.healer[0] ? <span className="lfg-hover-filled">{g.healer[0]}</span> : <span className="lfg-hover-need">NEED</span>}
+                </div>
               </div>
               <div className="lfg-hover-role lfg-hover-role--dps">
-                <DPSIcon size={36} />
+                <DPSIcon size={28} />
                 <span className="lfg-hover-role-label">DPS</span>
                 {[0, 1, 2].map(i => (
                   <div key={i} className="lfg-hover-dps-slot">
                     <span className="lfg-hover-dps-num">DPS {i + 1}</span>
-                    {g.dps[i]
-                      ? <span className="lfg-hover-filled">{g.dps[i]}</span>
-                      : <span className="lfg-hover-need">NEED</span>
-                    }
+                    {g.dps[i] ? <span className="lfg-hover-filled">{g.dps[i]}</span> : <span className="lfg-hover-need">NEED</span>}
                   </div>
                 ))}
               </div>
             </div>
-            {formatWindow(hoveredPost) && (
-              <p className="lfg-hover-window">{formatWindow(hoveredPost)}</p>
-            )}
+            {win && <p className="lfg-hover-window">{win}</p>}
             {hoveredPost.notes && (
               <div className="lfg-hover-note">
                 <span className="lfg-hover-note-label">Note:</span>
