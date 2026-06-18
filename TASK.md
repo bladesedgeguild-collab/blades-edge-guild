@@ -1,362 +1,525 @@
-# TASK: LFG display overhaul + dungeon page width + role icons + names
+# TASK: LFG fixes — delete post, needs text, force render on dashboard + my-roster, bigger shield
 
 ---
 
-## Fix 1 — "Requires Level X" gold pill on locked cards
+## Fix 1 — Shield icon: bigger, more clearly a shield
 
-On dungeon cards where status === 'locked' (level too high for player),
-replace the current lost-in-the-gray text with a gold filled pill:
+Find the TankIcon SVG component. Replace with a larger, more distinct
+shield shape. The shield should be immediately recognizable:
 
 ```tsx
-{status === 'locked' && (
-  <div className="df-requires-pill">
-    Requires Level {dungeon.recommendedLevelMin}
-  </div>
+const TankIcon = ({ size = 24 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+    <path
+      d="M12 2L3 6.5v6C3 17.5 7 21.5 12 23c5-1.5 9-5.5 9-10.5v-6L12 2z"
+      fill="rgba(201,150,26,0.25)"
+      stroke="#c9961a"
+      strokeWidth="2"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M12 7v10M8 12h8"
+      stroke="#c9961a"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+    />
+  </svg>
+);
+```
+
+Render TankIcon at size={32} in the role blocks (was 20).
+Render HealerIcon at size={32}.
+Render DPSIcon at size={32}.
+
+---
+
+## Fix 2 — Delete LFG post: creator or admin
+
+### API route: DELETE /api/dungeons/lfg/[id]
+```ts
+// app/api/dungeons/lfg/[id]/route.ts
+export async function DELETE(req, { params }) {
+  const supabase = createServerClient(/* auth */);
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const post = await supabaseAdmin
+    .from('dungeon_lfg').select('user_id').eq('id', params.id).single();
+
+  const userRecord = await supabaseAdmin
+    .from('users').select('role').eq('id', user.id).single();
+
+  const isOwner = post.data?.user_id === user.id;
+  const isAdmin = ['admin','officer','gm'].includes(userRecord.data?.role);
+
+  if (!isOwner && !isAdmin) {
+    return Response.json({ error: 'Forbidden' }, { status: 403 });
+  }
+
+  await supabaseAdmin.from('dungeon_lfg').delete().eq('id', params.id);
+  return Response.json({ success: true });
+}
+```
+
+### Delete button on each LFG card
+Show the delete button only if the viewer is the creator or an admin:
+
+```tsx
+{(isOwner || isAdmin) && (
+  <button
+    className="lfg-delete-btn"
+    onClick={() => handleDelete(post.id)}
+    title="Remove this LFG post"
+  >
+    ✕ Remove
+  </button>
 )}
 ```
 
 ```css
-.df-requires-pill {
-  display: inline-block;
-  background: var(--be-gold);
-  color: #1a1208;
+.lfg-delete-btn {
   font-family: 'Cinzel', serif;
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  padding: 0.3rem 0.85rem;
-  border-radius: 999px;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  color: rgba(255,80,50,0.7);
+  background: none;
+  border: 1px solid rgba(255,80,50,0.3);
+  border-radius: 6px;
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+  transition: all 150ms ease;
   margin-top: 0.5rem;
 }
-```
-
----
-
-## Fix 2 — Wider layout on individual dungeon pages + Raise the Banner
-
-Find the container class/max-width on:
-- app/(public)/dungeons/[slug]/page.tsx
-- Any raise-the-banner or LFG form page/modal
-
-Apply the same wide container class used by the Dungeon Finder grid page.
-Also increase all font sizes on the dungeon detail page to match
-the larger sizes on the grid cards (same doubling applied in previous task).
-
----
-
-## Fix 3 — Server time display: say "Server Time" not "MT"
-
-Find every instance of "MT" in the time display and LFG form.
-Replace with "Server Time":
-
-- "9:00 AM MT" becomes "9:00 AM Server Time"
-- "Server Time (Mountain)" becomes "Server Time"
-- The comparison line: "9:00 AM Server Time is X in your local time."
-
-Also fix the timezone comparison logic. If the user's detected timezone
-IS Mountain Time (America/Denver or America/Phoenix), the comparison
-should still show but say:
-"9:00 AM Server Time is 9:00 AM in your local time (same timezone)."
-
-Do not skip the comparison when timezones match. Show it always.
-
----
-
-## Fix 4 — Active LFG Calls: show on Hall AND My Roster
-
-The LFG calls block is only appearing on the Dungeons page.
-Add it to:
-- Hall/dashboard page (app/(member)/dashboard/page.tsx)
-- My Roster page (app/(member)/my-roster/page.tsx)
-
-Extract the LFG block into a shared component:
-```
-components/ActiveLFGCalls.tsx
-```
-
-Import and render it in all three pages. It queries the same
-dungeon_lfg table with service role client.
-
----
-
-## Fix 5 + 7 — LFG block: MUCH larger, show names not numbers
-
-The entire LFG block needs to be significantly larger and more prominent.
-Each active call should be a large card.
-
-### Data: store player names per role slot
-When a LFG post is created, store the requester in the appropriate slot.
-When others accept, add their name to the slot.
-
-Update current_group to store names:
-```ts
-// Initial submission (requester counts as their own role):
-const initial_group = {
-  tank: role === 'Tank' ? [characterName] : [],
-  healer: role === 'Healer' ? [characterName] : [],
-  dps: role === 'DPS' || role === 'Flex' ? [characterName] : [],
-};
-// Store as jsonb: {"tank":["Åvatarødys"],"healer":[],"dps":["Åvatarødys"]}
-```
-
-Update the INSERT to use this structure:
-```ts
-current_group: {
-  tank: role === 'Tank' ? [characterName] : [],
-  healer: role === 'Healer' ? [characterName] : [],
-  dps: (role === 'DPS' || role === 'Flex') ? [characterName] : [],
+.lfg-delete-btn:hover {
+  color: #ff5032;
+  border-color: rgba(255,80,50,0.7);
 }
 ```
 
-When someone accepts, append their name to the right array via:
+After delete, refresh the LFG list.
+
+---
+
+## Fix 3 — LFG post text: role first, then needs
+
+Change "NAME is seeking more as DPS" to the new format.
+
+### Needs calculation function
 ```ts
-// In the respond API route, on 'accepted':
-const newGroup = { ...post.current_group };
-const roleKey = acceptorRole === 'Tank' ? 'tank'
-  : acceptorRole === 'Healer' ? 'healer' : 'dps';
-newGroup[roleKey] = [...(newGroup[roleKey] || []), acceptorCharName];
-await supabase.from('dungeon_lfg')
-  .update({ current_group: newGroup })
-  .eq('id', post.id);
+const getNeedsText = (group: { tank: string[]; healer: string[]; dps: string[] }) => {
+  const needsTank = !group.tank || group.tank.length === 0;
+  const needsHealer = !group.healer || group.healer.length === 0;
+  const needsDPS = !group.dps || group.dps.length < 3;
+
+  if (!needsTank && !needsHealer && !needsDPS) return 'Group is Full!';
+
+  const needs: string[] = [];
+  if (needsTank) needs.push('Tank');
+  if (needsHealer) needs.push('Heals');
+  if (needsDPS) needs.push('DPS');
+
+  if (needs.length === 3) return 'Needs All.';
+  if (needs.length === 1) return `Needs ${needs[0]} then Good To Go.`;
+  return `Needs ${needs[0]} and ${needs[1]}.`;
+};
 ```
 
-### Large card display
-
+### New display format
 ```tsx
-<div className="lfg-big-card">
-  {/* Dungeon name — very large */}
-  <h2 className="lfg-big-dungeon">
-    {formatDungeonName(post.dungeon_slug)}
-  </h2>
-
-  {/* Caller + window */}
-  <div className="lfg-big-meta">
-    <span>{post.character_name} is calling for a group</span>
-    {formatWindow(post) && <span>{formatWindow(post)}</span>}
-  </div>
-
-  {/* Role slots */}
-  <div className="lfg-big-roles">
-
-    {/* Tank — 1 slot */}
-    <div className="lfg-role-block">
-      <div className="lfg-role-header">
-        <span className="lfg-role-icon">🛡</span>
-        <span className="lfg-role-label">Tank</span>
-      </div>
-      <div className="lfg-role-slot">
-        {post.current_group.tank?.[0]
-          ? <span className="lfg-slot-name">{post.current_group.tank[0]}</span>
-          : <span className="lfg-slot-need">NEED</span>
-        }
-      </div>
-    </div>
-
-    {/* Healer — 1 slot */}
-    <div className="lfg-role-block">
-      <div className="lfg-role-header">
-        <span className="lfg-role-icon">✚</span>
-        <span className="lfg-role-label">Healer</span>
-      </div>
-      <div className="lfg-role-slot">
-        {post.current_group.healer?.[0]
-          ? <span className="lfg-slot-name">{post.current_group.healer[0]}</span>
-          : <span className="lfg-slot-need">NEED</span>
-        }
-      </div>
-    </div>
-
-    {/* DPS — 3 slots */}
-    <div className="lfg-role-block lfg-role-block--dps">
-      <div className="lfg-role-header">
-        <span className="lfg-role-icon">⚔</span>
-        <span className="lfg-role-label">DPS</span>
-      </div>
-      {[0, 1, 2].map(i => (
-        <div key={i} className="lfg-role-slot">
-          <span className="lfg-dps-label">DPS {i + 1}:</span>
-          {post.current_group.dps?.[i]
-            ? <span className="lfg-slot-name">{post.current_group.dps[i]}</span>
-            : <span className="lfg-slot-need">NEED</span>
-          }
-        </div>
-      ))}
-    </div>
-
-  </div>
-
-  <Link href={`/dungeons/${post.dungeon_slug}`} className="lfg-big-link">
-    Answer the Call
-  </Link>
+<div className="lfg-big-meta">
+  <strong>{post.role} {post.character_name}</strong> is seeking more.{' '}
+  <span className="lfg-needs-text">{getNeedsText(post.current_group)}</span>
 </div>
 ```
 
 ```css
-.lfg-big-card {
-  background: var(--be-bg-2);
-  border: 1px solid rgba(201,150,26,0.35);
-  border-radius: 14px;
-  padding: 1.75rem 2rem;
-  margin-bottom: 1.25rem;
-}
-
-.lfg-big-dungeon {
-  font-family: 'Cinzel Decorative', serif;
-  font-size: clamp(1.4rem, 2.5vw, 2.2rem);
-  color: var(--be-gold);
-  margin-bottom: 0.5rem;
-  line-height: 1.2;
-}
-
-.lfg-big-meta {
-  font-family: 'Spectral', serif;
-  font-size: 1rem;
-  color: var(--be-muted);
-  font-style: italic;
-  margin-bottom: 1.25rem;
-  display: flex;
-  gap: 1.5rem;
-  flex-wrap: wrap;
-}
-
-.lfg-big-roles {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1.5fr;
-  gap: 1rem;
-  margin-bottom: 1.25rem;
-}
-
-.lfg-role-block {
-  background: var(--be-bg-1);
-  border: 1px solid rgba(201,150,26,0.2);
-  border-radius: 10px;
-  padding: 0.85rem 1rem;
-}
-
-.lfg-role-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 0.6rem;
-}
-
-.lfg-role-icon {
-  font-size: 1.2rem;
-}
-
-.lfg-role-label {
-  font-family: 'Cinzel', serif;
-  font-size: 0.85rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--be-gold);
-}
-
-.lfg-role-slot {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.3rem 0;
-  font-family: 'Cinzel', serif;
-  font-size: 0.9rem;
-}
-
-.lfg-dps-label {
-  color: var(--be-muted);
-  font-size: 0.8rem;
-  min-width: 48px;
-}
-
-.lfg-slot-name {
-  color: var(--be-ink);
-  font-weight: 600;
-}
-
-.lfg-slot-need {
-  color: #ff4400;
+.lfg-needs-text {
+  color: #ff8c00;
   font-weight: 700;
-  font-size: 0.9rem;
-  letter-spacing: 0.08em;
-}
-
-.lfg-big-link {
   font-family: 'Cinzel', serif;
-  font-size: 0.82rem;
-  letter-spacing: 0.12em;
-  color: var(--be-portal);
-  text-decoration: none;
-  text-transform: uppercase;
+  font-size: 1rem;
+  letter-spacing: 0.05em;
 }
 ```
+
+Apply this text format everywhere LFG posts are displayed:
+Hall page, My Roster, Dungeons page sidebar, and the top banner.
 
 ---
 
-## Fix 6 — Role icons: more distinct, better contrast
+## Fix 4 — FORCE ActiveLFGCalls onto dashboard and my-roster
 
-Replace emoji icons with SVG icons that are clearly distinct:
+This has been requested multiple times and not appeared.
+The following steps are MANDATORY. Do not skip any.
 
-Tank (shield with a plus/cross): 🛡 — keep but make sure it renders large
-Healer (cross/plus): ✚ — use a distinct plus sign
-DPS (single sword pointing up, not crossed): ⚔ or a single blade
-
-Actually use these Unicode characters that render better:
-- Tank: ⊕ or custom SVG shield
-- Healer: ✙ (heavy Greek cross)
-- DPS: ⚔ (crossed swords)
-
-Better: use inline SVG for each:
-
-```tsx
-const TankIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-    <path d="M10 1L2 5v6c0 4.5 3.3 8.7 8 9.9C14.7 19.7 18 15.5 18 11V5L10 1z"
-      stroke="currentColor" strokeWidth="1.5" fill="rgba(201,150,26,0.2)" />
-    <line x1="10" y1="6" x2="10" y2="14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-    <line x1="6" y1="10" x2="14" y2="10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-  </svg>
-);
-
-const HealerIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-    <rect x="8" y="2" width="4" height="16" rx="2" fill="currentColor" opacity="0.85"/>
-    <rect x="2" y="8" width="16" height="4" rx="2" fill="currentColor" opacity="0.85"/>
-  </svg>
-);
-
-const DPSIcon = () => (
-  <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-    <line x1="4" y1="16" x2="16" y2="4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
-    <path d="M14 3l3 0 0 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-    <path d="M3 17l2-2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-  </svg>
-);
+### Step A — Verify the component exists
+```bash
+find . -name "ActiveLFGCalls*" -not -path "*/node_modules/*"
 ```
 
-Apply these in the role blocks. Tank gets gold color, Healer gets
-portal green, DPS gets mage blue so they are all visually distinct.
+If the file does NOT exist, create it at:
+`components/ActiveLFGCalls.tsx`
+
+If it DOES exist, print its full contents and verify it:
+- Has a default export
+- Actually fetches from dungeon_lfg table
+- Renders visible content when posts exist AND when empty
+
+### Step B — Component must show even when empty
+The component must ALWAYS render a visible container, not return null:
+
+```tsx
+export default function ActiveLFGCalls({ posts }: { posts: LFGPost[] }) {
+  return (
+    <section className="active-lfg-section">
+      <h2 className="active-lfg-heading">Active Dungeon Calls</h2>
+      {posts.length === 0 ? (
+        <p className="active-lfg-empty">
+          No active dungeon calls right now. Be the first to Raise the Banner.
+        </p>
+      ) : (
+        posts.map(post => <LFGBigCard key={post.id} post={post} />)
+      )}
+    </section>
+  );
+}
+```
+
+### Step C — Import and render on dashboard
+Open app/(member)/dashboard/page.tsx.
+
+1. At the top, import: `import ActiveLFGCalls from '@/components/ActiveLFGCalls'`
+2. In the server component, fetch LFG data:
+```ts
+const { data: activeLFG } = await supabaseAdmin
+  .from('dungeon_lfg')
+  .select('*')
+  .gt('expires_at', new Date().toISOString())
+  .order('created_at', { ascending: false });
+```
+3. In the JSX, place the component directly below the stat tiles:
+```tsx
+{/* Stat tiles row */}
+<div className="hall-stats-row">
+  {/* Your Characters tile */}
+  {/* Guildies on Site tile */}
+</div>
+
+{/* Active LFG — MUST appear here */}
+<ActiveLFGCalls posts={activeLFG ?? []} />
+```
+
+### Step D — Import and render on my-roster
+Open app/(member)/my-roster/page.tsx.
+
+1. At the top, import: `import ActiveLFGCalls from '@/components/ActiveLFGCalls'`
+2. Fetch LFG data same as above.
+3. In the JSX, place the component at the bottom of the page,
+   below the alts grid:
+```tsx
+<ActiveLFGCalls posts={activeLFG ?? []} />
+```
+
+### Step E — Verify with grep before committing
+```bash
+grep -n "ActiveLFGCalls" app/\(member\)/dashboard/page.tsx
+grep -n "ActiveLFGCalls" app/\(member\)/my-roster/page.tsx
+```
+
+Both grep commands MUST return at least one result.
+If either returns nothing, the component was not added. Add it before committing.
+
+### Step F — Commit message must confirm
+The commit message must include:
+"ActiveLFGCalls confirmed in dashboard (line X) and my-roster (line X)"
 
 ---
 
 ## Verification
 
-1. Locked cards show a gold filled pill "Requires Level X" clearly visible
-2. Individual dungeon pages use the same wide layout as the grid
-3. LFG form says "Server Time" everywhere, not MT
-4. Timezone comparison shows even when user is Mountain Time
-5. ActiveLFGCalls component renders on Hall AND My Roster
-6. LFG cards are large. Dungeon name is headline-sized (1.4-2.2rem)
-7. Tank/Healer/DPS show names, not numbers
-8. Requester's name already fills their role slot on creation
-9. Empty slots say NEED in bold orange/red
-10. SVG role icons are clearly distinct and colored differently
-
-## SQL to run after deploy
-```sql
--- current_group is already jsonb, no migration needed
--- Just ensure the INSERT logic in the API stores names not counts
-```
+1. TankIcon is large (32px) and looks like a shield immediately
+2. Delete button appears on LFG cards for creator and admins
+3. Clicking delete removes the post and refreshes the list
+4. LFG text reads "DPS Åvatarødys is seeking more. Needs All."
+5. Needs text updates as slots fill: "Needs Heals then Good To Go."
+6. Full group shows "Group is Full!"
+7. dashboard page at /dashboard shows Active Dungeon Calls section
+8. my-roster page shows Active Dungeon Calls section
+9. Both show "No active dungeon calls right now." when empty
+10. Both show actual posts when the dungeon_lfg table has active rows
 
 ## Do not touch
 - /recruit page
 - Oath cinematic
 - animation-fill-mode: both on all animations
+
+---
+
+## Fix 5 — Dungeon grid: "Your Level" filter button
+
+Add a "Your Level" button to the continent filter tab row.
+When active, it hides all grayed-out dungeons and shows only
+dungeons where the player's effective level is in range.
+
+```tsx
+const [showOnlyMyLevel, setShowOnlyMyLevel] = useState(false);
+
+// Add to the existing filter logic:
+const filtered = dungeons
+  .filter(d => continentFilter === 'All' || d.continent === continentFilter)
+  .filter(d => {
+    if (!showOnlyMyLevel) return true;
+    return getDungeonStatus(d, effectiveLevel) === 'active';
+  });
+```
+
+Button sits at the end of the continent tab row:
+```tsx
+<div className="df-tabs">
+  <button className={...}>All</button>
+  <button className={...}>Eastern Kingdoms</button>
+  <button className={...}>Kalimdor</button>
+  <button className={...}>Outland</button>
+
+  {/* Separator */}
+  <span className="df-tabs-divider" />
+
+  <button
+    className={`df-tab df-tab-recommended ${showOnlyMyLevel ? 'active' : ''}`}
+    onClick={() => setShowOnlyMyLevel(v => !v)}
+  >
+    ★ Your Level
+  </button>
+</div>
+```
+
+```css
+.df-tabs-divider {
+  width: 1px;
+  background: rgba(201,150,26,0.2);
+  margin: 0 0.25rem;
+  align-self: stretch;
+}
+
+.df-tab-recommended {
+  color: var(--be-portal);
+  border-color: rgba(26,255,110,0.3);
+}
+
+.df-tab-recommended.active {
+  background: rgba(26,255,110,0.12);
+  border-color: var(--be-portal);
+  color: var(--be-portal);
+}
+```
+
+When active, the button glows portal green. A subtle label updates
+below the sort bar:
+```tsx
+{showOnlyMyLevel && (
+  <p className="df-level-note">
+    Showing only dungeons for level {effectiveLevel}.
+  </p>
+)}
+```
+
+---
+
+## Fix 6 — Active LFG card: large hover expansion
+
+When hovering an Active LFG card, expand it to a much larger
+overlay showing the full role breakdown clearly.
+
+Use the same `position: fixed` + `getBoundingClientRect()` pattern
+used elsewhere on the site so it escapes overflow containers.
+
+```tsx
+const [hoveredLFG, setHoveredLFG] = useState<string | null>(null);
+const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 });
+
+const handleLFGHover = (e: React.MouseEvent, postId: string) => {
+  const rect = e.currentTarget.getBoundingClientRect();
+  setHoverPos({
+    x: rect.left + rect.width / 2,
+    y: rect.top,
+  });
+  setHoveredLFG(postId);
+};
+
+const hoveredPost = posts.find(p => p.id === hoveredLFG);
+```
+
+```tsx
+{/* Hover card — renders at root level above everything */}
+{hoveredPost && (
+  <div
+    className="lfg-hover-card"
+    style={{
+      position: 'fixed',
+      left: hoverPos.x,
+      top: hoverPos.y - 16,
+      transform: 'translate(-50%, -100%)',
+      zIndex: 9999,
+      pointerEvents: 'none',
+    }}
+  >
+    {/* Dungeon name — very large */}
+    <h2 className="lfg-hover-dungeon">
+      {formatDungeonName(hoveredPost.dungeon_slug)}
+    </h2>
+
+    <p className="lfg-hover-meta">
+      {hoveredPost.role} {hoveredPost.character_name} is seeking more.{' '}
+      <strong>{getNeedsText(hoveredPost.current_group)}</strong>
+    </p>
+
+    {/* Role blocks — large and clear */}
+    <div className="lfg-hover-roles">
+
+      <div className="lfg-hover-role">
+        <TankIcon size={36} />
+        <span className="lfg-hover-role-label">Tank</span>
+        {hoveredPost.current_group.tank?.[0]
+          ? <span className="lfg-hover-filled">{hoveredPost.current_group.tank[0]}</span>
+          : <span className="lfg-hover-need">NEED</span>
+        }
+      </div>
+
+      <div className="lfg-hover-role">
+        <HealerIcon size={36} />
+        <span className="lfg-hover-role-label">Healer</span>
+        {hoveredPost.current_group.healer?.[0]
+          ? <span className="lfg-hover-filled">{hoveredPost.current_group.healer[0]}</span>
+          : <span className="lfg-hover-need">NEED</span>
+        }
+      </div>
+
+      <div className="lfg-hover-role lfg-hover-role--dps">
+        <DPSIcon size={36} />
+        <span className="lfg-hover-role-label">DPS</span>
+        {[0,1,2].map(i => (
+          <div key={i} className="lfg-hover-dps-slot">
+            <span className="lfg-hover-dps-num">DPS {i+1}</span>
+            {hoveredPost.current_group.dps?.[i]
+              ? <span className="lfg-hover-filled">{hoveredPost.current_group.dps[i]}</span>
+              : <span className="lfg-hover-need">NEED</span>
+            }
+          </div>
+        ))}
+      </div>
+
+    </div>
+
+    {hoveredPost.available_window && (
+      <p className="lfg-hover-window">{hoveredPost.available_window}</p>
+    )}
+  </div>
+)}
+```
+
+```css
+.lfg-hover-card {
+  background: var(--be-bg-1);
+  border: 2px solid rgba(201,150,26,0.5);
+  border-radius: 16px;
+  padding: 1.75rem 2rem;
+  min-width: 420px;
+  max-width: 560px;
+  box-shadow: 0 16px 48px rgba(0,0,0,0.7),
+              0 0 32px rgba(201,150,26,0.1);
+  animation: rc-fade-in 0.15s ease both;
+  animation-fill-mode: both;
+}
+
+.lfg-hover-dungeon {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 1.8rem;
+  color: var(--be-gold);
+  margin-bottom: 0.4rem;
+  line-height: 1.2;
+}
+
+.lfg-hover-meta {
+  font-family: 'Spectral', serif;
+  font-size: 1rem;
+  color: var(--be-muted);
+  font-style: italic;
+  margin-bottom: 1.25rem;
+}
+
+.lfg-hover-meta strong {
+  color: #ff8c00;
+  font-style: normal;
+}
+
+.lfg-hover-roles {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.4fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.lfg-hover-role {
+  background: var(--be-bg-2);
+  border: 1px solid rgba(201,150,26,0.15);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.lfg-hover-role-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--be-gold);
+}
+
+.lfg-hover-filled {
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  color: var(--be-ink);
+  font-weight: 600;
+}
+
+.lfg-hover-need {
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  color: #ff4400;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.lfg-hover-dps-slot {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lfg-hover-dps-num {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  color: var(--be-muted);
+  min-width: 44px;
+}
+
+.lfg-hover-window {
+  font-family: 'Spectral', serif;
+  font-style: italic;
+  font-size: 0.85rem;
+  color: var(--be-muted);
+}
+```
+
+Attach the hover handlers to each compact LFG card:
+```tsx
+<div
+  className="lfg-big-card"
+  onMouseEnter={(e) => handleLFGHover(e, post.id)}
+  onMouseLeave={() => setHoveredLFG(null)}
+>
+```
+

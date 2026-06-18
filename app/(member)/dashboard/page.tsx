@@ -141,6 +141,14 @@ export default async function DashboardPage() {
     }
   }
 
+  const { data: lfgData } = await adminDb
+    .from('dungeon_lfg')
+    .select('id, user_id, dungeon_slug, character_name, role, available_window, days_available, time_start, time_end, notes, current_group')
+    .gt('expires_at', new Date().toISOString())
+    .order('created_at', { ascending: false })
+
+  const activeLFG = (lfgData ?? []) as Parameters<typeof ActiveLFGCalls>[0]['posts']
+
   const feedEntries: FeedEntry[] = [
     ...((feedUsers ?? []) as { id: string; display_name: string | null; updated_at: string; claimed_character_id: string | null }[]).map(u => {
       const char = u.claimed_character_id ? feedCharMap[u.claimed_character_id] : null
@@ -336,7 +344,7 @@ export default async function DashboardPage() {
       </div>
 
       {/* ── Active Dungeon Calls ── */}
-      <ActiveLFGCalls />
+      <ActiveLFGCalls posts={activeLFG} userId={user?.id} userRole={profile?.role ?? undefined} />
     </div>
   )
 }

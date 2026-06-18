@@ -43,15 +43,38 @@ interface Props {
   dungeonNames: Record<string, string>
 }
 
+function getSidebarNeedsText(post: LfgSidebarPost): string {
+  const g = post.current_group
+  if (!g) return ''
+  const tank = Array.isArray(g.tank) ? g.tank : []
+  const healer = Array.isArray(g.healer) ? g.healer : []
+  const dps = Array.isArray(g.dps) ? g.dps : []
+  const needsTank = tank.length === 0
+  const needsHealer = healer.length === 0
+  const needsDPS = dps.length < 3
+  if (!needsTank && !needsHealer && !needsDPS) return 'Full!'
+  const needs: string[] = []
+  if (needsTank) needs.push('Tank')
+  if (needsHealer) needs.push('Heals')
+  if (needsDPS) needs.push('DPS')
+  if (needs.length === 3) return 'Needs All.'
+  if (needs.length === 1) return `Needs ${needs[0]}.`
+  return `Needs ${needs[0]} + ${needs[1]}.`
+}
+
 export default function DungeonsClient({ playerLevel, activeLFG, dungeonNames }: Props) {
   const [continent, setContinent] = useState<Continent>('All')
   const [overrideLevel, setOverrideLevel] = useState<number | null>(null)
+  const [showOnlyMyLevel, setShowOnlyMyLevel] = useState(false)
 
   const effectiveLevel = overrideLevel ?? playerLevel
 
-  const filtered = continent === 'All'
-    ? DUNGEONS
-    : DUNGEONS.filter(d => d.continent === continent)
+  const filtered = DUNGEONS
+    .filter(d => continent === 'All' || d.continent === continent)
+    .filter(d => {
+      if (!showOnlyMyLevel) return true
+      return getDungeonStatus(d, effectiveLevel) === 'active'
+    })
 
   return (
     <>
@@ -68,25 +91,20 @@ export default function DungeonsClient({ playerLevel, activeLFG, dungeonNames }:
             <div className="df-lfg-sidebar-title">Active LFG Calls</div>
             {activeLFG.map(post => {
               const window = formatWindow(post)
+              const needsText = getSidebarNeedsText(post)
               return (
                 <div key={post.id} className="df-lfg-sidebar-post">
                   <div className="df-lfg-sidebar-dungeon">
                     {dungeonNames[post.dungeon_slug] ?? post.dungeon_slug}
                   </div>
                   <div className="df-lfg-sidebar-caller">
-                    {post.character_name}
-                    {' '}
-                    <span className="df-lfg-sidebar-role">({post.role})</span>
+                    <strong>{post.role} {post.character_name}</strong>
                   </div>
+                  {needsText && (
+                    <div className="df-lfg-sidebar-needs">{needsText}</div>
+                  )}
                   {window && (
                     <div className="df-lfg-sidebar-window">{window}</div>
-                  )}
-                  {post.current_group && (
-                    <div className="df-lfg-sidebar-comp">
-                      <span>🛡 {Array.isArray(post.current_group.tank) ? post.current_group.tank.length : post.current_group.tank}</span>
-                      <span>💚 {Array.isArray(post.current_group.healer) ? post.current_group.healer.length : post.current_group.healer}</span>
-                      <span>⚔️ {Array.isArray(post.current_group.dps) ? post.current_group.dps.length : post.current_group.dps}</span>
-                    </div>
                   )}
                   <Link
                     href={`/dungeons/${post.dungeon_slug}`}
@@ -132,7 +150,20 @@ export default function DungeonsClient({ playerLevel, activeLFG, dungeonNames }:
             {c}
           </button>
         ))}
+        <span className="df-tabs-divider" />
+        <button
+          className={`df-tab df-tab-recommended${showOnlyMyLevel ? ' active' : ''}`}
+          onClick={() => setShowOnlyMyLevel(v => !v)}
+        >
+          ★ Your Level
+        </button>
       </div>
+
+      {showOnlyMyLevel && (
+        <p className="df-level-note">
+          Showing only dungeons for level {effectiveLevel}.
+        </p>
+      )}
 
       <div className="df-grid-wrapper">
         {filtered.length === 0 ? (

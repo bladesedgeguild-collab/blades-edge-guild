@@ -1720,6 +1720,149 @@ input[type=number] { -moz-appearance: textfield; }
 
 .lfg-big-link:hover { opacity: 0.75; }
 
+.lfg-big-window {
+  font-family: 'Spectral', serif;
+  font-size: 0.88rem;
+  color: var(--be-muted, #8a7a5a);
+  font-style: italic;
+  margin-bottom: 0.75rem;
+}
+
+.lfg-big-footer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 0.25rem;
+}
+
+.lfg-needs-text {
+  color: #ff8c00;
+  font-weight: 700;
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  letter-spacing: 0.05em;
+}
+
+.active-lfg-empty {
+  font-family: 'Spectral', serif;
+  font-style: italic;
+  font-size: 0.95rem;
+  color: var(--be-muted, #8a7a5a);
+  padding: 1rem 0;
+}
+
+.lfg-delete-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  color: rgba(255, 80, 50, 0.7);
+  background: none;
+  border: 1px solid rgba(255, 80, 50, 0.3);
+  border-radius: 6px;
+  padding: 0.25rem 0.6rem;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+
+.lfg-delete-btn:hover {
+  color: #ff5032;
+  border-color: rgba(255, 80, 50, 0.7);
+}
+
+.lfg-hover-card {
+  background: var(--be-bg-1, #221a0c);
+  border: 2px solid rgba(201, 150, 26, 0.5);
+  border-radius: 16px;
+  padding: 1.75rem 2rem;
+  min-width: 420px;
+  max-width: 560px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7), 0 0 32px rgba(201, 150, 26, 0.1);
+  animation: rc-fade-in 0.15s ease both;
+}
+
+.lfg-hover-dungeon {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 1.8rem;
+  color: var(--be-gold, #c9961a);
+  margin: 0 0 0.4rem;
+  line-height: 1.2;
+}
+
+.lfg-hover-meta {
+  font-family: 'Spectral', serif;
+  font-size: 1rem;
+  color: var(--be-muted, #8a7a5a);
+  font-style: italic;
+  margin-bottom: 1.25rem;
+}
+
+.lfg-hover-meta strong {
+  color: #ff8c00;
+  font-style: normal;
+}
+
+.lfg-hover-roles {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.4fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.lfg-hover-role {
+  background: var(--be-bg-2, #2a1e0e);
+  border: 1px solid rgba(201, 150, 26, 0.15);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.lfg-hover-role-label {
+  font-family: 'Cinzel', serif;
+  font-size: 0.8rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--be-gold, #c9961a);
+}
+
+.lfg-hover-filled {
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  color: var(--be-ink, #f0e6c8);
+  font-weight: 600;
+}
+
+.lfg-hover-need {
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  color: #ff4400;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.lfg-hover-dps-slot {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.lfg-hover-dps-num {
+  font-family: 'Cinzel', serif;
+  font-size: 0.72rem;
+  color: var(--be-muted, #8a7a5a);
+  min-width: 44px;
+}
+
+.lfg-hover-window {
+  font-family: 'Spectral', serif;
+  font-style: italic;
+  font-size: 0.85rem;
+  color: var(--be-muted, #8a7a5a);
+}
+
 /* ── Settings ── */
 @media (max-width: 768px) {
   .settings-section {

@@ -1,5 +1,6 @@
 import type { CSSProperties } from 'react'
 import { createClient } from '@/lib/supabase/server'
+import { createClient as createAdminClient } from '@supabase/supabase-js'
 import Link from 'next/link'
 import { getCharacterArt } from '@/lib/character-art'
 import { AddAltSection } from './AddAltSection'
@@ -28,6 +29,18 @@ const tile: CSSProperties = { background: 'rgba(26,18,8,0.6)', border: '1px soli
 export default async function MyRosterPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+
+  const adminDb = createAdminClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+  const { data: lfgData } = await adminDb
+    .from('dungeon_lfg')
+    .select('id, user_id, dungeon_slug, character_name, role, available_window, days_available, time_start, time_end, notes, current_group')
+    .gt('expires_at', new Date().toISOString())
+    .order('created_at', { ascending: false })
+
+  const activeLFG = (lfgData ?? []) as Parameters<typeof ActiveLFGCalls>[0]['posts']
 
   const { data: profileRaw } = await supabase
     .from('users')
@@ -172,7 +185,7 @@ export default async function MyRosterPage() {
       </div>
 
       {/* ── Active Dungeon Calls ── */}
-      <ActiveLFGCalls />
+      <ActiveLFGCalls posts={activeLFG} userId={user?.id} />
 
     </div>
   )

@@ -1060,3 +1060,40 @@
     width: 100%;
   }
 }
+
+/* ── Sidebar needs text ── */
+.df-lfg-sidebar-needs {
+  font-family: 'Cinzel', serif;
+  font-size: 0.65rem;
+  color: #ff8c00;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+/* ── Your Level filter (Fix 5) ── */
+.df-tabs-divider {
+  width: 1px;
+  background: rgba(201, 150, 26, 0.2);
+  margin: 0 0.25rem;
+  align-self: stretch;
+}
+
+.df-tab-recommended {
+  color: var(--be-portal, #1aff6e);
+  border-color: rgba(26, 255, 110, 0.3);
+}
+
+.df-tab-recommended.active {
+  background: rgba(26, 255, 110, 0.12);
+  border-color: var(--be-portal, #1aff6e);
+  color: var(--be-portal, #1aff6e);
+}
+
+.df-level-note {
+  font-family: 'Spectral', serif;
+  font-style: italic;
+  font-size: 0.85rem;
+  color: var(--be-portal, #1aff6e);
+  opacity: 0.75;
+  margin-bottom: 1rem;
+}
