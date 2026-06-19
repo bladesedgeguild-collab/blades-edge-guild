@@ -645,7 +645,7 @@ export function RecruitPage() {
         <div
           style={{
             position: 'fixed',
-            top: '120px',
+            top: '85px',
             left: '50%',
             transform: 'translateX(-50%)',
             zIndex: 200,
