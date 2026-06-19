@@ -54,10 +54,10 @@ export default function GMCorner({ quote, scrollActivate = false }: GMCornerProp
       <div
         style={{
           position: 'absolute',
-          bottom: '500px',
+          bottom: '280px',
           right: '24px',
-          width: '400px',
-          maxWidth: '400px',
+          width: '150px',
+          maxWidth: '150px',
           textAlign: 'center',
           fontFamily: 'Spectral, serif',
           fontStyle: 'italic',
@@ -74,7 +74,7 @@ export default function GMCorner({ quote, scrollActivate = false }: GMCornerProp
         style={{
           position: 'absolute',
           bottom: '100px',
-          right: '24px',
+          right: '300px',
           textAlign: 'right',
           lineHeight: '1.4',
         }}
