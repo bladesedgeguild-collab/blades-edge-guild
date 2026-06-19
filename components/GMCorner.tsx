@@ -53,8 +53,7 @@ export default function GMCorner({ scrollActivate = false }: Props) {
       {/* Byline in the LEFT dark triangle area */}
       <div className="rc-gm-byline-left">
         <span className="rc-gm-name">Åvatarødys</span>
-        <span className="rc-gm-guild">Blådes Edge</span>
-        <span className="rc-gm-title">Guild Master</span>
+        <span className="rc-gm-title">Blådes Edge – Guild Master</span>
       </div>
 
       {/* Quote in the RIGHT narrow parchment column */}

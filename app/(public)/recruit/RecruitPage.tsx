@@ -536,7 +536,7 @@ export function RecruitPage() {
               </blockquote>
               <div className="rc-gm-byline">
                 <span className="rc-gm-name">Åvatarødys</span>
-                <span className="rc-gm-title">Blådes Edge Guild Master</span>
+                <span className="rc-gm-title">Blådes Edge – Guild Master</span>
               </div>
             </div>
           </div>
