@@ -3,6 +3,7 @@
 import './recruit.css'
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
+import GMCorner from '@/components/GMCorner'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -21,14 +22,6 @@ const CYCLING_IMAGES = [
   '/images/Recruiting_TophInKharanos.jpg',
 ]
 
-const AVATAR_PER_Q = [
-  '/images/AvatarOdys_speaking1_withScroll_noVertBar.png',
-  '/images/AvatarOdys_speaking4_withScroll_noVertBar.png',
-  '/images/AvatarOdys_speaking2_withScroll_noVertBar.png',
-  '/images/AvatarOdys_speaking5_withScroll_noVertBar.png',
-  '/images/AvatarOdys_speaking3_withScroll_noVertBar.png',
-  '/images/AvatarOdys_speaking4_withScroll_noVertBar.png',
-]
 
 const PERK_IMAGES: Record<string, string> = {
   bags:    '/images/Recruiting_TophBagsFullofBags.jpg',
@@ -521,25 +514,7 @@ export function RecruitPage() {
             </div>
           </div>
 
-          {/* GM corner — withScroll PNG flush to bottom-right */}
-          <div className="rc-gm-corner">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              key={AVATAR_PER_Q[qIdx]}
-              src={AVATAR_PER_Q[qIdx]}
-              className="rc-gm-corner-img"
-              alt=""
-            />
-            <div className="rc-gm-quote-overlay">
-              <blockquote className="rc-gm-quote">
-                &ldquo;{GM_QUOTES[qIdx]}&rdquo;
-              </blockquote>
-              <div className="rc-gm-byline">
-                <span className="rc-gm-name">Åvatarødys</span>
-                <span className="rc-gm-title">Blådes Edge – Guild Master</span>
-              </div>
-            </div>
-          </div>
+          <GMCorner quote={GM_QUOTES[qIdx]} />
         </>
       )}
 

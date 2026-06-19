@@ -423,7 +423,7 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <GMCorner scrollActivate />
+      <GMCorner quote="Thanks for coming to the guild website! I am currently working on it so let me know of issues!" scrollActivate />
     </div>
   )
 }

@@ -273,7 +273,7 @@ export default async function DashboardPage() {
       {/* ── Active Dungeon Calls (full detail cards) ── */}
       <ActiveLFGCalls />
 
-      <GMCorner />
+      <GMCorner quote="Thanks for coming to the guild website! I am currently working on it so let me know of issues!" />
     </div>
   )
 }
