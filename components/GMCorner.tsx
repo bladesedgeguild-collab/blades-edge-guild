@@ -50,36 +50,38 @@ export default function GMCorner({ quote, scrollActivate = false }: GMCornerProp
         style={{ width: '100%', height: 'auto', display: 'block' }}
       />
 
-      {/* Quote — upper-right parchment area */}
+      {/* Quote — parchment area */}
       <div
         style={{
           position: 'absolute',
-          top: '8%',
-          right: '4%',
-          width: '52%',
-          textAlign: 'right',
+          bottom: '500px',
+          right: '24px',
+          width: '400px',
+          maxWidth: '400px',
+          textAlign: 'center',
           fontFamily: 'Spectral, serif',
           fontStyle: 'italic',
-          fontSize: '0.875rem',
-          lineHeight: 1.55,
+          fontSize: '0.9rem',
+          lineHeight: '1.6',
           color: '#f0e6c8',
         }}
       >
         &ldquo;{quote}&rdquo;
       </div>
 
-      {/* Attribution — lower-left, below character art */}
+      {/* Attribution — three-line byline */}
       <div
         style={{
           position: 'absolute',
-          bottom: '14%',
-          left: '6%',
-          lineHeight: 1.4,
+          bottom: '100px',
+          right: '24px',
+          textAlign: 'right',
+          lineHeight: '1.4',
         }}
       >
         <div style={{
           fontFamily: 'Cinzel, serif',
-          fontSize: '0.85rem',
+          fontSize: '1rem',
           fontWeight: 700,
           color: '#c9961a',
           letterSpacing: '0.05em',
@@ -88,12 +90,21 @@ export default function GMCorner({ quote, scrollActivate = false }: GMCornerProp
         </div>
         <div style={{
           fontFamily: 'Cinzel, serif',
-          fontSize: '0.65rem',
+          fontSize: '0.8rem',
+          fontWeight: 400,
           color: '#f0e6c8',
           letterSpacing: '0.05em',
-          whiteSpace: 'nowrap',
         }}>
-          Blådes Edge . Guild Master
+          Blådes Edge
+        </div>
+        <div style={{
+          fontFamily: 'Cinzel, serif',
+          fontSize: '0.7rem',
+          fontWeight: 400,
+          color: '#a07820',
+          letterSpacing: '0.06em',
+        }}>
+          Guild Master
         </div>
       </div>
     </div>
