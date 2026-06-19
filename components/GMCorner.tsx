@@ -12,13 +12,15 @@ const AVATAR_IMAGES = [
 
 interface GMCornerProps {
   quote: string
+  image?: string
   scrollActivate?: boolean
 }
 
-export default function GMCorner({ quote, scrollActivate = false }: GMCornerProps) {
-  const [avatarImg] = useState(
+export default function GMCorner({ quote, image, scrollActivate = false }: GMCornerProps) {
+  const [randomImg] = useState(
     () => AVATAR_IMAGES[Math.floor(Math.random() * AVATAR_IMAGES.length)]
   )
+  const avatarImg = image ?? randomImg
   const [visible, setVisible] = useState(!scrollActivate)
 
   useEffect(() => {
@@ -45,6 +47,7 @@ export default function GMCorner({ quote, scrollActivate = false }: GMCornerProp
       {/* Single image contains both character art and scroll/triangle graphic */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
+        key={avatarImg}
         src={avatarImg}
         alt=""
         style={{ width: '100%', height: 'auto', display: 'block' }}
@@ -73,7 +76,7 @@ export default function GMCorner({ quote, scrollActivate = false }: GMCornerProp
       <div
         style={{
           position: 'absolute',
-          bottom: '50px',
+          bottom: '42px',
           right: '300px',
           textAlign: 'right',
           lineHeight: '1.4',

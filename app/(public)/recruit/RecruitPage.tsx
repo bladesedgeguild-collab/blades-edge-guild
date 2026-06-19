@@ -22,6 +22,14 @@ const CYCLING_IMAGES = [
   '/images/Recruiting_TophInKharanos.jpg',
 ]
 
+const AVATAR_PER_Q = [
+  '/images/AvatarOdys_speaking1_withScroll.png',
+  '/images/AvatarOdys_speaking4_withScroll.png',
+  '/images/AvatarOdys_speaking2_withScroll.png',
+  '/images/AvatarOdys_speaking5_withScroll.png',
+  '/images/AvatarOdys_speaking3_withScroll.png',
+  '/images/AvatarOdys_speaking4_withScroll.png',
+]
 
 const PERK_IMAGES: Record<string, string> = {
   bags:    '/images/Recruiting_TophBagsFullofBags.jpg',
@@ -514,7 +522,7 @@ export function RecruitPage() {
             </div>
           </div>
 
-          <GMCorner quote={GM_QUOTES[qIdx]} />
+          <GMCorner quote={GM_QUOTES[qIdx]} image={AVATAR_PER_Q[qIdx]} />
         </>
       )}
 
@@ -526,10 +534,26 @@ export function RecruitPage() {
             <div className="rc-sealing-wrap">
               <div className="rc-sealing-crest">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/images/guild-crest_Alpha.png" alt="" />
               </div>
               <p className="rc-sealing-text">Sealing your oath...</p>
+              <div style={{
+                width: '280px',
+                height: '6px',
+                background: 'rgba(201, 150, 26, 0.2)',
+                borderRadius: '3px',
+                overflow: 'hidden',
+                margin: '24px auto 0',
+              }}>
+                <div style={{
+                  height: '100%',
+                  background: 'linear-gradient(90deg, #c9961a, #f0c040)',
+                  borderRadius: '3px',
+                  animation: 'oath-bar-fill 2.5s ease both',
+                  animationFillMode: 'both',
+                  width: '0%',
+                }} />
+              </div>
             </div>
           )}
 
@@ -616,30 +640,29 @@ export function RecruitPage() {
         </>
       )}
 
-      {/* Perk hover preview — fixed near top, centered horizontally */}
+      {/* Perk hover preview — centered on screen */}
       {hoveredPerk && (
         <div
           style={{
             position: 'fixed',
+            top: '50%',
             left: '50%',
-            top: '8%',
-            transform: 'translateX(-50%)',
-            zIndex: 9999,
+            transform: 'translate(-50%, -50%)',
+            zIndex: 100,
             pointerEvents: 'none',
-            width: 'min(80vw, 700px)',
-            borderRadius: 12,
-            overflow: 'hidden',
-            boxShadow: '0 24px 80px rgba(0,0,0,0.85)',
-            border: '2px solid rgba(201,150,26,0.5)',
-            animation: 'rc-fade-in 0.15s ease both',
-            animationFillMode: 'both',
           }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={PERK_IMAGES[hoveredPerk]}
-            style={{ width: '100%', height: 'auto', display: 'block' }}
             alt=""
+            style={{
+              width: '320px',
+              height: '320px',
+              objectFit: 'contain',
+              borderRadius: '8px',
+              boxShadow: '0 0 40px rgba(201, 150, 26, 0.4)',
+            }}
           />
         </div>
       )}
