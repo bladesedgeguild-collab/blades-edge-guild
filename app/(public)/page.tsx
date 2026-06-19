@@ -233,6 +233,9 @@ export default async function LandingPage() {
           >
             Est. 2023 · Burning Crusade Classic · Dreamscythe Alliance
           </p>
+          <a href="/recruit" className="hero-recruit-btn">
+            ✦ New to Blådes Edge? Start Here
+          </a>
         </div>
       </section>
 

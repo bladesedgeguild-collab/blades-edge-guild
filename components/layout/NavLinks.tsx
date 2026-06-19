@@ -92,11 +92,10 @@ export function NavLinks({ isLoggedIn, isOfficer }: NavLinksProps) {
           </Link>
           <Link
             href="/recruit"
-            className={linkClass('/recruit')}
-            style={{ fontFamily: "'Cinzel', serif", color: '#1aff6e' }}
+            className={`nav-recruit-link${loadingNav === '/recruit' ? ' nav-loading' : ''}`}
             onClick={() => handleNavClick('/recruit')}
           >
-            Join
+            ✦ Join
           </Link>
           <Link
             href="/dungeons"
