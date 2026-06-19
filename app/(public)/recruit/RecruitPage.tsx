@@ -640,15 +640,15 @@ export function RecruitPage() {
         </>
       )}
 
-      {/* Perk hover preview — centered on screen */}
+      {/* Perk hover preview — 2/3 native size, 250px from bottom */}
       {hoveredPerk && (
         <div
           style={{
             position: 'fixed',
-            top: '50%',
+            bottom: '250px',
             left: '50%',
-            transform: 'translate(-50%, -50%)',
-            zIndex: 100,
+            transform: 'translateX(-50%)',
+            zIndex: 200,
             pointerEvents: 'none',
           }}
         >
@@ -657,11 +657,12 @@ export function RecruitPage() {
             src={PERK_IMAGES[hoveredPerk]}
             alt=""
             style={{
-              width: '320px',
-              height: '320px',
+              width: '1115px',
+              height: 'auto',
               objectFit: 'contain',
               borderRadius: '8px',
-              boxShadow: '0 0 40px rgba(201, 150, 26, 0.4)',
+              boxShadow: '0 0 60px rgba(201, 150, 26, 0.5)',
+              display: 'block',
             }}
           />
         </div>
