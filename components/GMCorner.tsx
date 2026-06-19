@@ -76,8 +76,8 @@ export default function GMCorner({ quote, image, scrollActivate = false }: GMCor
       <div
         style={{
           position: 'absolute',
-          bottom: '42px',
-          right: '300px',
+          bottom: '38px',
+          right: '295px',
           textAlign: 'right',
           lineHeight: '1.4',
         }}
