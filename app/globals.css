@@ -2809,3 +2809,30 @@ input[type=number] { -moz-appearance: textfield; }
   background: rgba(26, 255, 110, 0.1);
   border-color: #1aff6e;
 }
+
+/* ── Discord nav button ── */
+.nav-discord-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: 'Cinzel', serif;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: #ffffff;
+  background: #5865F2;
+  border-radius: 6px;
+  padding: 0.35rem 0.85rem;
+  text-decoration: none;
+  transition: background 150ms ease, box-shadow 150ms ease;
+  white-space: nowrap;
+}
+
+.nav-discord-btn:hover {
+  background: #4752c4;
+  box-shadow: 0 0 12px rgba(88, 101, 242, 0.4);
+}
+
+@media (max-width: 768px) {
+  .nav-discord-btn span { display: none; }
+  .nav-discord-btn { padding: 0.35rem 0.55rem; }
+}
