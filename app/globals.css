@@ -2810,8 +2810,12 @@ input[type=number] { -moz-appearance: textfield; }
   border-color: #1aff6e;
 }
 
-/* ── Discord nav button ── */
+/* ── Discord nav button — fixed to right edge of viewport ── */
 .nav-discord-btn {
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: var(--navbar-height, 56px);
   display: flex;
   align-items: center;
   gap: 0.4rem;
@@ -2820,19 +2824,41 @@ input[type=number] { -moz-appearance: textfield; }
   letter-spacing: 0.08em;
   color: #ffffff;
   background: #5865F2;
-  border-radius: 6px;
-  padding: 0.35rem 0.85rem;
+  padding: 0 1rem;
   text-decoration: none;
-  transition: background 150ms ease, box-shadow 150ms ease;
+  transition: background 150ms ease;
+  z-index: 1001;
   white-space: nowrap;
 }
 
 .nav-discord-btn:hover {
   background: #4752c4;
-  box-shadow: 0 0 12px rgba(88, 101, 242, 0.4);
+}
+
+.nav-discord-btn::after {
+  content: 'discord.gg/B9fEz7AC6T';
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: rgba(18, 10, 3, 0.95);
+  border: 1px solid rgba(88, 101, 242, 0.4);
+  color: rgba(255, 255, 255, 0.7);
+  font-family: 'Spectral', serif;
+  font-style: italic;
+  font-size: 0.7rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 0 0 6px 6px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 150ms ease;
+  pointer-events: none;
+}
+
+.nav-discord-btn:hover::after {
+  opacity: 1;
 }
 
 @media (max-width: 768px) {
+  .nav-discord-btn { padding: 0 0.6rem; }
   .nav-discord-btn span { display: none; }
-  .nav-discord-btn { padding: 0.35rem 0.55rem; }
 }
