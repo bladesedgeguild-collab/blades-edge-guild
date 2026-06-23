@@ -8,6 +8,19 @@
   overflow: hidden;
 }
 
+@media (max-width: 767px) {
+  .rc-page.is-scrollable {
+    position: relative;
+    height: auto;
+    min-height: 100vh;
+    overflow-y: auto;
+  }
+  .rc-page.is-scrollable .rc-result-content {
+    padding-top: 6rem;
+    min-height: auto;
+  }
+}
+
 /* ── Background ── */
 .rc-bg-layer {
   position: absolute;

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { DUNGEONS } from '@/data/dungeons/index'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 const DAY_MAP: Record<string, number> = {
   Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6,
@@ -144,6 +145,7 @@ interface Props {
 
 export default function LFGMiniBox({ title, columns = 3, maxRows = 2, maxItems, className = '', noScroll = false }: Props) {
   const router = useRouter()
+  const isMobile = useIsMobile()
   const [posts, setPosts] = useState<LFGPost[]>([])
   const [hoveredId, setHoveredId] = useState<string | null>(null)
   const [hoverPos, setHoverPos] = useState({ x: 0, y: 0 })
@@ -198,8 +200,8 @@ export default function LFGMiniBox({ title, columns = 3, maxRows = 2, maxItems, 
               key={post.id}
               className="lfg-mini-card"
               onClick={() => handleClick(post)}
-              onMouseEnter={e => handleMouseEnter(e, post.id)}
-              onMouseLeave={() => setHoveredId(null)}
+              onMouseEnter={!isMobile ? e => handleMouseEnter(e, post.id) : undefined}
+              onMouseLeave={!isMobile ? () => setHoveredId(null) : undefined}
             >
               <CalendarBadge daysAvailable={post.days_available} timeStart={post.time_start} />
               <span className="lfg-mini-dungeon">{formatDungeonName(post.dungeon_slug)}</span>

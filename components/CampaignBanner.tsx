@@ -69,7 +69,7 @@ export default function CampaignBanner() {
       </div>
 
       {/* Content */}
-      <div style={{ position: 'absolute', bottom: 0, left: 0, right: '30%', padding: 24, zIndex: 2 }}>
+      <div className="campaign-banner-content" style={{ position: 'absolute', bottom: 0, left: 0, right: '30%', padding: 24, zIndex: 2 }}>
         <p style={{ ...eyebrow, color: 'var(--be-portal)' }}>Current Campaign</p>
         <h2 style={{ fontFamily: 'var(--be-font-display)', fontSize: '1.5rem', color: '#f0e6c8', margin: '0 0 10px', lineHeight: 1.2 }}>
           Welcome, New Guildies!

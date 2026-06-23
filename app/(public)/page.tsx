@@ -206,6 +206,43 @@ export default async function LandingPage() {
           />
         </div>
 
+        {/* Mobile hero text — centered, full width */}
+        <div
+          className="block sm:hidden absolute z-20 w-full text-center"
+          style={{ bottom: 120, left: 0, padding: '0 24px' }}
+        >
+          <div style={{ background: 'linear-gradient(to bottom, rgba(26,18,8,0.8) 0%, transparent 100%)', borderRadius: 8, padding: '20px 16px 24px', display: 'inline-block', width: '100%' }}>
+            <p
+              style={{
+                fontFamily: "'Cinzel Decorative', serif",
+                fontSize: 'clamp(2rem, 8vw, 4rem)',
+                color: '#c9961a',
+                textShadow: '0 2px 24px rgba(0,0,0,0.9)',
+                lineHeight: 1.15,
+                margin: 0,
+              }}
+            >
+              Blådes Edge
+            </p>
+            <p
+              style={{
+                fontFamily: "'Cinzel', serif",
+                fontSize: '0.8rem',
+                letterSpacing: '0.18em',
+                color: 'rgba(240,230,200,0.75)',
+                textShadow: '0 2px 24px rgba(0,0,0,0.9)',
+                margin: '8px 0 16px',
+              }}
+            >
+              TBC Classic · Dreamscythe Alliance
+            </p>
+            <a href="/recruit" className="hero-recruit-btn">
+              ✦ New? Start Here
+            </a>
+          </div>
+        </div>
+
+        {/* Desktop hero text — right-aligned */}
         <div
           className="absolute z-20 text-right hidden sm:block"
           style={{ bottom: 180, right: 0, paddingRight: 32 }}

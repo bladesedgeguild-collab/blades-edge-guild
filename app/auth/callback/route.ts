@@ -73,19 +73,27 @@ export async function GET(request: NextRequest) {
       // Normal login flow
       const { data: existingUser } = await adminClient
         .from('users')
-        .select('id')
+        .select('id, claimed_character_id, has_completed_onboarding')
         .eq('id', user.id)
         .single()
 
       if (existingUser) {
-        // Existing user — update discord fields if this is a Discord login, touch updated_at
-        const updates: Record<string, string | null> = { updated_at: new Date().toISOString() }
+        // Existing user — update discord fields if Discord login.
+        // Only bump updated_at if not fully onboarded (avoids polluting Hall Feed on re-auth).
+        const isFullyOnboarded = existingUser.has_completed_onboarding === true
+          && existingUser.claimed_character_id !== null
+        const updates: Record<string, string | null> = {}
+        if (!isFullyOnboarded) {
+          updates.updated_at = new Date().toISOString()
+        }
         if (discordId) {
           updates.discord_id = discordId
           updates.discord_username = discordUsername
           updates.discord_avatar = discordAvatarUrl
         }
-        await adminClient.from('users').update(updates).eq('id', user.id)
+        if (Object.keys(updates).length > 0) {
+          await adminClient.from('users').update(updates).eq('id', user.id)
+        }
       } else {
         // Brand-new user — bare row only; onboarding owns display_name exclusively
         await adminClient

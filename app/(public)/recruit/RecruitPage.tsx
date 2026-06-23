@@ -358,7 +358,7 @@ export function RecruitPage() {
   const result = getResult(totalScore)
 
   return (
-    <div className="rc-page">
+    <div className={`rc-page${screen === 'result' ? ' is-scrollable' : ''}`}>
 
       {/* ── Background ── */}
       <div className="rc-bg-layer">
@@ -644,7 +644,41 @@ export function RecruitPage() {
       )}
 
       {/* Perk hover preview — 2/3 native size, 250px from bottom */}
-      {hoveredPerk && (
+      {/* Mobile: fullscreen modal on tap */}
+      {isMobile && hoveredPerk && (
+        <div
+          onClick={() => setHoveredPerk(null)}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 300,
+            background: 'rgba(26,18,8,0.88)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px',
+          }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={PERK_IMAGES[hoveredPerk]}
+            alt=""
+            style={{
+              maxWidth: '90vw',
+              maxHeight: '70vh',
+              objectFit: 'contain',
+              borderRadius: '8px',
+              boxShadow: '0 0 40px rgba(201,150,26,0.4)',
+            }}
+          />
+          <div style={{ position: 'absolute', top: 24, right: 24, color: '#f0e6c8', fontSize: '1.5rem', cursor: 'pointer', lineHeight: 1 }}>
+            ✕
+          </div>
+        </div>
+      )}
+
+      {/* Desktop: fixed-top hover preview */}
+      {!isMobile && hoveredPerk && (
         <div
           style={{
             position: 'fixed',

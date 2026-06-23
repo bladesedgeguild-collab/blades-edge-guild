@@ -2720,6 +2720,24 @@ input[type=number] { -moz-appearance: textfield; }
   .gm-corner-root { display: none; }
 }
 
+/* ── LFG calendar badge: static on mobile so it sits above the dungeon title ── */
+@media (max-width: 767px) {
+  .lfg-cal-badge {
+    position: static;
+    align-items: flex-start;
+    margin-bottom: 0.4rem;
+  }
+}
+
+/* ── Campaign banner: full-width content on mobile ── */
+@media (max-width: 767px) {
+  .campaign-banner-content {
+    right: 0 !important;
+    bottom: 0 !important;
+    padding: 16px !important;
+  }
+}
+
 /* ── LFG Calendar Badge — hover card larger size (Fix 2) ── */
 .lfg-hover-card .lfg-cal-badge {
   top: 1rem;
