@@ -151,7 +151,7 @@ function getNeedsText(group: NameGroup): string {
   if (needsHealer) needs.push('Heals')
   if (needsDPS) needs.push('DPS')
   if (needs.length === 3) return 'Needs All.'
-  if (needs.length === 1) return `Needs ${needs[0]} then Good To Go.`
+  if (needs.length === 1) return `Need ${needs[0]} then GTG!`
   return `Needs ${needs[0]} and ${needs[1]}.`
 }
 

@@ -124,13 +124,13 @@ function calculateExpiry(
   const currentMtMin = mtHour * 60 + mtMin
   const targetMin = h * 60 + m
 
-  let bestDaysAhead = Infinity
+  let bestDaysAhead = -Infinity
   for (const day of days) {
     const targetDayNum = DAY_MAP[day]
     if (targetDayNum === undefined) continue
     let daysAhead = (targetDayNum - currentMtDayNum + 7) % 7
     if (daysAhead === 0 && targetMin <= currentMtMin) daysAhead = 7
-    if (daysAhead < bestDaysAhead) bestDaysAhead = daysAhead
+    if (daysAhead > bestDaysAhead) bestDaysAhead = daysAhead
   }
 
   if (!isFinite(bestDaysAhead)) return new Date(Date.now() + 24 * 60 * 60 * 1000)

@@ -71,7 +71,7 @@ export default function GMCorner({ quote, image, scrollActivate = false }: GMCor
             textAlign: 'center',
             fontFamily: 'Spectral, serif',
             fontStyle: 'italic',
-            fontSize: '1.9vw',
+            fontSize: '0.82rem',
             lineHeight: '1.55',
             color: '#f0e6c8',
           }}
@@ -92,7 +92,7 @@ export default function GMCorner({ quote, image, scrollActivate = false }: GMCor
         >
           <div style={{
             fontFamily: 'Cinzel, serif',
-            fontSize: '1.85vw',
+            fontSize: '0.9rem',
             fontWeight: 700,
             color: '#c9961a',
             letterSpacing: '0.05em',
@@ -101,7 +101,7 @@ export default function GMCorner({ quote, image, scrollActivate = false }: GMCor
           </div>
           <div style={{
             fontFamily: 'Cinzel, serif',
-            fontSize: '1.75vw',
+            fontSize: '0.78rem',
             fontWeight: 400,
             color: '#f0e6c8',
             letterSpacing: '0.05em',
@@ -110,7 +110,7 @@ export default function GMCorner({ quote, image, scrollActivate = false }: GMCor
           </div>
           <div style={{
             fontFamily: 'Cinzel, serif',
-            fontSize: '1.55vw',
+            fontSize: '0.68rem',
             fontWeight: 400,
             color: '#a07820',
             letterSpacing: '0.06em',

@@ -114,7 +114,7 @@ function getNeedsText(group: RawGroup): string {
   if (needsHealer) needs.push('Heals')
   if (needsDPS) needs.push('DPS')
   if (needs.length === 3) return 'Needs All.'
-  if (needs.length === 1) return `Needs ${needs[0]}.`
+  if (needs.length === 1) return `Need ${needs[0]} then GTG!`
   return `Needs ${needs[0]} + ${needs[1]}.`
 }
 
