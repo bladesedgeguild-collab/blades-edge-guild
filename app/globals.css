@@ -2641,19 +2641,14 @@ input[type=number] { -moz-appearance: textfield; }
 }
 
 /* ── GM Corner — shared with recruit page ── */
-.rc-gm-corner {
+.gm-corner-root {
   position: fixed;
   bottom: 0;
   right: 0;
-  width: clamp(320px, 30vw, 480px);
+  width: 35vw;
+  height: 35vw;
   pointer-events: none;
-  z-index: 6;
-}
-
-.rc-gm-corner-img {
-  width: 100%;
-  height: auto;
-  display: block;
+  z-index: 50;
 }
 
 /* Original overlay layout (recruit page) */
@@ -2721,8 +2716,8 @@ input[type=number] { -moz-appearance: textfield; }
   text-align: right;
 }
 
-@media (max-width: 900px) {
-  .rc-gm-corner { display: none; }
+@media (max-width: 767px) {
+  .gm-corner-root { display: none; }
 }
 
 /* ── LFG Calendar Badge — hover card larger size (Fix 2) ── */

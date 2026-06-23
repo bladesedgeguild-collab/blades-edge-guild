@@ -413,19 +413,14 @@
 }
 
 /* ── GM corner — withScroll PNG flush to viewport corner ── */
-.rc-gm-corner {
+.gm-corner-root {
   position: fixed;
   bottom: 0;
   right: 0;
-  width: clamp(320px, 30vw, 480px);
+  width: 35vw;
+  height: 35vw;
   pointer-events: none;
-  z-index: 6;
-}
-
-.rc-gm-corner-img {
-  width: 100%;
-  height: auto;
-  display: block;
+  z-index: 50;
 }
 
 .rc-gm-quote-overlay {
@@ -462,8 +457,8 @@
   letter-spacing: 0.06em;
 }
 
-@media (max-width: 900px) {
-  .rc-gm-corner { display: none; }
+@media (max-width: 767px) {
+  .gm-corner-root { display: none; }
 }
 
 /* ── Result seal: two-phase (Fix 10) ── */

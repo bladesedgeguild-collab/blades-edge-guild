@@ -31,85 +31,100 @@ export default function GMCorner({ quote, image, scrollActivate = false }: GMCor
   }, [scrollActivate])
 
   return (
-    <div
-      className="rc-gm-corner"
-      style={{
-        position: 'fixed',
-        bottom: 0,
-        right: 0,
-        width: 'clamp(380px, 33vw, 500px)',
-        zIndex: 50,
-        pointerEvents: 'none',
-        opacity: visible ? 1 : 0,
-        transition: scrollActivate ? 'opacity 0.6s ease' : undefined,
-      }}
-    >
-      {/* Single image contains both character art and scroll/triangle graphic */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        key={avatarImg}
-        src={avatarImg}
-        alt=""
-        style={{ width: '100%', height: 'auto', display: 'block' }}
-      />
-
-      {/* Quote — parchment area */}
+    <>
       <div
+        className="gm-corner-root"
         style={{
-          position: 'absolute',
-          bottom: '180px',
-          right: '30px',
-          width: '150px',
-          maxWidth: '150px',
-          textAlign: 'center',
-          fontFamily: 'Spectral, serif',
-          fontStyle: 'italic',
-          fontSize: '0.9rem',
-          lineHeight: '1.6',
-          color: '#f0e6c8',
+          position: 'fixed',
+          bottom: 0,
+          right: 0,
+          width: '35vw',
+          height: '35vw',
+          zIndex: 50,
+          pointerEvents: 'none',
+          opacity: visible ? 1 : 0,
+          transition: scrollActivate ? 'opacity 0.6s ease' : undefined,
         }}
       >
-        &ldquo;{quote}&rdquo;
+        {/* Combined character and scroll graphic (1254x1254 square) */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          key={avatarImg}
+          src={avatarImg}
+          alt=""
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'fill',
+          }}
+        />
+
+        {/* Quote -- parchment area */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '37.5%',
+            right: '6.25%',
+            width: '31.25%',
+            textAlign: 'center',
+            fontFamily: 'Spectral, serif',
+            fontStyle: 'italic',
+            fontSize: '1.9vw',
+            lineHeight: '1.55',
+            color: '#f0e6c8',
+          }}
+        >
+          &ldquo;{quote}&rdquo;
+        </div>
+
+        {/* Byline -- three lines, right-aligned */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '7.9%',
+            right: '61.5%',
+            textAlign: 'right',
+            lineHeight: '1.4',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          <div style={{
+            fontFamily: 'Cinzel, serif',
+            fontSize: '1.85vw',
+            fontWeight: 700,
+            color: '#c9961a',
+            letterSpacing: '0.05em',
+          }}>
+            Åvatarødys
+          </div>
+          <div style={{
+            fontFamily: 'Cinzel, serif',
+            fontSize: '1.75vw',
+            fontWeight: 400,
+            color: '#f0e6c8',
+            letterSpacing: '0.05em',
+          }}>
+            Blådes Edge
+          </div>
+          <div style={{
+            fontFamily: 'Cinzel, serif',
+            fontSize: '1.55vw',
+            fontWeight: 400,
+            color: '#a07820',
+            letterSpacing: '0.06em',
+          }}>
+            Guild Master
+          </div>
+        </div>
       </div>
 
-      {/* Attribution — three-line byline */}
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '38px',
-          right: '295px',
-          textAlign: 'right',
-          lineHeight: '1.4',
-        }}
-      >
-        <div style={{
-          fontFamily: 'Cinzel, serif',
-          fontSize: '1rem',
-          fontWeight: 700,
-          color: '#c9961a',
-          letterSpacing: '0.05em',
-        }}>
-          Åvatarødys
-        </div>
-        <div style={{
-          fontFamily: 'Cinzel, serif',
-          fontSize: '0.8rem',
-          fontWeight: 400,
-          color: '#f0e6c8',
-          letterSpacing: '0.05em',
-        }}>
-          Blådes Edge
-        </div>
-        <div style={{
-          fontFamily: 'Cinzel, serif',
-          fontSize: '0.7rem',
-          fontWeight: 400,
-          color: '#a07820',
-          letterSpacing: '0.06em',
-        }}>
-          Guild Master
-        </div>
-      </div>
-    </div>
+      <style>{`
+        @media (max-width: 767px) {
+          .gm-corner-root { display: none !important; }
+        }
+      `}</style>
+    </>
   )
 }
