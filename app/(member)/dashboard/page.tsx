@@ -132,26 +132,23 @@ export default async function DashboardPage() {
     .map(u => u.claimed_character_id)
     .filter((id): id is string => id !== null)
 
-  const feedCharMap: Record<string, { class: string; status: string }> = {}
+  const feedCharMap: Record<string, { class: string; in_original_roster: boolean }> = {}
   if (charIds.length > 0) {
     const { data: feedCharData } = await adminDb
       .from('characters')
-      .select('id, class, status')
+      .select('id, class, in_original_roster')
       .in('id', charIds)
-    for (const c of (feedCharData ?? []) as { id: string; class: string; status: string }[]) {
-      feedCharMap[c.id] = { class: c.class, status: c.status }
+    for (const c of (feedCharData ?? []) as { id: string; class: string; in_original_roster: boolean }[]) {
+      feedCharMap[c.id] = { class: c.class, in_original_roster: c.in_original_roster }
     }
   }
 
   const feedEntries: FeedEntry[] = [
     ...((feedUsers ?? []) as { id: string; display_name: string | null; updated_at: string; claimed_character_id: string | null }[]).map(u => {
       const char = u.claimed_character_id ? feedCharMap[u.claimed_character_id] : null
-      const status = char?.status ?? null
-      const what = status === 'new'
-        ? 'joined as a fresh recruit'
-        : status === 'returned'
+      const what = char?.in_original_roster
         ? 'answered the call and returned'
-        : 'answered the call · character claimed'
+        : 'has joined Blådes Edge!'
       return { key: u.id, who: u.display_name ?? '???', what, cls: char?.class ?? null, when: u.updated_at }
     }),
     { key: 'guild-founded', who: 'Åvatarødys', what: 'founded Blådes Edge', cls: null, when: null },

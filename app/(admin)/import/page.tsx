@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import type { Dungeon } from '@/lib/dungeon-schema'
 
 type RosterPreview = {
   total: number
@@ -38,6 +39,14 @@ export default function ImportPage() {
   const [importing, setImporting] = useState(false)
   const [result, setResult] = useState<ImportResult | null>(null)
   const [importError, setImportError] = useState<string | null>(null)
+
+  // ── Section 3: Dungeon JSON Import ──
+  const dungeonFileRef = useRef<HTMLInputElement>(null)
+  const [dungeonData, setDungeonData] = useState<Dungeon[] | null>(null)
+  const [dungeonParseError, setDungeonParseError] = useState<string | null>(null)
+  const [dungeonImporting, setDungeonImporting] = useState(false)
+  const [dungeonResult, setDungeonResult] = useState<ImportResult | null>(null)
+  const [dungeonImportError, setDungeonImportError] = useState<string | null>(null)
 
   // ── Section 2: Manual Status Update ──
   const [charName, setCharName] = useState('')
@@ -149,6 +158,55 @@ export default function ImportPage() {
       setUpdateMsg({ text: 'Network error.', ok: false })
     } finally {
       setUpdating(false)
+    }
+  }
+
+  function handleDungeonFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setDungeonParseError(null)
+    setDungeonResult(null)
+    setDungeonImportError(null)
+    const reader = new FileReader()
+    reader.onload = (ev) => {
+      try {
+        const parsed = JSON.parse(ev.target?.result as string)
+        if (!Array.isArray(parsed) || parsed.length === 0) {
+          setDungeonParseError('Expected a non-empty JSON array of dungeon objects.')
+          setDungeonData(null)
+          return
+        }
+        setDungeonData(parsed as Dungeon[])
+      } catch {
+        setDungeonParseError('Invalid JSON. Could not parse file.')
+        setDungeonData(null)
+      }
+    }
+    reader.readAsText(file)
+  }
+
+  async function handleDungeonImport() {
+    if (!dungeonData) return
+    setDungeonImporting(true)
+    setDungeonImportError(null)
+    try {
+      const res = await fetch('/api/dungeons/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dungeonData),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setDungeonImportError(data.error ?? 'Import failed')
+      } else {
+        setDungeonResult(data)
+        setDungeonData(null)
+        if (dungeonFileRef.current) dungeonFileRef.current.value = ''
+      }
+    } catch {
+      setDungeonImportError('Network error. Check your connection.')
+    } finally {
+      setDungeonImporting(false)
     }
   }
 
@@ -395,6 +453,138 @@ export default function ImportPage() {
             >
               {updateMsg.text}
             </p>
+          )}
+        </div>
+      </section>
+
+      {/* ── Section 3: Dungeon JSON Import ── */}
+      <section>
+        <h2
+          className="text-xl font-bold mb-1"
+          style={{ fontFamily: "'Cinzel', serif", color: '#c9961a' }}
+        >
+          Import Dungeon Data
+        </h2>
+        <p
+          className="text-sm mb-6"
+          style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
+        >
+          Upload a JSON array of dungeon objects. Each entry must have{' '}
+          <code className="px-1 rounded text-xs" style={{ backgroundColor: '#241a0e', color: '#c9961a' }}>id</code>,{' '}
+          <code className="px-1 rounded text-xs" style={{ backgroundColor: '#241a0e', color: '#c9961a' }}>name</code>,{' '}
+          <code className="px-1 rounded text-xs" style={{ backgroundColor: '#241a0e', color: '#c9961a' }}>min_level</code>, and{' '}
+          <code className="px-1 rounded text-xs" style={{ backgroundColor: '#241a0e', color: '#c9961a' }}>max_level</code>.
+          Existing dungeons are updated by{' '}
+          <code className="px-1 rounded text-xs" style={{ backgroundColor: '#241a0e', color: '#c9961a' }}>id</code>.
+          See{' '}
+          <code className="px-1 rounded text-xs" style={{ backgroundColor: '#241a0e', color: '#c9961a' }}>public/sample-dungeon-import.json</code>{' '}
+          for the expected format.
+        </p>
+
+        <div
+          className="rounded-xl border p-6 flex flex-col gap-5"
+          style={{ backgroundColor: '#241a0e', borderColor: '#3d2e15' }}
+        >
+          <div className="flex items-center gap-4">
+            <label
+              className="px-4 py-2 rounded text-sm font-semibold cursor-pointer transition-opacity hover:opacity-80"
+              style={{ backgroundColor: '#3d2e15', color: '#c9961a', fontFamily: "'Cinzel', serif" }}
+            >
+              Choose file
+              <input
+                ref={dungeonFileRef}
+                type="file"
+                accept=".json,application/json"
+                className="hidden"
+                onChange={handleDungeonFile}
+              />
+            </label>
+            <span
+              className="text-sm italic"
+              style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
+            >
+              {dungeonData ? `${dungeonData.length} dungeon${dungeonData.length !== 1 ? 's' : ''} loaded. Ready to import.` : 'No file selected'}
+            </span>
+          </div>
+
+          {dungeonParseError && (
+            <p className="text-sm text-red-400">{dungeonParseError}</p>
+          )}
+
+          {dungeonData && (
+            <div className="flex flex-col gap-4">
+              <div
+                className="rounded-md overflow-hidden"
+                style={{ border: '1px solid #3d2e15', maxHeight: '220px', overflowY: 'auto' }}
+              >
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr style={{ backgroundColor: '#1a1208', position: 'sticky', top: 0 }}>
+                      <th className="text-left px-3 py-2 text-xs font-semibold" style={{ fontFamily: "'Cinzel', serif", color: '#8a7a5a' }}>ID</th>
+                      <th className="text-left px-3 py-2 text-xs font-semibold" style={{ fontFamily: "'Cinzel', serif", color: '#8a7a5a' }}>Name</th>
+                      <th className="text-left px-3 py-2 text-xs font-semibold" style={{ fontFamily: "'Cinzel', serif", color: '#8a7a5a' }}>Levels</th>
+                      <th className="text-left px-3 py-2 text-xs font-semibold" style={{ fontFamily: "'Cinzel', serif", color: '#8a7a5a' }}>Bosses</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {dungeonData.map((d, i) => (
+                      <tr key={i} style={{ borderTop: '1px solid #3d2e15' }}>
+                        <td className="px-3 py-1.5" style={{ fontFamily: "'Crimson Pro', serif", fontSize: '0.8rem', color: '#8a7a5a' }}>{d.id}</td>
+                        <td className="px-3 py-1.5" style={{ fontFamily: "'Cinzel', serif", fontSize: '0.8rem', color: '#f0e6c8' }}>{d.name}</td>
+                        <td className="px-3 py-1.5" style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}>{d.min_level}–{d.max_level}</td>
+                        <td className="px-3 py-1.5" style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}>{d.bosses?.length ?? 0}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {dungeonImportError && <p className="text-sm text-red-400">{dungeonImportError}</p>}
+
+              <button
+                onClick={handleDungeonImport}
+                disabled={dungeonImporting}
+                className="self-start px-6 py-2.5 rounded text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-60"
+                style={{ backgroundColor: '#c9961a', color: '#0d0b07', fontFamily: "'Cinzel', serif" }}
+              >
+                {dungeonImporting
+                  ? `Importing ${dungeonData.length} dungeon${dungeonData.length !== 1 ? 's' : ''}…`
+                  : `Import ${dungeonData.length} dungeon${dungeonData.length !== 1 ? 's' : ''}`}
+              </button>
+            </div>
+          )}
+
+          {dungeonResult && (
+            <div className="flex flex-col gap-3">
+              <p
+                className="font-semibold"
+                style={{ fontFamily: "'Cinzel', serif", color: '#1aff6e' }}
+              >
+                Imported {dungeonResult.imported} of {dungeonResult.total} dungeon{dungeonResult.total !== 1 ? 's' : ''} successfully.
+              </p>
+              {dungeonResult.errors.length > 0 && (
+                <details>
+                  <summary
+                    className="text-sm cursor-pointer"
+                    style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
+                  >
+                    {dungeonResult.errors.length} warning{dungeonResult.errors.length !== 1 ? 's' : ''}
+                  </summary>
+                  <ul className="mt-2 space-y-1">
+                    {dungeonResult.errors.map((e, i) => (
+                      <li key={i} className="text-xs text-red-400">{e}</li>
+                    ))}
+                  </ul>
+                </details>
+              )}
+              <button
+                onClick={() => setDungeonResult(null)}
+                className="self-start text-xs hover:text-white transition-colors"
+                style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
+              >
+                Import another file
+              </button>
+            </div>
           )}
         </div>
       </section>

@@ -1,207 +1,241 @@
-# TASK: Mobile Fix Round 2 — 6 Issues
+# TASK: Mobile Round 3 + Hall Feed Fix + Dungeon Data Prep
 
 ---
 
-## Fix 1: Landing page hero text visible on mobile
+## Fix 1: Recruit results — guild crest overlapping header
 
-The "Blådes Edge" hero heading and the recruit quiz CTA link are not visible
-on mobile. They are likely rendering behind the hero image or with insufficient
-contrast.
+On the recruit quiz results page, the guild crest image is overlapping the
+results label/header text on mobile.
 
-Find the hero section in `app/(public)/page.tsx` or its child component.
-
-- Ensure the hero text container has a high enough `zIndex` to sit above the
-  background image (at least z-10)
-- Add a dark overlay/gradient behind the text if needed so it's readable:
-  ```css
-  background: linear-gradient(to bottom, rgba(26,18,8,0.7) 0%, transparent 60%)
-  ```
-- The "Join the Recruit Quiz" link/button must be visible — ensure it renders
-  below the heading with enough contrast
-- On mobile the heading font size should be `clamp(2rem, 8vw, 4rem)` so it
-  scales without overflowing
-
----
-
-## Fix 2: LFG — no hover on mobile, tap for quiz results images
-
-### LFG cards — remove hover behavior on mobile
-The LFG cards should not attempt hover states on mobile. Any `onMouseEnter`/
-`onMouseLeave` on LFG cards should be suppressed on touch devices.
-
-Use the `useIsMobile()` hook (already created):
-```tsx
-const isMobile = useIsMobile()
-// Only attach hover handlers if not mobile
-onMouseEnter={!isMobile ? handleMouseEnter : undefined}
-onMouseLeave={!isMobile ? handleMouseLeave : undefined}
-```
-
-### Recruit quiz results — tap to show perk images on mobile
-The perk card hover images currently use `onMouseEnter`/`onMouseLeave`.
-On mobile, convert to tap toggle:
-
-```tsx
-const isMobile = useIsMobile()
-
-// On the perk card:
-onClick={isMobile ? () => setHoveredPerk(hoveredPerk === perk.id ? null : perk.id) : undefined}
-onMouseEnter={!isMobile ? () => setHoveredPerk(perk.id) : undefined}
-onMouseLeave={!isMobile ? () => setHoveredPerk(null) : undefined}
-```
-
-On mobile the image overlay should render differently — not fixed-position
-center screen (which may be off-screen), but instead as an absolutely positioned
-element ABOVE the tapped card, or as a modal:
-
-```tsx
-{isMobile && hoveredPerk && (
-  <div
-    onClick={() => setHoveredPerk(null)}
-    style={{
-      position: 'fixed',
-      inset: 0,
-      zIndex: 300,
-      background: 'rgba(26,18,8,0.85)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '16px',
-    }}
-  >
-    <img
-      src={PERK_IMAGES[hoveredPerk]}
-      alt=""
-      style={{
-        maxWidth: '90vw',
-        maxHeight: '70vh',
-        objectFit: 'contain',
-        borderRadius: '8px',
-        boxShadow: '0 0 40px rgba(201,150,26,0.4)',
-      }}
-    />
-    <div style={{
-      position: 'absolute',
-      top: 24,
-      right: 24,
-      color: '#f0e6c8',
-      fontSize: '1.5rem',
-      cursor: 'pointer',
-    }}>✕</div>
-  </div>
-)}
-```
-
-Tap the image or the ✕ to dismiss.
-
----
-
-## Fix 3: Campaign banner text not fully visible
-
-Find the current campaign / Hall Feed banner component in the Hall/dashboard.
-The text is overflowing or being clipped on mobile.
-
-- Remove any fixed height on the campaign text container
-- Set `overflow: visible` or `overflow-y: auto`
-- Ensure padding of at least 16px on all sides on mobile
-- If the banner has a background image with text overlaid, ensure the text
-  container has enough height to show all content:
-  ```css
-  @media (max-width: 767px) {
-    .campaign-banner { min-height: auto; height: auto; }
-    .campaign-text { overflow: visible; max-height: none; }
-  }
-  ```
-
----
-
-## Fix 4: Discord OAuth — don't fire "returned" event for existing users
-
-When a user logs in via Discord OAuth, the auth callback fires a Hall Feed post
-saying they "answered the call and returned." This should only fire for users
-who are genuinely new OR genuinely returning after a long absence — NOT for
-existing users simply re-authenticating.
-
-Find `app/auth/callback/route.ts` (or equivalent).
-
-Find where the "answered the call" / "returned" Hall Feed post is created.
-It will be something like:
-
-```ts
-await supabase.from('notifications').insert({
-  type: 'member_returned',
-  ...
-})
-```
-
-Add a guard: only fire this event if the user has NO prior `claimed_character_id`
-AND this is their first login (check `created_at` vs `updated_at` or a
-`first_login` boolean, or check if `has_completed_onboarding` was already true).
-
-```ts
-// Only post the "returned" announcement if this is a genuinely new claim
-const isReturningSession = existingUser?.claimed_character_id !== null
-  && existingUser?.has_completed_onboarding === true
-
-if (!isReturningSession) {
-  // fire the Hall Feed post
-}
-// If they already have a claimed character and completed onboarding,
-// this is just a re-auth — skip the announcement entirely
-```
-
----
-
-## Fix 5: LFG card — date pills not overlapping dungeon title
-
-From the screenshot, the date pill (e.g. "WED 24") is overlapping the dungeon
-name text on the LFG card. This happens because both are positioned in the same
-row without enough space on mobile.
-
-Find the LFG card component. On mobile, reflow the header area so the date pills
-sit on their OWN row above the dungeon title:
-
-```tsx
-// Mobile layout for LFG card header:
-<div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-  {/* Date pills row */}
-  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-    {days.map(day => <DayPill key={day} day={day} />)}
-  </div>
-  {/* Dungeon name below */}
-  <div className="dungeon-title">{dungeonName}</div>
-</div>
-```
-
-On desktop the existing layout can stay as-is. Use the `useIsMobile()` hook or
-a CSS media query to apply the column layout only on mobile.
-
----
-
-## Fix 6: Recruit quiz results page — enable scrolling
-
-The results page perk cards are not all visible on mobile — the container is
-cutting off at the bottom.
-
-Find the results section/container in the recruit quiz. It likely has a fixed
-height or `overflow: hidden`.
+Find the results page component. The guild crest is likely absolutely or
+fixed positioned. On mobile:
 
 ```css
 @media (max-width: 767px) {
-  .results-container,
-  .perk-cards-container {
-    overflow-y: auto;
-    max-height: none;
-    height: auto;
-    padding-bottom: 80px; /* space for any fixed bottom elements */
+  .guild-crest,
+  [class*="crest"],
+  [class*="GuildCrest"] {
+    display: none;
+    /* OR if it should stay, push it below the header: */
+    position: static;
+    margin: 0 auto 16px;
+    width: 64px;
+    height: 64px;
   }
 }
 ```
 
-Also ensure the page body itself can scroll on the results screen — the quiz
-may be locking `overflow: hidden` on the body during the cinematic that never
-gets re-enabled. Find any `document.body.style.overflow = 'hidden'` and make
-sure it gets reset to `''` when the results phase begins.
+Simplest fix: hide the crest on mobile results page. The header text is more
+important than the decoration. If the crest is used as a background or
+watermark, set `opacity: 0` on mobile instead.
+
+Grep first to find exactly where it renders:
+```bash
+grep -r "guild.crest\|guildcrest\|GuildCrest\|crest" app/ components/ --include="*.tsx" -l
+```
+
+---
+
+## Fix 2: Hall Feed — "Answered the Call and returned" only for originals
+
+### The bug
+Every user who logs in gets a Hall Feed post saying they "answered the call
+and returned" — including brand new members who were never in the original
+roster. Only the 286 confirmed original Blådes Edge members should get the
+"and returned" framing. New members should get a different message like
+"has joined Blådes Edge!" or "answered the call!"
+
+### The fix
+Find where the Hall Feed / notifications post is created on user login or
+onboarding completion. It will be in one of:
+- `app/auth/callback/route.ts`
+- The onboarding completion handler
+- A database trigger or function in Supabase
+
+Find the insert into `notifications` or `hall_feed` or similar table.
+
+Check the `in_original_roster` boolean on the `characters` table for the
+user's claimed character:
+
+```ts
+// After the user claims their character, check:
+const { data: character } = await supabase
+  .from('characters')
+  .select('in_original_roster')
+  .eq('id', user.claimed_character_id)
+  .single()
+
+const isOriginal = character?.in_original_roster === true
+
+// Use different message depending on original status:
+const feedMessage = isOriginal
+  ? `${characterName} answered the call and returned to Blådes Edge!`
+  : `${characterName} has joined Blådes Edge!`
+
+await supabase.from('notifications').insert({
+  type: isOriginal ? 'member_returned' : 'member_joined',
+  message: feedMessage,
+  // ... other fields
+})
+```
+
+Also apply the guard from the previous task: do NOT fire this post at all
+if the user already has `has_completed_onboarding = true` (re-auth, not new).
+
+```ts
+// Full guard:
+const isReauth = existingUser?.has_completed_onboarding === true
+  && existingUser?.claimed_character_id !== null
+
+if (isReauth) return // skip — not a new join event
+```
+
+---
+
+## Fix 3: Dungeon page — JSON importer scaffold
+
+The dungeon page needs to be able to accept structured dungeon data (dungeon
+name, description, location, level range, bosses, loot highlights, etc.)
+via a JSON import at the Officers page — same pattern as the roster importer.
+
+### Step A: Define the dungeon data schema
+
+Create `lib/dungeon-schema.ts`:
+
+```ts
+export interface DungeonBoss {
+  name: string
+  abilities?: string[]
+  notable_loot?: string[]
+}
+
+export interface Dungeon {
+  id: string                    // slug e.g. "shadow-labyrinth"
+  name: string                  // "Shadow Labyrinth"
+  zone: string                  // "Auchindoun"
+  region: string                // "Terokkar Forest"
+  min_level: number             // 67
+  max_level: number             // 70
+  heroic: boolean               // true/false
+  description: string           // flavor text / overview
+  location_note?: string        // "Enter from the center of Auchindoun"
+  bosses: DungeonBoss[]
+  tags?: string[]               // ["aoe", "cc-heavy", "good-xp"]
+  image_key?: string            // matches a file in public/images/dungeons/
+}
+```
+
+### Step B: Create the Supabase table
+
+Add a migration or run this SQL in Supabase SQL editor:
+
+```sql
+CREATE TABLE IF NOT EXISTS public.dungeons (
+  id TEXT PRIMARY KEY,              -- slug
+  name TEXT NOT NULL,
+  zone TEXT,
+  region TEXT,
+  min_level INTEGER,
+  max_level INTEGER,
+  heroic BOOLEAN DEFAULT false,
+  description TEXT,
+  location_note TEXT,
+  bosses JSONB DEFAULT '[]',
+  tags TEXT[] DEFAULT '{}',
+  image_key TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Allow officers and admins to manage dungeons
+ALTER TABLE public.dungeons ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Officers can manage dungeons"
+  ON public.dungeons
+  FOR ALL
+  TO authenticated
+  USING (
+    EXISTS (
+      SELECT 1 FROM public.users
+      WHERE id = auth.uid()
+      AND role IN ('officer', 'admin', 'gm')
+    )
+  );
+
+CREATE POLICY "Anyone can read dungeons"
+  ON public.dungeons
+  FOR SELECT
+  TO anon, authenticated
+  USING (true);
+```
+
+### Step C: Add dungeon import to Officers page
+
+In the Officers/admin import page (`app/(admin)/import/page.tsx` or similar),
+add a second import section below the roster importer:
+
+```tsx
+{/* Dungeon JSON Import */}
+<section>
+  <h2>Import Dungeon Data</h2>
+  <p>Upload a JSON file matching the dungeon schema.</p>
+  <input
+    type="file"
+    accept=".json"
+    onChange={handleDungeonImport}
+  />
+  {dungeonPreview && (
+    <pre>{JSON.stringify(dungeonPreview, null, 2)}</pre>
+  )}
+  <button onClick={confirmDungeonImport}>Import Dungeons</button>
+</section>
+```
+
+The `handleDungeonImport` function should:
+1. Parse the uploaded JSON (array of Dungeon objects)
+2. Validate each entry has at minimum: `id`, `name`, `min_level`, `max_level`
+3. Show a preview of what will be imported
+4. On confirm: upsert each dungeon into `public.dungeons` using `id` as
+   the conflict key
+
+```ts
+async function confirmDungeonImport(dungeons: Dungeon[]) {
+  for (const dungeon of dungeons) {
+    const { error } = await supabase
+      .from('dungeons')
+      .upsert(dungeon, { onConflict: 'id' })
+    if (error) console.error(`Failed to import ${dungeon.name}:`, error)
+  }
+}
+```
+
+### Step D: Create a sample dungeon JSON for testing
+
+Create `public/sample-dungeon-import.json`:
+
+```json
+[
+  {
+    "id": "shadow-labyrinth",
+    "name": "Shadow Labyrinth",
+    "zone": "Auchindoun",
+    "region": "Terokkar Forest",
+    "min_level": 67,
+    "max_level": 70,
+    "heroic": false,
+    "description": "The Shadow Council has taken root in the depths of Auchindoun. Fight through their ranks to stop the summoning of a dark entity.",
+    "location_note": "Enter from the center of the Auchindoun ruins in Terokkar Forest.",
+    "bosses": [
+      { "name": "Ambassador Hellmaw", "notable_loot": ["Wastewalker Shoulderpads"] },
+      { "name": "Blackheart the Inciter", "notable_loot": ["Inciter's Pauldrons"] },
+      { "name": "Grandmaster Vorpil", "notable_loot": ["Vorpil's View"] },
+      { "name": "Murmur", "notable_loot": ["Sonic Spear", "Sonic Vibration"] }
+    ],
+    "tags": ["shadow-council", "aoe-friendly", "good-rep"],
+    "image_key": "shadow-labyrinth"
+  }
+]
+```
 
 ---
 
@@ -210,18 +244,16 @@ sure it gets reset to `''` when the results phase begins.
 ```bash
 npm run build
 git add -A
-git commit -m "fix: mobile round 2 — hero text, LFG tap, campaign text, auth duplicate post, date pills, results scroll"
+git commit -m "fix: guild crest overlap, hall feed original check, dungeon import scaffold"
 git push origin main
 ```
 
 ## Verification checklist
-- [ ] Landing page hero: "Blådes Edge" title visible on mobile
-- [ ] Landing page hero: recruit quiz link visible and tappable
-- [ ] LFG cards: no hover behavior on mobile
-- [ ] Recruit results: tap perk card shows fullscreen modal image, tap to dismiss
-- [ ] Campaign banner: all text visible, no clipping
-- [ ] Discord re-auth: no duplicate "answered the call" Hall Feed post
-- [ ] LFG card header: date pills on own row, not overlapping dungeon title
-- [ ] Recruit results: all perk cards scrollable on mobile
-- [ ] Body scroll re-enabled after oath cinematic
+- [ ] Recruit results: guild crest not overlapping header on mobile
+- [ ] Hall Feed: original roster members get "answered the call and returned"
+- [ ] Hall Feed: new members get "has joined Blådes Edge!"
+- [ ] Hall Feed: re-auth (already onboarded) fires no post at all
+- [ ] `public.dungeons` table created in Supabase
+- [ ] Officers page has dungeon JSON import section
+- [ ] Sample dungeon JSON file exists at `public/sample-dungeon-import.json`
 - [ ] `npm run build` passes with zero errors

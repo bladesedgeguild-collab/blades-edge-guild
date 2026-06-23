@@ -1,0 +1,21 @@
+[
+  {
+    "id": "shadow-labyrinth",
+    "name": "Shadow Labyrinth",
+    "zone": "Auchindoun",
+    "region": "Terokkar Forest",
+    "min_level": 67,
+    "max_level": 70,
+    "heroic": false,
+    "description": "The Shadow Council has taken root in the depths of Auchindoun. Fight through their ranks to stop the summoning of a dark entity.",
+    "location_note": "Enter from the center of the Auchindoun ruins in Terokkar Forest.",
+    "bosses": [
+      { "name": "Ambassador Hellmaw", "notable_loot": ["Wastewalker Shoulderpads"] },
+      { "name": "Blackheart the Inciter", "notable_loot": ["Inciter's Pauldrons"] },
+      { "name": "Grandmaster Vorpil", "notable_loot": ["Vorpil's View"] },
+      { "name": "Murmur", "notable_loot": ["Sonic Spear", "Sonic Vibration"] }
+    ],
+    "tags": ["shadow-council", "aoe-friendly", "good-rep"],
+    "image_key": "shadow-labyrinth"
+  }
+]

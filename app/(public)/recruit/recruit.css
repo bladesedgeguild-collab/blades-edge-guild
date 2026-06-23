@@ -19,6 +19,10 @@
     padding-top: 6rem;
     min-height: auto;
   }
+  /* Hide the fixed seal on mobile — it overlaps the result header */
+  .rc-page.is-scrollable .rc-result-seal-wrap {
+    display: none;
+  }
 }
 
 /* ── Background ── */
