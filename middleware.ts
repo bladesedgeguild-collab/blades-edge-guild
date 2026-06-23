@@ -35,7 +35,8 @@ export async function middleware(request: NextRequest) {
     pathname.startsWith('/api') ||
     pathname.startsWith('/_next') ||
     pathname === '/' ||
-    pathname.startsWith('/login')
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/recruit')
 
   if (isExemptPath) {
     return supabaseResponse
