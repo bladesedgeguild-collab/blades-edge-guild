@@ -11,13 +11,19 @@ import { CLASS_COLORS, CharacterClass } from '@/types'
 import { createClient } from '@supabase/supabase-js'
 import GMCorner from '@/components/GMCorner'
 
-const AARON_CHARS = new Set([
-  'Åvatarødys', 'Guildßank', 'Sumkalimdor', 'Sumwinter', 'Sumzulgurub',
-  'Tøph', 'Zmite', 'Æminåmi', 'Ðeerføx', 'Ðjenna', 'Ðråcårys',
-  'Ghrumuhlorr', 'Tourisßlaðes', 'Bootyßayah', 'Irøhh', 'Pukanacua',
-  'Raghop', 'Sumdeadmines', 'Sumfelwood', 'Summaraudon', 'Sumscarlet',
-  'Sumsouthshor', 'Sumstormwind', 'Sumtanaris', 'Sumßlastlnds', 'Sumßlaðes',
-  'Sumßootybay', 'Sumßrð', 'Sumåzshara', 'Sumðiremaul', 'Ðjøç',
+const GM_ALT_NAMES = new Set([
+  // Main + core alts
+  'Åvatarødys', 'Æminåmi', 'Tøph', 'Ðråcårys', 'Irøhh', 'Pukanacua',
+  'Raghop', 'Ðeerføx', 'Ðjenna', 'Ðjøç', 'Zmite',
+  // Utility
+  'Guildßank', 'Tourisßlaðes', 'Bootyßayah',
+  // Sum locks — all variants
+  'Sumwinter', 'Sumåzshara', 'Sumsouthshor', 'Sumðiremaul', 'Sumfelwood',
+  'Sumßlaðes', 'Sumzulgurub', 'Sumkalimdor', 'Sumstormwind',
+  // Other warlock alts
+  'Barragninn', 'Ilikeice', 'Kælin', 'Ghem', 'Kanahh', 'Skerza', 'Chaøtic',
+  // Blades Edge name variants (all Aaron's locks)
+  'Blådesedge', 'Blådesædge', 'Bladesedge', 'Bladesædge',
 ])
 
 function SectionDivider() {
@@ -74,11 +80,11 @@ export default async function LandingPage() {
       .neq('hide_from_roster', true)
       .order('name')
       .limit(60),
-    // Active This Week — online in last 7 days, with professions for hover
+    // Active Guildies — online in last 14 days, with professions for hover
     supabase
       .from('characters')
       .select('name, class, race, level, rank_name, status, last_online_days, professions(name, skill_level, is_primary)')
-      .lte('last_online_days', 7)
+      .lte('last_online_days', 14)
       .eq('hide_from_roster', false)
       .order('last_online_days', { ascending: true })
       .limit(30),
@@ -111,10 +117,10 @@ export default async function LandingPage() {
   // Left column — Answered the Call: in_original_roster=true AND last_online_days < 9999
   // Aaron's chars deprioritized: non-Aaron cycles 3× before Aaron appears
   const nonAaronReturned = originalsData.filter(
-    (c) => (c.last_online_days ?? 9999) < 9999 && !AARON_CHARS.has(c.name)
+    (c) => (c.last_online_days ?? 9999) < 9999 && !GM_ALT_NAMES.has(c.name)
   )
   const aaronReturned = originalsData.filter(
-    (c) => (c.last_online_days ?? 9999) < 9999 && AARON_CHARS.has(c.name)
+    (c) => (c.last_online_days ?? 9999) < 9999 && GM_ALT_NAMES.has(c.name)
   )
   const returnedEntries: NameEntry[] = [
     ...nonAaronReturned, ...nonAaronReturned, ...nonAaronReturned,
@@ -127,7 +133,7 @@ export default async function LandingPage() {
 
   // Active This Week — exclude Aaron's chars
   const activeThisWeek: RosterChar[] = (activeCharsResult.data ?? [])
-    .filter((c) => !AARON_CHARS.has(c.name))
+    .filter((c) => !GM_ALT_NAMES.has(c.name))
     .map((c) => ({
       name: c.name as string,
       class: c.class as string,
@@ -151,8 +157,8 @@ export default async function LandingPage() {
     last_online_days: c.last_online_days ?? 9999,
     professions: c.professions ?? [],
   }))
-  const nonAaronOriginals = originalsAll.filter((c) => !AARON_CHARS.has(c.name))
-  const aaronOriginals = originalsAll.filter((c) => AARON_CHARS.has(c.name))
+  const nonAaronOriginals = originalsAll.filter((c) => !GM_ALT_NAMES.has(c.name))
+  const aaronOriginals = originalsAll.filter((c) => GM_ALT_NAMES.has(c.name))
   const originalsScrollArray: RosterChar[] = [
     ...nonAaronOriginals, ...nonAaronOriginals, ...nonAaronOriginals,
     ...aaronOriginals,
@@ -206,40 +212,36 @@ export default async function LandingPage() {
           />
         </div>
 
-        {/* Mobile hero text — centered, full width */}
+        {/* Mobile hero text — right-aligned, no background box */}
         <div
-          className="block sm:hidden absolute z-20 w-full text-center"
-          style={{ bottom: 120, left: 0, padding: '0 24px' }}
+          className="hero-title-wrapper block sm:hidden absolute z-20 w-full flex flex-col"
+          style={{ bottom: 120, left: 0, alignItems: 'flex-end', paddingRight: 16 }}
         >
-          <div style={{ background: 'linear-gradient(to bottom, rgba(26,18,8,0.8) 0%, transparent 100%)', borderRadius: 8, padding: '20px 16px 24px', display: 'inline-block', width: '100%' }}>
-            <p
-              style={{
-                fontFamily: "'Cinzel Decorative', serif",
-                fontSize: 'clamp(2rem, 8vw, 4rem)',
-                color: '#c9961a',
-                textShadow: '0 2px 24px rgba(0,0,0,0.9)',
-                lineHeight: 1.15,
-                margin: 0,
-              }}
-            >
-              Blådes Edge
-            </p>
-            <p
-              style={{
-                fontFamily: "'Cinzel', serif",
-                fontSize: '0.8rem',
-                letterSpacing: '0.18em',
-                color: 'rgba(240,230,200,0.75)',
-                textShadow: '0 2px 24px rgba(0,0,0,0.9)',
-                margin: '8px 0 16px',
-              }}
-            >
-              TBC Classic · Dreamscythe Alliance
-            </p>
-            <a href="/recruit" className="hero-recruit-btn">
-              ✦ New? Start Here
-            </a>
-          </div>
+          <p
+            className="hero-guild-name"
+            style={{
+              fontFamily: "'Cinzel Decorative', serif",
+              color: '#c9961a',
+              textShadow: '0 2px 24px rgba(0,0,0,0.9)',
+              margin: 0,
+            }}
+          >
+            Blådes Edge
+          </p>
+          <p
+            className="hero-guild-subtitle"
+            style={{
+              fontFamily: "'Cinzel', serif",
+              color: 'rgba(240,230,200,0.75)',
+              textShadow: '0 2px 24px rgba(0,0,0,0.9)',
+              margin: '8px 0 16px',
+            }}
+          >
+            Est. 2023 · TBC · Dreamscythe Alliance
+          </p>
+          <a href="/recruit" className="hero-recruit-btn">
+            ✦ New? Start Here
+          </a>
         </div>
 
         {/* Desktop hero text — right-aligned */}
@@ -268,7 +270,7 @@ export default async function LandingPage() {
               marginTop: 8,
             }}
           >
-            Est. 2023 · Burning Crusade Classic · Dreamscythe Alliance
+            Est. 2023 · TBC · Dreamscythe Alliance
           </p>
           <a href="/recruit" className="hero-recruit-btn">
             ✦ New to Blådes Edge? Start Here
@@ -378,7 +380,7 @@ export default async function LandingPage() {
           {/* Roster scroll sections */}
           <div className="mt-16 flex flex-col gap-14">
 
-            {/* Active This Week — 2 rows, no green highlights */}
+            {/* Active Guildies — 2 rows, no green highlights */}
             {activeThisWeek.length > 0 && (
               <div>
                 <div className="text-center mb-6">
@@ -386,11 +388,11 @@ export default async function LandingPage() {
                     className="text-2xl font-bold mb-2"
                     style={{ fontFamily: "'Cinzel', serif", color: '#1aff6e' }}
                   >
-                    Active This Week
+                    Active Guildies
                   </h3>
                   <p className="active-label">
                     <span className="active-count">{activeThisWeek.length}</span>
-                    {' '}guildies spotted online in the last 7 days.
+                    {' '}spotted online recently.
                   </p>
                 </div>
                 <CinematicRoster chars={activeThisWeek} rowCount={2} variant="active" />

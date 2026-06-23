@@ -2806,6 +2806,25 @@ input[type=number] { -moz-appearance: textfield; }
   box-shadow: 0 0 16px rgba(26, 255, 110, 0.2);
 }
 
+/* ── Mobile hero title — right-aligned, no background box ── */
+@media (max-width: 767px) {
+  .hero-guild-name {
+    font-size: clamp(1.6rem, 7vw, 2.2rem);
+    text-align: right;
+    line-height: 1.1;
+  }
+  .hero-guild-subtitle {
+    font-size: clamp(0.55rem, 2.8vw, 0.75rem);
+    text-align: right;
+    white-space: nowrap;
+    letter-spacing: 0.04em;
+  }
+  .hero-title-wrapper {
+    align-items: flex-end;
+    padding-right: 16px;
+  }
+}
+
 .nav-recruit-link {
   font-family: 'Cinzel', serif;
   font-size: 0.8rem;

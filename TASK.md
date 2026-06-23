@@ -1,240 +1,76 @@
-# TASK: Mobile Round 3 + Hall Feed Fix + Dungeon Data Prep
+# TASK: Active Guildies — Threshold, Label, and Alt Exclusion List
+
+## Three changes, all related to the "Active This Week" feature on the landing page.
 
 ---
 
-## Fix 1: Recruit results — guild crest overlapping header
+## Change 1: Bump threshold from 7 to 14 days
 
-On the recruit quiz results page, the guild crest image is overlapping the
-results label/header text on mobile.
+Find wherever `last_online_days <= 7` is used to filter active members.
+It will be in the landing page data fetch or the import processing.
 
-Find the results page component. The guild crest is likely absolutely or
-fixed positioned. On mobile:
+```ts
+// BEFORE:
+last_online_days <= 7
 
-```css
-@media (max-width: 767px) {
-  .guild-crest,
-  [class*="crest"],
-  [class*="GuildCrest"] {
-    display: none;
-    /* OR if it should stay, push it below the header: */
-    position: static;
-    margin: 0 auto 16px;
-    width: 64px;
-    height: 64px;
-  }
-}
-```
-
-Simplest fix: hide the crest on mobile results page. The header text is more
-important than the decoration. If the crest is used as a background or
-watermark, set `opacity: 0` on mobile instead.
-
-Grep first to find exactly where it renders:
-```bash
-grep -r "guild.crest\|guildcrest\|GuildCrest\|crest" app/ components/ --include="*.tsx" -l
+// AFTER:
+last_online_days <= 14
 ```
 
 ---
 
-## Fix 2: Hall Feed — "Answered the Call and returned" only for originals
+## Change 2: Update label copy
 
-### The bug
-Every user who logs in gets a Hall Feed post saying they "answered the call
-and returned" — including brand new members who were never in the original
-roster. Only the 286 confirmed original Blådes Edge members should get the
-"and returned" framing. New members should get a different message like
-"has joined Blådes Edge!" or "answered the call!"
-
-### The fix
-Find where the Hall Feed / notifications post is created on user login or
-onboarding completion. It will be in one of:
-- `app/auth/callback/route.ts`
-- The onboarding completion handler
-- A database trigger or function in Supabase
-
-Find the insert into `notifications` or `hall_feed` or similar table.
-
-Check the `in_original_roster` boolean on the `characters` table for the
-user's claimed character:
-
-```ts
-// After the user claims their character, check:
-const { data: character } = await supabase
-  .from('characters')
-  .select('in_original_roster')
-  .eq('id', user.claimed_character_id)
-  .single()
-
-const isOriginal = character?.in_original_roster === true
-
-// Use different message depending on original status:
-const feedMessage = isOriginal
-  ? `${characterName} answered the call and returned to Blådes Edge!`
-  : `${characterName} has joined Blådes Edge!`
-
-await supabase.from('notifications').insert({
-  type: isOriginal ? 'member_returned' : 'member_joined',
-  message: feedMessage,
-  // ... other fields
-})
-```
-
-Also apply the guard from the previous task: do NOT fire this post at all
-if the user already has `has_completed_onboarding = true` (re-auth, not new).
-
-```ts
-// Full guard:
-const isReauth = existingUser?.has_completed_onboarding === true
-  && existingUser?.claimed_character_id !== null
-
-if (isReauth) return // skip — not a new join event
-```
-
----
-
-## Fix 3: Dungeon page — JSON importer scaffold
-
-The dungeon page needs to be able to accept structured dungeon data (dungeon
-name, description, location, level range, bosses, loot highlights, etc.)
-via a JSON import at the Officers page — same pattern as the roster importer.
-
-### Step A: Define the dungeon data schema
-
-Create `lib/dungeon-schema.ts`:
-
-```ts
-export interface DungeonBoss {
-  name: string
-  abilities?: string[]
-  notable_loot?: string[]
-}
-
-export interface Dungeon {
-  id: string                    // slug e.g. "shadow-labyrinth"
-  name: string                  // "Shadow Labyrinth"
-  zone: string                  // "Auchindoun"
-  region: string                // "Terokkar Forest"
-  min_level: number             // 67
-  max_level: number             // 70
-  heroic: boolean               // true/false
-  description: string           // flavor text / overview
-  location_note?: string        // "Enter from the center of Auchindoun"
-  bosses: DungeonBoss[]
-  tags?: string[]               // ["aoe", "cc-heavy", "good-xp"]
-  image_key?: string            // matches a file in public/images/dungeons/
-}
-```
-
-### Step B: Create the Supabase table
-
-Add a migration or run this SQL in Supabase SQL editor:
-
-```sql
-CREATE TABLE IF NOT EXISTS public.dungeons (
-  id TEXT PRIMARY KEY,              -- slug
-  name TEXT NOT NULL,
-  zone TEXT,
-  region TEXT,
-  min_level INTEGER,
-  max_level INTEGER,
-  heroic BOOLEAN DEFAULT false,
-  description TEXT,
-  location_note TEXT,
-  bosses JSONB DEFAULT '[]',
-  tags TEXT[] DEFAULT '{}',
-  image_key TEXT,
-  created_at TIMESTAMPTZ DEFAULT now(),
-  updated_at TIMESTAMPTZ DEFAULT now()
-);
-
--- Allow officers and admins to manage dungeons
-ALTER TABLE public.dungeons ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Officers can manage dungeons"
-  ON public.dungeons
-  FOR ALL
-  TO authenticated
-  USING (
-    EXISTS (
-      SELECT 1 FROM public.users
-      WHERE id = auth.uid()
-      AND role IN ('officer', 'admin', 'gm')
-    )
-  );
-
-CREATE POLICY "Anyone can read dungeons"
-  ON public.dungeons
-  FOR SELECT
-  TO anon, authenticated
-  USING (true);
-```
-
-### Step C: Add dungeon import to Officers page
-
-In the Officers/admin import page (`app/(admin)/import/page.tsx` or similar),
-add a second import section below the roster importer:
+Find the "Active This Week" label and its subtitle on the landing page.
 
 ```tsx
-{/* Dungeon JSON Import */}
-<section>
-  <h2>Import Dungeon Data</h2>
-  <p>Upload a JSON file matching the dungeon schema.</p>
-  <input
-    type="file"
-    accept=".json"
-    onChange={handleDungeonImport}
-  />
-  {dungeonPreview && (
-    <pre>{JSON.stringify(dungeonPreview, null, 2)}</pre>
-  )}
-  <button onClick={confirmDungeonImport}>Import Dungeons</button>
-</section>
+// BEFORE (approximately):
+"Active This Week"
+"X guildies online"
+
+// AFTER:
+"Active Guildies"
+"X spotted online recently"
 ```
 
-The `handleDungeonImport` function should:
-1. Parse the uploaded JSON (array of Dungeon objects)
-2. Validate each entry has at minimum: `id`, `name`, `min_level`, `max_level`
-3. Show a preview of what will be imported
-4. On confirm: upsert each dungeon into `public.dungeons` using `id` as
-   the conflict key
+Apply to both the stat counter label on the landing page metrics row AND
+anywhere else "Active This Week" appears as a section heading.
+
+---
+
+## Change 3: Update the GM alt exclusion list
+
+The landing page active scroll excludes GM alts so only real guildies appear.
+Find the exclusion list — it will be an array of character names used to
+filter out Aaron's characters from the active display.
+
+Replace the entire list with this complete updated version:
 
 ```ts
-async function confirmDungeonImport(dungeons: Dungeon[]) {
-  for (const dungeon of dungeons) {
-    const { error } = await supabase
-      .from('dungeons')
-      .upsert(dungeon, { onConflict: 'id' })
-    if (error) console.error(`Failed to import ${dungeon.name}:`, error)
-  }
-}
+const GM_ALT_NAMES = new Set([
+  // Main + core alts
+  'Åvatarødys', 'Æminåmi', 'Tøph', 'Ðråcårys', 'Irøhh', 'Pukanacua',
+  'Raghop', 'Ðeerføx', 'Ðjenna', 'Ðjøç', 'Zmite',
+  // Utility
+  'Guildßank', 'Tourisßlaðes', 'Bootyßayah',
+  // Sum locks — all variants
+  'Sumwinter', 'Sumåzshara', 'Sumsouthshor', 'Sumðiremaul', 'Sumfelwood',
+  'Sumßlaðes', 'Sumzulgurub', 'Sumkalimdor', 'Sumstormwind',
+  // Other warlock alts
+  'Barragninn', 'Ilikeice', 'Kælin', 'Ghem', 'Kanahh', 'Skerza', 'Chaøtic',
+  // Blades Edge name variants (all Aaron's locks)
+  'Blådesedge', 'Blådesædge', 'Bladesedge', 'Bladesædge',
+  'Blådesedge', 'Tourisßlaðes',
+])
 ```
 
-### Step D: Create a sample dungeon JSON for testing
+CRITICAL: Do NOT use `.toUpperCase()` or any case transformation on these
+names when comparing. The ß character renders as "SS" in uppercase. Always
+compare names as-is with exact string matching.
 
-Create `public/sample-dungeon-import.json`:
-
-```json
-[
-  {
-    "id": "shadow-labyrinth",
-    "name": "Shadow Labyrinth",
-    "zone": "Auchindoun",
-    "region": "Terokkar Forest",
-    "min_level": 67,
-    "max_level": 70,
-    "heroic": false,
-    "description": "The Shadow Council has taken root in the depths of Auchindoun. Fight through their ranks to stop the summoning of a dark entity.",
-    "location_note": "Enter from the center of the Auchindoun ruins in Terokkar Forest.",
-    "bosses": [
-      { "name": "Ambassador Hellmaw", "notable_loot": ["Wastewalker Shoulderpads"] },
-      { "name": "Blackheart the Inciter", "notable_loot": ["Inciter's Pauldrons"] },
-      { "name": "Grandmaster Vorpil", "notable_loot": ["Vorpil's View"] },
-      { "name": "Murmur", "notable_loot": ["Sonic Spear", "Sonic Vibration"] }
-    ],
-    "tags": ["shadow-council", "aoe-friendly", "good-rep"],
-    "image_key": "shadow-labyrinth"
-  }
-]
+The filter should be:
+```ts
+.filter(char => !GM_ALT_NAMES.has(char.name))
 ```
 
 ---
@@ -244,16 +80,106 @@ Create `public/sample-dungeon-import.json`:
 ```bash
 npm run build
 git add -A
-git commit -m "fix: guild crest overlap, hall feed original check, dungeon import scaffold"
+git commit -m "fix: active guildies — 14 day threshold, updated label, full alt exclusion list"
 git push origin main
 ```
 
 ## Verification checklist
-- [ ] Recruit results: guild crest not overlapping header on mobile
-- [ ] Hall Feed: original roster members get "answered the call and returned"
-- [ ] Hall Feed: new members get "has joined Blådes Edge!"
-- [ ] Hall Feed: re-auth (already onboarded) fires no post at all
-- [ ] `public.dungeons` table created in Supabase
-- [ ] Officers page has dungeon JSON import section
-- [ ] Sample dungeon JSON file exists at `public/sample-dungeon-import.json`
-- [ ] `npm run build` passes with zero errors
+- [ ] Threshold is 14 days (not 7)
+- [ ] Label reads "Active Guildies" not "Active This Week"
+- [ ] Subtitle reads "X spotted online recently"
+- [ ] Åvatarødys, Tøph, Guildßank not in the active scroll
+- [ ] Blådesedge / Bladesædge variants not in the active scroll
+- [ ] Sumstormwind not in the active scroll
+- [ ] Real guildies like Frostfriend, Anomalistic, Deathcultz still appear
+- [ ] No `.toUpperCase()` used on character name comparisons
+- [ ] `npm run build` passes
+
+---
+
+## Change 4: Mobile hero — guild title styling fix
+
+Find the hero section on the landing page (`app/(public)/page.tsx` or hero component).
+
+On mobile only (`max-width: 767px`):
+
+### Remove the background rectangle
+The guild title has a background box/panel behind it. Remove it on mobile:
+```css
+@media (max-width: 767px) {
+  .hero-title-container,
+  [class*="hero-title"],
+  [class*="guild-title"] {
+    background: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 16px !important;
+  }
+}
+```
+
+Grep first to find the exact class/element:
+```bash
+grep -r "Blådes Edge\|hero-title\|guild-title\|hero.*bg\|backdrop" \
+  app/(public)/ components/ --include="*.tsx" -l
+```
+
+### Right-align the text, smaller font, abbreviated subtitle
+
+On mobile the two lines should be:
+
+```
+Line 1: Blådes Edge          (Cinzel Decorative, right-aligned)
+Line 2: Est. 2023 · TBC · Dreamscythe Alliance   (Cinzel, right-aligned, smaller)
+```
+
+Change "Burning Crusade Classic" to "TBC" in the subtitle — on ALL screen sizes,
+not just mobile, since it's cleaner everywhere.
+
+Apply these mobile styles:
+```css
+@media (max-width: 767px) {
+  .hero-guild-name {
+    font-size: clamp(1.6rem, 7vw, 2.2rem);
+    text-align: right;
+    line-height: 1.1;
+  }
+  .hero-guild-subtitle {
+    font-size: clamp(0.55rem, 2.8vw, 0.75rem);
+    text-align: right;
+    white-space: nowrap;
+    letter-spacing: 0.04em;
+  }
+  .hero-title-wrapper {
+    align-items: flex-end;
+    padding-right: 16px;
+  }
+}
+```
+
+The subtitle text value to use (update the string in the component):
+```
+Est. 2023 · TBC · Dreamscythe Alliance
+```
+
+Do NOT change desktop layout — right-align and size reduction is mobile only.
+The "TBC" abbreviation replaces "Burning Crusade Classic" everywhere.
+
+---
+
+## Build and deploy (updated)
+
+```bash
+npm run build
+git add -A
+git commit -m "fix: active guildies threshold/labels/exclusions, mobile hero title right-aligned"
+git push origin main
+```
+
+## Additional checklist items
+- [ ] Hero title background rectangle gone on mobile
+- [ ] "Blådes Edge" right-aligned on mobile, smaller font
+- [ ] Subtitle reads "Est. 2023 · TBC · Dreamscythe Alliance" — no line wrap
+- [ ] Desktop hero layout unchanged
+- [ ] "Burning Crusade Classic" replaced with "TBC" in subtitle everywhere
