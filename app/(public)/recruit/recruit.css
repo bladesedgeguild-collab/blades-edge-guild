@@ -593,7 +593,7 @@
   margin-bottom: 2rem;
 }
 
-@media (max-width: 380px) {
+@media (max-width: 767px) {
   .rc-result-perks { grid-template-columns: 1fr; }
 }
 

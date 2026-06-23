@@ -4,6 +4,7 @@ import './recruit.css'
 import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import GMCorner from '@/components/GMCorner'
+import { useIsMobile } from '@/hooks/useIsMobile'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -260,6 +261,7 @@ export function RecruitPage() {
   const [hoveredPerk, setHoveredPerk] = useState<string | null>(null)
 
   const embers = useMemo(() => makeEmbers(26), [])
+  const isMobile = useIsMobile()
 
   const currentQ = QUESTIONS[qIdx]
 
@@ -601,8 +603,9 @@ export function RecruitPage() {
                   <div
                     key={i}
                     className="rc-perk-card"
-                    onMouseEnter={() => setHoveredPerk(p.key)}
-                    onMouseLeave={() => setHoveredPerk(null)}
+                    onMouseEnter={() => { if (!isMobile) setHoveredPerk(p.key) }}
+                    onMouseLeave={() => { if (!isMobile) setHoveredPerk(null) }}
+                    onClick={() => { if (isMobile) setHoveredPerk(prev => prev === p.key ? null : p.key) }}
                   >
                     <span className="rc-perk-name">{p.title}</span>
                     <span className="rc-perk-body">{p.desc}</span>
@@ -650,6 +653,7 @@ export function RecruitPage() {
             transform: 'translateX(-50%)',
             zIndex: 200,
             pointerEvents: 'none',
+            maxWidth: '90vw',
           }}
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -657,7 +661,7 @@ export function RecruitPage() {
             src={PERK_IMAGES[hoveredPerk]}
             alt=""
             style={{
-              width: '1115px',
+              width: 'min(1115px, 90vw)',
               height: 'auto',
               objectFit: 'contain',
               borderRadius: '8px',

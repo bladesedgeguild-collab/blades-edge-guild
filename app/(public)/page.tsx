@@ -261,9 +261,9 @@ export default async function LandingPage() {
           {/* Three-column layout: left | image | right */}
           <div className="flex flex-wrap md:flex-nowrap items-stretch">
 
-            {/* Left column — Answered the Call */}
+            {/* Left column — Answered the Call (hidden on mobile) */}
             <div
-              className="w-full md:w-1/5 order-2 md:order-1 flex flex-col py-4 px-3"
+              className="hidden md:flex md:w-1/5 order-2 md:order-1 flex-col py-4 px-3"
               style={{
                 background: 'linear-gradient(to right, rgba(26,18,8,0.95) 50%, rgba(26,18,8,0.4) 100%)',
                 borderRight: '1px solid #3d2e15',
@@ -308,9 +308,9 @@ export default async function LandingPage() {
               </div>
             </div>
 
-            {/* Right column — Still MIA */}
+            {/* Right column — Still MIA (hidden on mobile) */}
             <div
-              className="w-full md:w-1/5 order-3 flex flex-col py-4 px-3"
+              className="hidden md:flex md:w-1/5 order-3 flex-col py-4 px-3"
               style={{
                 background: 'linear-gradient(to left, rgba(26,18,8,0.95) 50%, rgba(26,18,8,0.4) 100%)',
                 borderLeft: '1px solid #3d2e15',
@@ -360,9 +360,9 @@ export default async function LandingPage() {
               </div>
             )}
 
-            {/* Original Blådes Edge Members — 3 rows, returned bright / MIA dim */}
+            {/* Original Blådes Edge Members — hidden on mobile, 3 rows on desktop */}
             {originalsScrollArray.length > 0 && (
-              <div>
+              <div className="hidden md:block">
                 <div className="text-center mb-6">
                   <h3
                     className="text-2xl font-bold mb-2"

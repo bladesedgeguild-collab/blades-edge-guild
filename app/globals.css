@@ -2854,6 +2854,5 @@ input[type=number] { -moz-appearance: textfield; }
 }
 
 @media (max-width: 768px) {
-  .nav-discord-btn { padding: 0 0.6rem; }
-  .nav-discord-btn span { display: none; }
+  .nav-discord-btn { display: none; }
 }
