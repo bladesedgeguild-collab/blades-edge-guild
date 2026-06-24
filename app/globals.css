@@ -2806,7 +2806,7 @@ input[type=number] { -moz-appearance: textfield; }
   box-shadow: 0 0 16px rgba(26, 255, 110, 0.2);
 }
 
-/* ── Mobile hero title — right-aligned, no background box ── */
+/* ── Mobile hero title — right-aligned, pinned to bottom ── */
 @media (max-width: 767px) {
   .hero-guild-name {
     font-size: clamp(1.6rem, 7vw, 2.2rem);
@@ -2821,7 +2821,13 @@ input[type=number] { -moz-appearance: textfield; }
   }
   .hero-title-wrapper {
     align-items: flex-end;
-    padding-right: 16px;
+    justify-content: flex-end;
+    padding-bottom: 8px;
+    gap: 8px;
+  }
+  /* Suppress the default margin-top on the recruit button inside the mobile hero */
+  .hero-title-wrapper .hero-recruit-btn {
+    margin-top: 0;
   }
 }
 

@@ -1,185 +1,137 @@
-# TASK: Active Guildies — Threshold, Label, and Alt Exclusion List
+# TASK: Mobile Hero — Push Title Lower
 
-## Three changes, all related to the "Active This Week" feature on the landing page.
+## One change only
 
----
+Find the hero content container on mobile. It currently has `padding-bottom: 40px`.
 
-## Change 1: Bump threshold from 7 to 14 days
+Increase it so the title and subtitle sit much closer to the very bottom edge
+of the hero image. Try `padding-bottom: 8px` with `justify-content: flex-end`
+so the content is pinned as low as possible.
 
-Find wherever `last_online_days <= 7` is used to filter active members.
-It will be in the landing page data fetch or the import processing.
+Also reduce the `gap` between the title block and the button from `16px` to `8px`
+so they stay tightly grouped as a unit at the bottom.
 
-```ts
-// BEFORE:
-last_online_days <= 7
-
-// AFTER:
-last_online_days <= 14
+```css
+@media (max-width: 767px) {
+  .hero-content {          /* use actual class name from codebase */
+    justify-content: flex-end;
+    padding-bottom: 8px;
+    gap: 8px;
+  }
+}
 ```
 
----
-
-## Change 2: Update label copy
-
-Find the "Active This Week" label and its subtitle on the landing page.
-
-```tsx
-// BEFORE (approximately):
-"Active This Week"
-"X guildies online"
-
-// AFTER:
-"Active Guildies"
-"X spotted online recently"
-```
-
-Apply to both the stat counter label on the landing page metrics row AND
-anywhere else "Active This Week" appears as a section heading.
+Nothing else changes. Desktop untouched.
 
 ---
-
-## Change 3: Update the GM alt exclusion list
-
-The landing page active scroll excludes GM alts so only real guildies appear.
-Find the exclusion list — it will be an array of character names used to
-filter out Aaron's characters from the active display.
-
-Replace the entire list with this complete updated version:
-
-```ts
-const GM_ALT_NAMES = new Set([
-  // Main + core alts
-  'Åvatarødys', 'Æminåmi', 'Tøph', 'Ðråcårys', 'Irøhh', 'Pukanacua',
-  'Raghop', 'Ðeerføx', 'Ðjenna', 'Ðjøç', 'Zmite',
-  // Utility
-  'Guildßank', 'Tourisßlaðes', 'Bootyßayah',
-  // Sum locks — all variants
-  'Sumwinter', 'Sumåzshara', 'Sumsouthshor', 'Sumðiremaul', 'Sumfelwood',
-  'Sumßlaðes', 'Sumzulgurub', 'Sumkalimdor', 'Sumstormwind',
-  // Other warlock alts
-  'Barragninn', 'Ilikeice', 'Kælin', 'Ghem', 'Kanahh', 'Skerza', 'Chaøtic',
-  // Blades Edge name variants (all Aaron's locks)
-  'Blådesedge', 'Blådesædge', 'Bladesedge', 'Bladesædge',
-  'Blådesedge', 'Tourisßlaðes',
-])
-```
-
-CRITICAL: Do NOT use `.toUpperCase()` or any case transformation on these
-names when comparing. The ß character renders as "SS" in uppercase. Always
-compare names as-is with exact string matching.
-
-The filter should be:
-```ts
-.filter(char => !GM_ALT_NAMES.has(char.name))
-```
-
----
-
-## Build and deploy
 
 ```bash
 npm run build
 git add -A
-git commit -m "fix: active guildies — 14 day threshold, updated label, full alt exclusion list"
+git commit -m "fix: mobile hero title pinned lower"
 git push origin main
 ```
 
-## Verification checklist
-- [ ] Threshold is 14 days (not 7)
-- [ ] Label reads "Active Guildies" not "Active This Week"
-- [ ] Subtitle reads "X spotted online recently"
-- [ ] Åvatarødys, Tøph, Guildßank not in the active scroll
-- [ ] Blådesedge / Bladesædge variants not in the active scroll
-- [ ] Sumstormwind not in the active scroll
-- [ ] Real guildies like Frostfriend, Anomalistic, Deathcultz still appear
-- [ ] No `.toUpperCase()` used on character name comparisons
-- [ ] `npm run build` passes
-
 ---
 
-## Change 4: Mobile hero — guild title styling fix
+## Change 5: Mobile hero — move "New? Start Here" button up
 
-Find the hero section on the landing page (`app/(public)/page.tsx` or hero component).
+Find the green "New to Blådes Edge? Start Here" CTA button in the landing page
+hero section. On mobile it is sitting too low, overlapping content below and
+blocking too much of the hero image.
 
-On mobile only (`max-width: 767px`):
+Move it up so it sits snug just below the guild title text block with minimal
+gap between them — they should feel like one grouped unit in the top-right
+of the hero on mobile.
 
-### Remove the background rectangle
-The guild title has a background box/panel behind it. Remove it on mobile:
 ```css
 @media (max-width: 767px) {
-  .hero-title-container,
-  [class*="hero-title"],
-  [class*="guild-title"] {
-    background: none !important;
-    backdrop-filter: none !important;
-    box-shadow: none !important;
-    border: none !important;
-    padding: 0 16px !important;
+  .hero-cta-button,
+  [class*="start-here"],
+  [class*="recruit-cta"] {
+    margin-top: 8px;   /* tight gap below the title */
+    margin-bottom: 0;
   }
 }
 ```
 
-Grep first to find the exact class/element:
+If the button is positioned absolutely, reduce its `top` value or increase its
+`bottom` value so it floats up closer to the title. The goal is:
+
+```
+[ Blådes Edge                    ]
+[ Est. 2023 · TBC · Dreamscythe ]
+[ New to Blådes Edge? Start Here ]  ← snug below, no big gap
+[                                ]
+[      hero image breathes here  ]
+[                                ]
+```
+
+Grep to find the exact element:
 ```bash
-grep -r "Blådes Edge\|hero-title\|guild-title\|hero.*bg\|backdrop" \
+grep -r "Start Here\|start-here\|recruit.*cta\|NewMember\|green.*button" \
   app/(public)/ components/ --include="*.tsx" -l
 ```
 
-### Right-align the text, smaller font, abbreviated subtitle
-
-On mobile the two lines should be:
-
-```
-Line 1: Blådes Edge          (Cinzel Decorative, right-aligned)
-Line 2: Est. 2023 · TBC · Dreamscythe Alliance   (Cinzel, right-aligned, smaller)
-```
-
-Change "Burning Crusade Classic" to "TBC" in the subtitle — on ALL screen sizes,
-not just mobile, since it's cleaner everywhere.
-
-Apply these mobile styles:
-```css
-@media (max-width: 767px) {
-  .hero-guild-name {
-    font-size: clamp(1.6rem, 7vw, 2.2rem);
-    text-align: right;
-    line-height: 1.1;
-  }
-  .hero-guild-subtitle {
-    font-size: clamp(0.55rem, 2.8vw, 0.75rem);
-    text-align: right;
-    white-space: nowrap;
-    letter-spacing: 0.04em;
-  }
-  .hero-title-wrapper {
-    align-items: flex-end;
-    padding-right: 16px;
-  }
-}
-```
-
-The subtitle text value to use (update the string in the component):
-```
-Est. 2023 · TBC · Dreamscythe Alliance
-```
-
-Do NOT change desktop layout — right-align and size reduction is mobile only.
-The "TBC" abbreviation replaces "Burning Crusade Classic" everywhere.
+Desktop layout of this button is unchanged.
 
 ---
 
-## Build and deploy (updated)
+## Change 6: Revert subtitle abbreviation on desktop
+
+The previous task changed "Burning Crusade Classic" to "TBC" everywhere.
+Revert that — "TBC" should only appear on mobile. Desktop should keep the
+full text.
+
+Find the subtitle string in the hero component. Make it conditional:
+
+```tsx
+// Use full text on desktop, abbreviated on mobile via CSS
+// Keep ONE string in the component — the full version:
+"Est. 2023 · Burning Crusade Classic · Dreamscythe Alliance"
+
+// Then in the mobile CSS, hide this element and show a mobile-only element:
+```
+
+Implementation — two spans, one per breakpoint:
+
+```tsx
+{/* Desktop subtitle — full text */}
+<span className="hero-subtitle-desktop">
+  Est. 2023 · Burning Crusade Classic · Dreamscythe Alliance
+</span>
+
+{/* Mobile subtitle — abbreviated */}
+<span className="hero-subtitle-mobile">
+  Est. 2023 · TBC · Dreamscythe Alliance
+</span>
+```
+
+```css
+.hero-subtitle-mobile { display: none; }
+
+@media (max-width: 767px) {
+  .hero-subtitle-desktop { display: none; }
+  .hero-subtitle-mobile { display: block; }
+}
+```
+
+This way desktop always shows the full string and mobile shows the short one.
+
+---
+
+## Updated build and deploy
 
 ```bash
 npm run build
 git add -A
-git commit -m "fix: active guildies threshold/labels/exclusions, mobile hero title right-aligned"
+git commit -m "fix: active guildies, mobile hero title, start here button, subtitle desktop/mobile split"
 git push origin main
 ```
 
 ## Additional checklist items
-- [ ] Hero title background rectangle gone on mobile
-- [ ] "Blådes Edge" right-aligned on mobile, smaller font
-- [ ] Subtitle reads "Est. 2023 · TBC · Dreamscythe Alliance" — no line wrap
-- [ ] Desktop hero layout unchanged
-- [ ] "Burning Crusade Classic" replaced with "TBC" in subtitle everywhere
+- [ ] "New to Blådes Edge? Start Here" button sits snug below title on mobile
+- [ ] Button does not overlap content below on mobile
+- [ ] Desktop hero subtitle reads "Est. 2023 · Burning Crusade Classic · Dreamscythe Alliance"
+- [ ] Mobile hero subtitle reads "Est. 2023 · TBC · Dreamscythe Alliance"
+- [ ] Desktop layout of hero completely unchanged

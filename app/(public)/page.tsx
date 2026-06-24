@@ -212,10 +212,10 @@ export default async function LandingPage() {
           />
         </div>
 
-        {/* Mobile hero text — right-aligned, no background box */}
+        {/* Mobile hero text — right-aligned, pinned to bottom */}
         <div
-          className="hero-title-wrapper block sm:hidden absolute z-20 w-full flex flex-col"
-          style={{ bottom: 120, left: 0, alignItems: 'flex-end', paddingRight: 16 }}
+          className="hero-title-wrapper block sm:hidden absolute inset-0 z-20 flex flex-col"
+          style={{ alignItems: 'flex-end', justifyContent: 'flex-end', paddingBottom: 8, paddingRight: 16, gap: 8 }}
         >
           <p
             className="hero-guild-name"
@@ -234,12 +234,12 @@ export default async function LandingPage() {
               fontFamily: "'Cinzel', serif",
               color: 'rgba(240,230,200,0.75)',
               textShadow: '0 2px 24px rgba(0,0,0,0.9)',
-              margin: '8px 0 16px',
+              margin: 0,
             }}
           >
             Est. 2023 · TBC · Dreamscythe Alliance
           </p>
-          <a href="/recruit" className="hero-recruit-btn">
+          <a href="/recruit" className="hero-recruit-btn" style={{ marginTop: 0 }}>
             ✦ New? Start Here
           </a>
         </div>
@@ -270,7 +270,7 @@ export default async function LandingPage() {
               marginTop: 8,
             }}
           >
-            Est. 2023 · TBC · Dreamscythe Alliance
+            Est. 2023 · Burning Crusade Classic · Dreamscythe Alliance
           </p>
           <a href="/recruit" className="hero-recruit-btn">
             ✦ New to Blådes Edge? Start Here
