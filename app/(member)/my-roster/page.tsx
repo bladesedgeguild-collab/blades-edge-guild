@@ -115,7 +115,7 @@ export default async function MyRosterPage() {
             {[mainChar.race, classLabel, `Level ${mainChar.level}`].filter(Boolean).join(' · ')}
           </p>
           <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'rgba(138,122,90,0.4)', fontSize: '0.82rem', margin: '0 0 18px' }}>
-            {'<'}Blådes Edge{'>'}
+            {'<'}Blades Edge{'>'}
           </p>
           {mainChar.rank_name && <div className="be-rank-pill">{mainChar.rank_name}</div>}
         </div>

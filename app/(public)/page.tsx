@@ -145,7 +145,7 @@ export default async function LandingPage() {
       professions: (c.professions as RosterChar['professions']) ?? [],
     }))
 
-  // Original Blådes Edge Members — ALL 187 originals (returned bright, MIA dim)
+  // Original Blades Edge Members — ALL 187 originals (returned bright, MIA dim)
   // Aaron's chars deprioritized with 3× non-Aaron loop
   const originalsAll: RosterChar[] = originalsData.map((c) => ({
     name: c.name,
@@ -226,7 +226,7 @@ export default async function LandingPage() {
               margin: 0,
             }}
           >
-            Blådes Edge
+            Blades Edge
           </p>
           <p
             className="hero-guild-subtitle"
@@ -258,7 +258,7 @@ export default async function LandingPage() {
               lineHeight: 1.15,
             }}
           >
-            Blådes Edge
+            Blades Edge
           </p>
           <p
             style={{
@@ -273,7 +273,7 @@ export default async function LandingPage() {
             Est. 2023 · Burning Crusade Classic · Dreamscythe Alliance
           </p>
           <a href="/recruit" className="hero-recruit-btn">
-            ✦ New to Blådes Edge? Start Here
+            ✦ New to Blades Edge? Start Here
           </a>
         </div>
       </section>
@@ -341,7 +341,7 @@ export default async function LandingPage() {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src="/images/guild-photo.jpg"
-                  alt="Blådes Edge guild portrait, EST. 2023"
+                  alt="Blades Edge guild portrait, EST. 2023"
                   className="w-full block"
                 />
               </div>
@@ -399,7 +399,7 @@ export default async function LandingPage() {
               </div>
             )}
 
-            {/* Original Blådes Edge Members — hidden on mobile, 3 rows on desktop */}
+            {/* Original Blades Edge Members — hidden on mobile, 3 rows on desktop */}
             {originalsScrollArray.length > 0 && (
               <div className="hidden md:block">
                 <div className="text-center mb-6">
@@ -457,7 +457,7 @@ export default async function LandingPage() {
           <p
             style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a', fontSize: '0.85rem' }}
           >
-            New to Blådes Edge? Create an account and introduce yourself to the guild.
+            New to Blades Edge? Create an account and introduce yourself to the guild.
           </p>
         </div>
       </section>

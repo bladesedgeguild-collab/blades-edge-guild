@@ -4,7 +4,7 @@ import DungeonsClient from './DungeonsClient'
 import './dungeons.css'
 
 export const metadata: Metadata = {
-  title: 'Dungeon Finder | Blådes Edge',
+  title: 'Dungeon Finder | Blades Edge',
   description: 'Find your next dungeon run. View level requirements, quests, loot, and call guildmates to join you.',
 }
 

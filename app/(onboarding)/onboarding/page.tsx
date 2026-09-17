@@ -483,7 +483,7 @@ export default function OnboardingPage() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: 0, animation: 'be-fade-in 0.6s ease-out 2.4s both' }}>
             <span style={{ display: 'inline-block', width: 16, height: 16, borderRadius: '50%', backgroundColor: CLASS_COLORS[selectedChar?.class ?? ''] ?? '#888' }} />
             <span style={{ fontFamily: 'var(--be-font-display)', fontSize: '1.2rem', color: 'var(--be-ink-2)', letterSpacing: '0.12em' }}>
-              {selectedChar?.class} · {isNewChar ? 'NEW RECRUIT' : 'OF BLÅDES EDGE'}
+              {selectedChar?.class} · {isNewChar ? 'NEW RECRUIT' : 'OF BLADES EDGE'}
             </span>
           </div>
           <div className="oath-button-slot">
@@ -534,7 +534,7 @@ export default function OnboardingPage() {
         <div className="onboarding-crest-wrap" style={{ textAlign: 'center', marginBottom: -60, position: 'relative', zIndex: 2 }}>
           <div className="onboarding-guild-crest" style={{ display: 'inline-block', width: 120, height: 120, borderRadius: '50%', overflow: 'hidden', boxShadow: '0 0 0 2px rgba(201,150,26,0.4), 0 0 30px rgba(26,255,110,0.35), 0 0 60px rgba(26,255,110,0.15)', animation: 'be-aura-pulse 4.5s ease-in-out infinite' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/images/guild-crest.png" alt="Blådes Edge" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+            <img src="/images/guild-crest.png" alt="Blades Edge" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
           </div>
         </div>
 

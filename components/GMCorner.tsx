@@ -106,7 +106,7 @@ export default function GMCorner({ quote, image, scrollActivate = false }: GMCor
             color: '#f0e6c8',
             letterSpacing: '0.05em',
           }}>
-            Blådes Edge
+            Blades Edge
           </div>
           <div style={{
             fontFamily: 'Cinzel, serif',

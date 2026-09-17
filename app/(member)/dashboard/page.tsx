@@ -148,10 +148,10 @@ export default async function DashboardPage() {
       const char = u.claimed_character_id ? feedCharMap[u.claimed_character_id] : null
       const what = char?.in_original_roster
         ? 'answered the call and returned'
-        : 'has joined Blådes Edge!'
+        : 'has joined Blades Edge!'
       return { key: u.id, who: u.display_name ?? '???', what, cls: char?.class ?? null, when: u.updated_at }
     }),
-    { key: 'guild-founded', who: 'Åvatarødys', what: 'founded Blådes Edge', cls: null, when: null },
+    { key: 'guild-founded', who: 'Åvatarødys', what: 'founded Blades Edge', cls: null, when: null },
   ]
 
   const charCount = yourCharCount ?? 0

@@ -227,7 +227,7 @@ export function GuildiesClient({
       {/* Page header */}
       <div style={{ marginBottom: '2rem' }}>
         <p style={{ fontFamily: 'Cinzel, serif', fontSize: '0.65rem', letterSpacing: '0.2em', color: 'rgba(201,150,26,0.5)', margin: '0 0 8px', textTransform: 'uppercase' }}>
-          Blådes Edge
+          Blades Edge
         </p>
         <h1 style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: 'clamp(1.8rem, 3vw, 2.8rem)', color: '#f0e6c8', margin: '0 0 8px', lineHeight: 1.1 }}>
           Guildies

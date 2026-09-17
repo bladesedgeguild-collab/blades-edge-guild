@@ -3,8 +3,8 @@ import './globals.css'
 import { LFGBanner } from '@/components/layout/LFGBanner'
 
 export const metadata: Metadata = {
-  title: 'Blådes Edge, Burning Crusade Classic',
-  description: 'Guild portal for Blådes Edge on Dreamscythe Alliance',
+  title: 'Blades Edge, Burning Crusade Classic',
+  description: 'Guild portal for Blades Edge on Dreamscythe Alliance',
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',

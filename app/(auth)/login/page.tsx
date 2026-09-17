@@ -112,7 +112,7 @@ function LoginCard() {
           className="text-2xl font-bold mb-1"
           style={{ fontFamily: "'Cinzel Decorative', serif", color: '#c9961a' }}
         >
-          Welcome back to Blådes Edge
+          Welcome back to Blades Edge
         </h1>
         <p
           className="text-sm italic"

@@ -100,7 +100,7 @@ const GM_QUOTES = [
   "I have a summoning army of Warlocks with full bags of soul shards ready when you are!",
   "Our recruiters making the Call to Arms in the starting zones have bags full of...well...more bags!",
   "Haha you & I can be friends if you recognized that Southpark quote. XD",
-  "Blådes Edge was my first ever guild in Vanilla WoW. I'm enjoying the homage & representing the name here again!",
+  "Blades Edge was my first ever guild in Vanilla WoW. I'm enjoying the homage & representing the name here again!",
 ]
 
 const PERKS = [
@@ -182,7 +182,7 @@ const QUESTIONS: Question[] = [
     eyebrow: 'The Banner',
     q: 'Does the guild name tag matter to you?',
     a: [
-      { t: 'Yes — I want to rep ⟨Blådes Edge⟩', s: 2 },
+      { t: 'Yes — I want to rep ⟨Blades Edge⟩', s: 2 },
       { t: 'Not really, honestly (And no worries if you choose this!)', s: 1 },
     ],
     background: 'shattrath',
@@ -344,10 +344,10 @@ export function RecruitPage() {
     const total = scores.reduce((s, v) => s + v, 0)
     const pct = Math.round((total / MAX_SCORE) * 100)
     const res = getResult(total)
-    const text = `I scored ${pct}% on the Blådes Edge Oath Quiz — ${res.tier}. ${res.name}`
+    const text = `I scored ${pct}% on the Blades Edge Oath Quiz — ${res.tier}. ${res.name}`
     const url = window.location.href
     if (typeof navigator !== 'undefined' && navigator.share) {
-      try { await navigator.share({ title: 'Blådes Edge Oath Quiz', text, url }) } catch { /* cancelled */ }
+      try { await navigator.share({ title: 'Blades Edge Oath Quiz', text, url }) } catch { /* cancelled */ }
     } else {
       try { await navigator.clipboard.writeText(`${text} ${url}`) } catch { /* unavailable */ }
     }
@@ -445,7 +445,7 @@ export function RecruitPage() {
           overflowY: 'auto',
         }}>
           <span style={{ fontFamily: "'Cinzel', serif", fontSize: '0.75rem', letterSpacing: '0.25em', color: 'var(--be-gold)', marginBottom: 16, display: 'block' }}>
-            — BLÅDES EDGE · TBC CLASSIC —
+            — BLADES EDGE · TBC CLASSIC —
           </span>
 
           <h1 style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: 'clamp(3.5rem, 10vw, 7rem)', lineHeight: 1.0, color: '#f0e6c8', marginBottom: 24 }}>
@@ -565,7 +565,7 @@ export function RecruitPage() {
               <div className="rc-result-seal-circle">
                 <div style={{ position: 'relative', display: 'inline-block' }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src="/images/guild-crest_Alpha.png" alt="Blådes Edge" className="rc-result-seal-img is-settled" />
+                  <img src="/images/guild-crest_Alpha.png" alt="Blades Edge" className="rc-result-seal-img is-settled" />
                   <div className="rc-seal-ring rc-seal-ring-1" />
                   <div className="rc-seal-ring rc-seal-ring-2" />
                 </div>

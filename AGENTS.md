@@ -3,11 +3,12 @@
 This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
 <!-- END:nextjs-agent-rules -->
 
-# Blådes Edge Guild Website — Full Project Context
+# Blades Edge Guild Website — Full Project Context
 
 ## What this is
-A World of Warcraft Classic guild website for Blådes Edge (Nordic å in name),
-a guild on the Dreamscythe Anniversary/TBC server (Alliance). The site helps
+Guild name is "Blades Edge" — plain ASCII, no special characters.
+A World of Warcraft Classic guild website for Blades Edge, a guild on the
+Dreamscythe Anniversary/TBC server (Alliance). The site helps
 returning members register their comeback, new members join, see the guild
 roster, and eventually sign up for dungeon runs.
 
