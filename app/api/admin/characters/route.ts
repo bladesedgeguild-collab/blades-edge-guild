@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
+import { GUILD } from '@/lib/guild-config'
 
 export async function PATCH(request: NextRequest) {
   const cookieStore = await cookies()
@@ -35,7 +36,7 @@ export async function PATCH(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { name, realm = 'Dreamscythe', status } = body as {
+  const { name, realm = GUILD.ruleset, status } = body as {
     name: string
     realm?: string
     status: string
@@ -45,7 +46,7 @@ export async function PATCH(request: NextRequest) {
     return NextResponse.json({ error: 'Character name is required' }, { status: 400 })
   }
 
-  if (!['returned', 'mia', 'new'].includes(status)) {
+  if (status !== 'new') {
     return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
   }
 

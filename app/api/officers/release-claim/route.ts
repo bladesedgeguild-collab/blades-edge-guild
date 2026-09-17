@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
   // Release the character claim
   await admin
     .from('characters')
-    .update({ claimed_by: null, claimed_at: null, status: 'mia' })
+    .update({ claimed_by: null, claimed_at: null })
     .eq('id', character_id)
 
   // If this was the user's main, clear claimed_character_id

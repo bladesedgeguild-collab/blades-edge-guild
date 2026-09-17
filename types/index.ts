@@ -31,6 +31,7 @@ export interface Character {
   id: string
   user_id: string
   name: string
+  last_name: string | null
   realm: string
   class: CharacterClass
   race: string | null

@@ -16,6 +16,7 @@ type UserProfile = {
 type MainChar = {
   id: string
   name: string
+  last_name: string | null
   class: string
   race: string | null
   level: number
@@ -25,6 +26,7 @@ type MainChar = {
 type AltChar = {
   id: string
   name: string
+  last_name: string | null
   class: string
   race: string | null
   level: number
@@ -65,14 +67,14 @@ export default async function SettingsPage() {
   if (profile?.claimed_character_id) {
     const { data: charData } = await admin
       .from('characters')
-      .select('id, name, class, race, level, rank_name')
+      .select('id, name, last_name, class, race, level, rank_name')
       .eq('id', profile.claimed_character_id)
       .single()
     mainChar = charData as unknown as MainChar
 
     const { data: altData } = await admin
       .from('characters')
-      .select('id, name, class, race, level')
+      .select('id, name, last_name, class, race, level')
       .eq('claimed_by', user.id)
       .neq('id', profile.claimed_character_id)
       .order('name', { ascending: true })

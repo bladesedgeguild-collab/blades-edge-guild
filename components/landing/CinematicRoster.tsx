@@ -14,6 +14,7 @@ const SECONDS_PER_CHIP = 8
 
 export type RosterChar = {
   name: string
+  last_name?: string | null
   class: string
   level: number
   rank_name: string | null
@@ -74,7 +75,7 @@ function NameChip({ char }: { char: RosterChar }) {
           }}
         />
         <span style={{ fontFamily: "'Cinzel', serif", fontSize: '0.85rem', color: classColor, whiteSpace: 'nowrap' }}>
-          {char.name}
+          {char.name}{char.last_name ? ` ${char.last_name}` : ''}
         </span>
       </div>
 
@@ -99,7 +100,7 @@ function NameChip({ char }: { char: RosterChar }) {
         >
           {/* Name */}
           <div style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: '1.4rem', color: classColor, marginBottom: '0.5rem', lineHeight: 1.2 }}>
-            {char.name}
+            {char.name}{char.last_name ? ` ${char.last_name}` : ''}
           </div>
 
           {/* Class · Race · Level */}

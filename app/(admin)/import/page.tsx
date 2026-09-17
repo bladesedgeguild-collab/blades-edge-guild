@@ -2,12 +2,11 @@
 
 import { useEffect, useRef, useState } from 'react'
 import type { Dungeon } from '@/lib/dungeon-schema'
+import { GUILD } from '@/lib/guild-config'
 
 type RosterPreview = {
   total: number
-  returned: number
   newCount: number
-  mia: number
   sample: { name: string; class: string; status: string }[]
 }
 
@@ -18,9 +17,7 @@ type ImportResult = {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  returned: '#1aff6e',
   new: '#3fc7eb',
-  mia: '#8a7a5a',
 }
 
 const inputStyle = {
@@ -50,7 +47,7 @@ export default function ImportPage() {
 
   // ── Section 2: Manual Status Update ──
   const [charName, setCharName] = useState('')
-  const [newStatus, setNewStatus] = useState('returned')
+  const [newStatus] = useState('new')
   const [updating, setUpdating] = useState(false)
   const [updateMsg, setUpdateMsg] = useState<{ text: string; ok: boolean } | null>(null)
   const [suggestions, setSuggestions] = useState<string[]>([])
@@ -77,13 +74,11 @@ export default function ImportPage() {
         setRosterData(parsed)
         setPreview({
           total: chars.length,
-          returned: chars.filter((c) => c.status === 'returned').length,
           newCount: chars.filter((c) => c.status === 'new').length,
-          mia: chars.filter((c) => c.status === 'mia').length,
           sample: chars.slice(0, 20).map((c) => ({
             name: String(c.name ?? ''),
             class: String(c.class ?? ''),
-            status: String(c.status ?? 'mia'),
+            status: String(c.status ?? 'new'),
           })),
         })
       } catch {
@@ -144,7 +139,7 @@ export default function ImportPage() {
       const res = await fetch('/api/admin/characters', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: charName.trim(), realm: 'Dreamscythe', status: newStatus }),
+        body: JSON.stringify({ name: charName.trim(), realm: GUILD.ruleset, status: newStatus }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -225,7 +220,7 @@ export default function ImportPage() {
           className="text-sm mb-6"
           style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
         >
-          Upload <code className="px-1 rounded text-xs" style={{ backgroundColor: '#241a0e', color: '#c9961a' }}>blades_edge_roster.json</code> to
+          Upload a roster JSON export to
           seed the character database. Existing characters are updated; new ones are inserted.
           <span className="block mt-1" style={{ color: '#3d2e15' }}>
             Requires migration 003_hide_from_roster.sql to be applied in Supabase first.
@@ -267,12 +262,10 @@ export default function ImportPage() {
           {preview && (
             <div className="flex flex-col gap-4">
               {/* Status counts */}
-              <div className="grid grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 {[
                   { label: 'Total', value: preview.total, color: '#f0e6c8' },
-                  { label: 'Returned', value: preview.returned, color: '#1aff6e' },
                   { label: 'New', value: preview.newCount, color: '#3fc7eb' },
-                  { label: 'MIA', value: preview.mia, color: '#8a7a5a' },
                 ].map(({ label, value, color }) => (
                   <div
                     key={label}
@@ -379,13 +372,13 @@ export default function ImportPage() {
           className="text-xl font-bold mb-1"
           style={{ fontFamily: "'Cinzel', serif", color: '#c9961a' }}
         >
-          Update Character Status
+          Reset Character Status
         </h2>
         <p
           className="text-sm mb-6"
           style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
         >
-          Manually set a single character&apos;s status in the Dreamscythe realm.
+          Manually reset a single character&apos;s status to New in the {GUILD.ruleset} ruleset.
         </p>
 
         <div
@@ -424,25 +417,13 @@ export default function ImportPage() {
               )}
             </div>
 
-            {/* Status dropdown */}
-            <select
-              value={newStatus}
-              onChange={(e) => setNewStatus(e.target.value)}
-              className="px-3 py-2 rounded text-sm outline-none focus:ring-1 focus:ring-[#c9961a] cursor-pointer"
-              style={{ ...inputStyle, minWidth: '130px' }}
-            >
-              <option value="returned">Returned</option>
-              <option value="mia">MIA</option>
-              <option value="new">New</option>
-            </select>
-
             <button
               onClick={handleStatusUpdate}
               disabled={updating || !charName.trim()}
               className="px-5 py-2 rounded text-sm font-semibold transition-all hover:opacity-90 disabled:opacity-40"
               style={{ backgroundColor: '#c9961a', color: '#0d0b07', fontFamily: "'Cinzel', serif" }}
             >
-              {updating ? 'Updating…' : 'Update'}
+              {updating ? 'Resetting…' : `Reset to ${newStatus}`}
             </button>
           </div>
 

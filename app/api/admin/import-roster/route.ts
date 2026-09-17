@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
+import { GUILD } from '@/lib/guild-config'
 
 function normaliseSex(raw: unknown): string | null {
   if (raw === 1 || raw === '1') return 'Male'
@@ -23,7 +24,6 @@ type RosterChar = {
   rank_name?: string | null
   rank_index?: number | null
   note?: string | null
-  status?: 'returned' | 'mia' | 'new'
   alt_of?: string | null
   hide_from_roster?: boolean
   imported_from_grm?: boolean
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'No characters found in payload' }, { status: 400 })
   }
 
-  const REALM = 'Dreamscythe'
+  const REALM = GUILD.ruleset
   const errors: string[] = []
 
   // Fetch all existing characters to determine claimed status
@@ -110,8 +110,8 @@ export async function POST(request: NextRequest) {
         updated_at: new Date().toISOString(),
       }
 
-      // Preserve status for claimed characters (they've registered their return)
-      const status = (!existing?.claimed_by) ? (char.status ?? 'mia') : undefined
+      // Never touch status for characters already claimed by a member
+      const status = (!existing?.claimed_by) ? 'new' : undefined
 
       try {
         if (existing) {
@@ -125,7 +125,7 @@ export async function POST(request: NextRequest) {
         } else {
           const { data: inserted, error } = await admin
             .from('characters')
-            .insert({ ...fields, status: char.status ?? 'mia', is_main: !char.alt_of })
+            .insert({ ...fields, status: 'new', is_main: !char.alt_of })
             .select('id')
             .single()
           if (error) throw error

@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 type MainChar = {
   id: string
   name: string
+  last_name: string | null
   class: string
   race: string | null
   level: number
@@ -15,6 +16,7 @@ type MainChar = {
 type AltChar = {
   id: string
   name: string
+  last_name: string | null
   class: string
   race: string | null
   level: number
@@ -225,7 +227,7 @@ export function SettingsClient({
                   color: classColors[mainChar.class] ?? '#c9961a',
                   margin: '0 0 0.4rem', lineHeight: 1.2,
                 }}>
-                  {mainChar.name}
+                  {mainChar.name}{mainChar.last_name && <span style={{ color: 'rgba(138,122,90,0.6)', fontSize: '0.6em' }}> {mainChar.last_name}</span>}
                 </p>
                 <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'rgba(138,122,90,0.8)', margin: '0 0 0.5rem', fontSize: '0.9rem' }}>
                   {[mainChar.race, mainChar.class.charAt(0) + mainChar.class.slice(1).toLowerCase().replace('_', ' '), `Level ${mainChar.level}`].filter(Boolean).join(' · ')}
@@ -242,7 +244,7 @@ export function SettingsClient({
                   className="settings-btn-secondary"
                   onClick={() => setShowRelease(true)}
                 >
-                  Release Claim
+                  Reset My Characters
                 </button>
               ) : (
                 <div style={{
@@ -250,7 +252,7 @@ export function SettingsClient({
                   borderRadius: 6, padding: '1rem 1.25rem',
                 }}>
                   <p style={{ fontFamily: "'Spectral', serif", color: '#f0e6c8', margin: '0 0 1rem', fontSize: '0.95rem' }}>
-                    Are you sure? You will need to go through onboarding again.
+                    Are you sure? This permanently deletes your main and all alts, and you will need to sign the charter again.
                   </p>
                   <div style={{ display: 'flex', gap: '0.75rem' }}>
                     <button
@@ -258,7 +260,7 @@ export function SettingsClient({
                       onClick={handleReleaseClaim}
                       disabled={releasingClaim}
                     >
-                      {releasingClaim ? 'Releasing…' : 'Yes, release my claim'}
+                      {releasingClaim ? 'Resetting…' : 'Yes, reset my characters'}
                     </button>
                     <button
                       className="settings-btn-secondary"
@@ -298,7 +300,7 @@ export function SettingsClient({
                         fontFamily: "'Cinzel', serif", fontSize: '0.85rem',
                         color: classColors[alt.class] ?? '#c9961a',
                       }}>
-                        {alt.name}
+                        {alt.name}{alt.last_name && <span style={{ color: 'rgba(138,122,90,0.7)' }}> {alt.last_name}</span>}
                       </span>
                       <span style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'rgba(138,122,90,0.7)', fontSize: '0.8rem', marginLeft: '0.75rem' }}>
                         {[alt.race, alt.class.charAt(0) + alt.class.slice(1).toLowerCase().replace('_', ' '), `Level ${alt.level}`].filter(Boolean).join(' · ')}

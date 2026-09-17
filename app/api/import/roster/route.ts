@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
+import { GUILD } from '@/lib/guild-config'
 
 // Valid WoW class names normalised to our DB format
 const CLASS_MAP: Record<string, string> = {
@@ -118,7 +119,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'No characters found in the provided data' }, { status: 400 })
   }
 
-  const REALM = 'Dreamscythe'
+  const REALM = GUILD.ruleset
   const errors: string[] = []
   let added = 0
   let updated = 0
@@ -164,10 +165,10 @@ export async function POST(request: NextRequest) {
 
     const existingChar = existingByName.get(name.toLowerCase())
     if (existingChar) {
-      // Update everything except status/claimed fields to preserve returning member data
+      // Update everything except status/claimed fields to preserve claimed member data
       toUpdate.push({ id: existingChar.id, data: fields })
     } else {
-      toInsert.push({ ...fields, status: 'mia', is_main: true })
+      toInsert.push({ ...fields, status: 'new', is_main: true })
     }
   }
 

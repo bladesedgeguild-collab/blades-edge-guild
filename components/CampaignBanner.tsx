@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import type { CSSProperties } from 'react'
 import Link from 'next/link'
+import { GUILD } from '@/lib/guild-config'
 
 const CAMPAIGN_IMAGES = [
   '/images/GuildiesInShattrath.jpg',
@@ -72,10 +73,10 @@ export default function CampaignBanner() {
       <div className="campaign-banner-content" style={{ position: 'absolute', bottom: 0, left: 0, right: '30%', padding: 24, zIndex: 2 }}>
         <p style={{ ...eyebrow, color: 'var(--be-portal)' }}>Current Campaign</p>
         <h2 style={{ fontFamily: 'var(--be-font-display)', fontSize: '1.5rem', color: '#f0e6c8', margin: '0 0 10px', lineHeight: 1.2 }}>
-          Welcome, New Guildies!
+          Welcome, Founding Members!
         </h2>
         <p style={{ fontFamily: "'Spectral', serif", fontSize: '0.9rem', color: 'rgba(138,122,90,0.8)', margin: '0 0 18px', lineHeight: 1.5 }}>
-          The guild is in heavy recruitment mode and reactivating old guildies before the name change. Our goal is 200+ active members, enough to have guildies online at nearly all times, day or night. The more the merrier. Spread the word.
+          The guild is in heavy recruitment mode ahead of the {GUILD.game} launch. Our goal is {GUILD.foundersGoal}+ founding members before day one, enough to have guildies online at nearly all times, day or night. The more the merrier. Spread the word.
         </p>
         <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
           <Link href="/dungeons" style={{ padding: '9px 20px', backgroundColor: 'var(--be-gold)', color: '#0d0b07', borderRadius: 'var(--be-radius)', fontFamily: 'var(--be-font-display)', fontSize: '0.72rem', letterSpacing: '0.08em', textDecoration: 'none', display: 'inline-block' }}>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AddAltModal } from '@/components/AddAltModal'
 
@@ -12,7 +12,7 @@ const CLASS_COLORS: Record<string, string> = {
 }
 
 type AltChar = {
-  id: string; name: string; class: string; race: string | null; level: number; rank_name: string | null
+  id: string; name: string; last_name: string | null; class: string; race: string | null; level: number; rank_name: string | null
   professions: { name: string; skill_level: number; is_primary: boolean }[]
 }
 
@@ -27,14 +27,9 @@ function altProfessions(profs: { name: string; skill_level: number; is_primary: 
   return `${p1}  ${p2}`
 }
 
-export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharId: string }) {
+export function AddAltSection({ alts }: { alts: AltChar[]; mainCharId: string }) {
   const router = useRouter()
   const [modalOpen, setModalOpen] = useState(false)
-
-  const excludeIds = useMemo(
-    () => [mainCharId, ...alts.map(a => a.id)],
-    [mainCharId, alts]
-  )
 
   return (
     <>
@@ -61,12 +56,11 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
           <div className="alts-grid">
             {alts.map((alt) => {
               const color = CLASS_COLORS[alt.class] ?? '#888'
-              console.log('Alt name from DB:', alt.name, 'charCodes:', [...alt.name].map(c => c.charCodeAt(0)))
               return (
                 <div key={alt.id} className="alt-card" style={{ borderLeft: `4px solid ${color}` }}>
                   <div className="alt-card-left">
                     <span className="alt-card-name" data-character-name style={{ color, textTransform: 'none', fontVariant: 'normal', fontVariantCaps: 'normal', fontVariantLigatures: 'none', WebkitFontFeatureSettings: '"case" 0', fontFeatureSettings: '"case" 0' }}>
-                      {alt.name}
+                      {alt.name}{alt.last_name && <span style={{ color: 'var(--be-muted)', fontWeight: 400 }}> {alt.last_name}</span>}
                     </span>
                     <span className="alt-card-sub">
                       {[alt.class.charAt(0) + alt.class.slice(1).toLowerCase().replace('_', ' '), alt.race, `Level ${alt.level}`].filter(Boolean).join(' · ')}
@@ -109,7 +103,6 @@ export function AddAltSection({ alts, mainCharId }: { alts: AltChar[]; mainCharI
 
       {modalOpen && (
         <AddAltModal
-          excludeIds={excludeIds}
           onClose={() => setModalOpen(false)}
           onSuccess={() => { setModalOpen(false); router.refresh() }}
         />

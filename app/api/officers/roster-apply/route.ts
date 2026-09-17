@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
+import { GUILD } from '@/lib/guild-config'
 
 function normalizeForSearch(str: string): string {
   return str.toLowerCase()
@@ -108,7 +109,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'No characters in payload' }, { status: 400 })
   }
 
-  const REALM = 'Dreamscythe'
+  const REALM = GUILD.ruleset
 
   // Fetch existing characters
   const { data: existingRaw } = await admin
@@ -148,7 +149,6 @@ export async function POST(request: NextRequest) {
           rank_name: uc.rank_name ?? null,
           note: uc.note ?? null,
           status: 'new',
-          in_original_roster: false,
           imported_from_grm: false,
           hide_from_roster: false,
           is_main: true,
@@ -185,13 +185,13 @@ export async function POST(request: NextRequest) {
         }
         added++
       } else {
-        // UPDATE existing — set status='returned', update level/rank/last_online_days
-        // Never touch claimed_by/user_id/is_main/hide_from_roster/in_original_roster
+        // UPDATE existing — update level/rank/last_online_days
+        // Never touch claimed_by/user_id/is_main/hide_from_roster
         const updateData: Record<string, unknown> = {
           level: uc.level ?? 1,
           rank_index: uc.rank_index ?? null,
           rank_name: uc.rank_name ?? null,
-          status: 'returned',
+          status: 'new',
           updated_at: new Date().toISOString(),
         }
 

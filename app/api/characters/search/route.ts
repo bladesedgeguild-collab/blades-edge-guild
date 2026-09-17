@@ -24,6 +24,7 @@ function normalizeForSearch(str: string): string {
 type CachedChar = {
   id: string
   name: string
+  last_name: string | null
   class: string
   race: string | null
   level: number
@@ -33,7 +34,7 @@ type CachedChar = {
   claimed_by: string | null
   joined_guild_at: string | null
   professions: { name: string; skill_level: number; is_primary: boolean }[]
-  _n: string // normalized name
+  _n: string // normalized "first last" name
 }
 
 let charCache: CachedChar[] | null = null
@@ -49,13 +50,14 @@ async function getCharCache(): Promise<CachedChar[]> {
 
   const { data } = await supabase
     .from('characters')
-    .select('id, name, class, race, level, rank_name, rank_index, last_zone, claimed_by, joined_guild_at, professions(name, skill_level, is_primary)')
+    .select('id, name, last_name, class, race, level, rank_name, rank_index, last_zone, claimed_by, joined_guild_at, professions(name, skill_level, is_primary)')
     .order('rank_index', { ascending: true, nullsFirst: false })
     .order('level', { ascending: false })
 
   charCache = (data ?? []).map((c) => ({
     id: c.id,
     name: c.name,
+    last_name: c.last_name ?? null,
     class: c.class,
     race: c.race ?? null,
     level: c.level,
@@ -65,7 +67,7 @@ async function getCharCache(): Promise<CachedChar[]> {
     claimed_by: c.claimed_by,
     joined_guild_at: c.joined_guild_at,
     professions: c.professions ?? [],
-    _n: normalizeForSearch(c.name),
+    _n: normalizeForSearch(`${c.name} ${c.last_name ?? ''}`.trim()),
   }))
   cacheExpiry = Date.now() + 5 * 60 * 1000
   return charCache

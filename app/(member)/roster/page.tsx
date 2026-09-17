@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { MemberCard } from '@/components/roster/MemberCard'
+import { RosterClient } from '@/components/roster/RosterClient'
 import { CharacterClass } from '@/types'
 
 export default async function RosterPage() {
@@ -7,9 +7,12 @@ export default async function RosterPage() {
 
   const { data: characters } = await supabase
     .from('characters')
-    .select('id, name, class, level, rank_name, status')
+    .select('id, name, last_name, class, level, rank_name')
+    .eq('hide_from_roster', false)
     .order('rank_index', { ascending: true })
     .order('name', { ascending: true })
+
+  const chars = (characters ?? []).map((c) => ({ ...c, class: c.class as CharacterClass }))
 
   return (
     <div>
@@ -17,21 +20,10 @@ export default async function RosterPage() {
         Guild Roster
       </h1>
 
-      {!characters || characters.length === 0 ? (
-        <p style={{ color: '#6b7a99' }}>No characters imported yet.</p>
+      {chars.length === 0 ? (
+        <p style={{ color: '#6b7a99' }}>No characters yet.</p>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3">
-          {characters.map((c) => (
-            <MemberCard
-              key={c.id}
-              name={c.name}
-              class={c.class as CharacterClass}
-              level={c.level}
-              rank={c.rank_name ?? 'Member'}
-              status={c.status}
-            />
-          ))}
-        </div>
+        <RosterClient characters={chars} />
       )}
     </div>
   )

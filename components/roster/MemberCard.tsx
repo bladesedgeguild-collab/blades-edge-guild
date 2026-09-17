@@ -1,16 +1,15 @@
-import { CLASS_COLORS, CharacterClass, CharacterStatus } from '@/types'
+import { CLASS_COLORS, CharacterClass } from '@/types'
 
 interface MemberCardProps {
   name: string
+  lastName: string | null
   class: CharacterClass
   level: number
   rank: string
-  status: CharacterStatus
 }
 
-export function MemberCard({ name, class: charClass, level, rank, status }: MemberCardProps) {
+export function MemberCard({ name, lastName, class: charClass, level, rank }: MemberCardProps) {
   const classColor = CLASS_COLORS[charClass] ?? '#888'
-  const isReturned = status === 'returned'
 
   return (
     <div
@@ -28,7 +27,7 @@ export function MemberCard({ name, class: charClass, level, rank, status }: Memb
             className="font-semibold truncate"
             style={{ fontFamily: "'Cinzel', serif", fontSize: '1.05rem', color: '#f0e6c8' }}
           >
-            {name}
+            {name}{lastName && <span style={{ opacity: 0.65 }}> {lastName}</span>}
           </span>
           <span
             className="flex-shrink-0 text-xs"
@@ -52,36 +51,13 @@ export function MemberCard({ name, class: charClass, level, rank, status }: Memb
           </span>
         </div>
 
-        {/* Rank + Status */}
-        <div className="flex items-center justify-between gap-2">
-          <span
-            className="text-xs truncate"
-            style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
-          >
-            {rank}
-          </span>
-          {isReturned ? (
-            <span className="flex items-center gap-1 flex-shrink-0">
-              <span
-                className="inline-block w-1.5 h-1.5 rounded-full"
-                style={{ backgroundColor: '#1aff6e' }}
-              />
-              <span
-                className="text-xs"
-                style={{ fontFamily: "'Cinzel', serif", color: '#1aff6e' }}
-              >
-                Returned
-              </span>
-            </span>
-          ) : (
-            <span
-              className="text-xs flex-shrink-0"
-              style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
-            >
-              · MIA
-            </span>
-          )}
-        </div>
+        {/* Rank */}
+        <span
+          className="text-xs truncate"
+          style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
+        >
+          {rank}
+        </span>
       </div>
     </div>
   )

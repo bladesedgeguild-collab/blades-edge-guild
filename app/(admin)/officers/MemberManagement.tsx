@@ -162,7 +162,7 @@ export function MemberManagement() {
   }
 
   async function releaseClaim(characterId: string, charName: string) {
-    if (!confirm(`Release claim on ${charName}? Character will return to MIA status.`)) return
+    if (!confirm(`Release claim on ${charName}? The character will become unclaimed.`)) return
     setBusy(characterId, true)
     try {
       await fetch('/api/officers/release-claim', {

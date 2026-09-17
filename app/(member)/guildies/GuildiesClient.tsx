@@ -49,15 +49,9 @@ function displayRank(rankName: string): string {
 }
 
 export type RosterChar = {
-  id: string; name: string; class: string; race: string | null
+  id: string; name: string; last_name: string | null; class: string; race: string | null
   level: number; rank_name: string | null; rank_index: number | null
   professions: { name: string; skill_level: number; is_primary: boolean }[]
-}
-
-export type MiaChar = {
-  id: string; name: string; class: string; race: string | null
-  level: number; rank_name: string | null; rank_index: number | null
-  professions: { name: string; skill_level?: number | null }[]
 }
 
 // Legacy type aliases
@@ -190,11 +184,9 @@ function classLabel(cls: string) {
 export function GuildiesClient({
   claimed,
   unclaimedActive,
-  miaOriginals,
 }: {
   claimed: RosterChar[]
   unclaimedActive: RosterChar[]
-  miaOriginals: MiaChar[]
 }) {
   const [activeSort, setActiveSort] = useState<SortKey>('level')
   const [activeFilter, setActiveFilter] = useState<string | null>(null)
@@ -207,15 +199,11 @@ export function GuildiesClient({
     ...unclaimedActive.map(c => ({ ...c, isClaimed: false as const })),
   ]
 
-  const allMembers = [...mergedActive, ...miaOriginals] as AnyChar[]
+  const allMembers = mergedActive as AnyChar[]
   const activeSortDef = SORTS.find(s => s.key === activeSort)!
 
   const sortedMerged = applyFilter(
     sortChars(mergedActive, activeSort, activeFilter),
-    activeSort, activeFilter
-  )
-  const sortedMia = applyFilter(
-    sortChars(miaOriginals, activeSort, activeFilter),
     activeSort, activeFilter
   )
 
@@ -233,7 +221,7 @@ export function GuildiesClient({
           Guildies
         </h1>
         <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'rgba(138,122,90,0.65)', fontSize: '1rem', margin: 0 }}>
-          {totalActive} active members · {claimed.length} registered · {miaOriginals.length} MIA originals
+          {totalActive} guildies · {claimed.length} registered
         </p>
       </div>
 
@@ -331,7 +319,7 @@ export function GuildiesClient({
               </div>
               <div className="guildie-name-col">
                 <span data-character-name style={{ color: char.isClaimed ? color : 'var(--be-muted)', fontFamily: 'Cinzel, serif', textTransform: 'none', fontVariant: 'normal' }}>
-                  {char.name}
+                  {char.name}{char.last_name && <span style={{ opacity: 0.65 }}> {char.last_name}</span>}
                 </span>
                 <span className="guildie-sub">{char.race === 'NightElf' ? 'Night Elf' : char.race}</span>
               </div>
@@ -366,11 +354,11 @@ export function GuildiesClient({
       {/* Claim CTA */}
       <div className="guildie-claim-cta">
         <div className="guildie-claim-text">
-          <span className="guildie-claim-title">Is one of these your alt?</span>
-          <span className="guildie-claim-sub">Claim unclaimed characters and add them to your roster.</span>
+          <span className="guildie-claim-title">Have another character?</span>
+          <span className="guildie-claim-sub">Add an alt to your roster.</span>
         </div>
         <button className="guildie-claim-btn" onClick={() => setShowAddAltModal(true)}>
-          Claim your alt, add it to your roster
+          Add your alt
         </button>
       </div>
 
@@ -380,48 +368,6 @@ export function GuildiesClient({
           onSuccess={() => { setShowAddAltModal(false); router.refresh() }}
         />
       )}
-
-      {/* Original Members — Still MIA */}
-      <div style={{ marginTop: '2.5rem' }}>
-        <p style={{ fontFamily: 'Cinzel, serif', fontSize: '0.65rem', letterSpacing: '0.2em', color: 'rgba(201,150,26,0.45)', margin: '0 0 1rem', textTransform: 'uppercase' }}>
-          Original Members Still MIA
-        </p>
-        <div style={{ background: activeSortDef.bgTint, borderRadius: 12, transition: 'background 400ms ease', border: '1px solid rgba(61,46,21,0.3)', overflow: 'hidden', opacity: 0.35 }}>
-          {sortedMia.map(char => {
-            const color = CLASS_COLORS[char.class] ?? '#8a7a5a'
-            return (
-              <div key={char.id} className="guildie-row">
-                <div style={{ width: 64 }} />
-                <div className="guildie-name-col">
-                  <span data-character-name style={{ color: 'var(--be-muted)', fontFamily: 'Cinzel, serif', textTransform: 'none', fontVariant: 'normal' }}>
-                    {char.name}
-                  </span>
-                  <span className="guildie-sub">{char.race === 'NightElf' ? 'Night Elf' : char.race}</span>
-                </div>
-                <div className="guildie-class-col">
-                  <span style={{ color }}>● {classLabel(char.class)}</span>
-                </div>
-                <div className="guildie-level-col">
-                  <span style={{ fontFamily: 'Cinzel, serif' }}>{char.level}</span>
-                </div>
-                <div className="guildie-rank-col">
-                  {char.rank_name && <span className="rank-badge">{displayRank(char.rank_name)}</span>}
-                </div>
-                <div className="guildie-prof-col">
-                  {char.professions.length > 0
-                    ? char.professions.slice(0, 2).map(p => p.skill_level ? `${p.skill_level} ${p.name}` : p.name).join('  ')
-                    : <span style={{ fontStyle: 'italic' }}>—</span>}
-                </div>
-              </div>
-            )
-          })}
-          {sortedMia.length === 0 && (
-            <div style={{ padding: '3rem', textAlign: 'center', fontFamily: "'Spectral', serif", fontStyle: 'italic' }}>
-              {miaOriginals.length === 0 ? 'All original members have returned!' : 'No members match this filter.'}
-            </div>
-          )}
-        </div>
-      </div>
     </div>
   )
 }

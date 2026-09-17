@@ -1,10 +1,11 @@
 import type { Metadata } from 'next'
 import './globals.css'
 import { LFGBanner } from '@/components/layout/LFGBanner'
+import { GUILD } from '@/lib/guild-config'
 
 export const metadata: Metadata = {
-  title: 'Blades Edge, Burning Crusade Classic',
-  description: 'Guild portal for Blades Edge on Dreamscythe Alliance',
+  title: `Blades Edge, ${GUILD.game}`,
+  description: `Guild portal for Blades Edge, forming for ${GUILD.game} ${GUILD.faction}`,
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',

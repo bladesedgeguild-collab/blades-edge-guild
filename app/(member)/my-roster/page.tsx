@@ -14,13 +14,13 @@ const CLASS_COLORS: Record<string, string> = {
 }
 
 type MainChar = {
-  id: string; name: string; class: string; race: string | null; level: number
+  id: string; name: string; last_name: string | null; class: string; race: string | null; level: number
   rank_name: string | null; rank_index: number | null; status: string | null; joined_guild_at: string | null
   professions: { name: string; skill_level: number; is_primary: boolean }[]
 }
 
 type AltChar = {
-  id: string; name: string; class: string; race: string | null; level: number; rank_name: string | null
+  id: string; name: string; last_name: string | null; class: string; race: string | null; level: number; rank_name: string | null
   professions: { name: string; skill_level: number; is_primary: boolean }[]
 }
 
@@ -44,14 +44,14 @@ export default async function MyRosterPage() {
   if (profile?.claimed_character_id) {
     const { data: charData } = await supabase
       .from('characters')
-      .select('id, name, class, race, level, rank_name, rank_index, status, joined_guild_at, professions(name, skill_level, is_primary)')
+      .select('id, name, last_name, class, race, level, rank_name, rank_index, status, joined_guild_at, professions(name, skill_level, is_primary)')
       .eq('id', profile.claimed_character_id)
       .single()
     mainChar = charData as unknown as MainChar
 
     const { data: altData } = await supabase
       .from('characters')
-      .select('id, name, class, race, level, rank_name, professions(name, skill_level, is_primary)')
+      .select('id, name, last_name, class, race, level, rank_name, professions(name, skill_level, is_primary)')
       .eq('claimed_by', user?.id ?? '')
       .neq('id', profile.claimed_character_id)
       .order('level', { ascending: false })
@@ -107,7 +107,7 @@ export default async function MyRosterPage() {
               {mainChar.class}
             </p>
             <h1 className="character-name roster-hero-name" data-character-name style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: 'clamp(2.2rem, 4vw, 4rem)', color: charColor, lineHeight: 1.05, margin: 0, textTransform: 'none', fontVariant: 'normal', fontVariantCaps: 'normal', fontVariantLigatures: 'none', WebkitFontFeatureSettings: '"case" 0', fontFeatureSettings: '"case" 0' }}>
-              {mainChar.name}
+              {mainChar.name}{mainChar.last_name && <span style={{ color: 'rgba(138,122,90,0.6)', fontSize: '0.5em' }}> {mainChar.last_name}</span>}
             </h1>
           </div>
 

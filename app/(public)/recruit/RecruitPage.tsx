@@ -5,6 +5,7 @@ import { useState, useEffect, useMemo } from 'react'
 import Link from 'next/link'
 import GMCorner from '@/components/GMCorner'
 import { useIsMobile } from '@/hooks/useIsMobile'
+import { GUILD } from '@/lib/guild-config'
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -132,7 +133,7 @@ interface Question {
 const QUESTIONS: Question[] = [
   {
     eyebrow: 'The Climb',
-    q: 'What kind of leveling experience are you after in TBC?',
+    q: `What kind of leveling experience are you after in ${GUILD.game}?`,
     a: [
       { t: 'Chill solo — with group help when I want it', s: 2 },
       { t: 'Social all the way — GRATS spam & guild chat', s: 2 },
@@ -445,7 +446,7 @@ export function RecruitPage() {
           overflowY: 'auto',
         }}>
           <span style={{ fontFamily: "'Cinzel', serif", fontSize: '0.75rem', letterSpacing: '0.25em', color: 'var(--be-gold)', marginBottom: 16, display: 'block' }}>
-            — BLADES EDGE · TBC CLASSIC —
+            — BLADES EDGE · {GUILD.game.toUpperCase()} —
           </span>
 
           <h1 style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: 'clamp(3.5rem, 10vw, 7rem)', lineHeight: 1.0, color: '#f0e6c8', marginBottom: 24 }}>
@@ -498,7 +499,7 @@ export function RecruitPage() {
               {qIdx === 0 ? (
                 <h2 className="rc-question">
                   <span style={{ display: 'block' }}>What kind of leveling experience</span>
-                  <span style={{ display: 'block' }}>are you after in TBC?</span>
+                  <span style={{ display: 'block' }}>are you after in {GUILD.game}?</span>
                 </h2>
               ) : (
                 <h2 className="rc-question">{currentQ.q}</h2>

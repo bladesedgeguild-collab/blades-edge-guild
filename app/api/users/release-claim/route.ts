@@ -24,17 +24,17 @@ export async function POST() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-  const { data: userData } = await admin
-    .from('users')
-    .select('claimed_character_id')
-    .eq('id', user.id)
-    .single()
+  // Every character owned by this user — main and alts alike — is theirs to delete.
+  const { data: ownedChars } = await admin
+    .from('characters')
+    .select('id')
+    .eq('claimed_by', user.id)
 
-  if (userData?.claimed_character_id) {
-    await admin
-      .from('characters')
-      .update({ claimed_by: null, claimed_at: null })
-      .eq('id', userData.claimed_character_id)
+  const ownedIds = (ownedChars ?? []).map((c) => c.id)
+
+  if (ownedIds.length > 0) {
+    await admin.from('professions').delete().in('character_id', ownedIds)
+    await admin.from('characters').delete().in('id', ownedIds)
   }
 
   await admin
