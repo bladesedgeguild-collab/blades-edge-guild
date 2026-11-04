@@ -2,29 +2,8 @@ import { createClient } from '@supabase/supabase-js'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
+import { isOfficerUser } from '@/lib/officer'
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function isOfficerUser(admin: any, userId: string): Promise<boolean> {
-  const { data: profileRaw } = await admin
-    .from('users')
-    .select('role, claimed_character_id')
-    .eq('id', userId)
-    .single()
-  const profile = profileRaw as { role: string | null; claimed_character_id: string | null } | null
-
-  if (['admin', 'gm', 'officer'].includes(profile?.role ?? '')) return true
-
-  if (profile?.claimed_character_id) {
-    const { data: charRaw } = await admin
-      .from('characters')
-      .select('rank_index')
-      .eq('id', profile.claimed_character_id)
-      .single()
-    const char = charRaw as { rank_index: number | null } | null
-    if (char?.rank_index != null && char.rank_index <= 3) return true
-  }
-  return false
-}
 
 export async function POST(request: NextRequest) {
   const cookieStore = await cookies()

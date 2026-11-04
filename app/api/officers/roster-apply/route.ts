@@ -2,79 +2,16 @@ import { createClient } from '@supabase/supabase-js'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
+import { isOfficerUser } from '@/lib/officer'
 import { GUILD } from '@/lib/guild-config'
-
-function normalizeForSearch(str: string): string {
-  return str.toLowerCase()
-    .replace(/[åàáâãäæ]/g, 'a')
-    .replace(/[ðď]/g, 'd')
-    .replace(/[èéêë]/g, 'e')
-    .replace(/[ìíîï]/g, 'i')
-    .replace(/[øòóôõö]/g, 'o')
-    .replace(/[ùúûü]/g, 'u')
-    .replace(/[ýÿ]/g, 'y')
-    .replace(/[ß]/g, 'b')
-    .replace(/[þ]/g, 't')
-    .replace(/[ñ]/g, 'n')
-    .replace(/[çć]/g, 'c')
-    .replace(/[žźż]/g, 'z')
-    .replace(/[šś]/g, 's')
-    .replace(/[łĺ]/g, 'l')
-    .replace(/[ř]/g, 'r')
-}
-
-function normaliseSex(raw: unknown): string | null {
-  if (raw === 1 || raw === '1') return 'Male'
-  if (raw === 2 || raw === '2') return 'Female'
-  if (typeof raw === 'string') {
-    const l = raw.toLowerCase()
-    if (l === 'male') return 'Male'
-    if (l === 'female') return 'Female'
-  }
-  return null
-}
-
-type UploadedChar = {
-  name: string
-  class?: string
-  race?: string
-  sex?: unknown
-  level?: number
-  rank_index?: number | null
-  rank_name?: string | null
-  last_online_days?: number | null
-  note?: string | null
-  professions?: { name: string; abbr?: string | null; skill_level?: number }[]
-}
+import { buildMatcher, displayUploaded, normaliseSex, normalizeUploaded, type UploadedChar } from '@/lib/roster-sync'
 
 type DbChar = {
   id: string
   name: string
+  last_name: string | null
   claimed_by: string | null
   status: string
-}
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function isOfficerUser(admin: any, userId: string): Promise<boolean> {
-  const { data: profileRaw } = await admin
-    .from('users')
-    .select('role, claimed_character_id')
-    .eq('id', userId)
-    .single()
-  const profile = profileRaw as { role: string | null; claimed_character_id: string | null } | null
-
-  if (['admin', 'gm', 'officer'].includes(profile?.role ?? '')) return true
-
-  if (profile?.claimed_character_id) {
-    const { data: charRaw } = await admin
-      .from('characters')
-      .select('rank_index')
-      .eq('id', profile.claimed_character_id)
-      .single()
-    const char = charRaw as { rank_index: number | null } | null
-    if (char?.rank_index != null && char.rank_index <= 3) return true
-  }
-  return false
 }
 
 export async function POST(request: NextRequest) {
@@ -103,7 +40,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  const uploaded: UploadedChar[] = body.characters ?? (Array.isArray(body) ? body : [])
+  const uploaded: UploadedChar[] = normalizeUploaded(body.characters ?? (Array.isArray(body) ? body : []))
 
   if (uploaded.length === 0) {
     return NextResponse.json({ error: 'No characters in payload' }, { status: 400 })
@@ -111,113 +48,70 @@ export async function POST(request: NextRequest) {
 
   const REALM = GUILD.ruleset
 
-  // Fetch existing characters
   const { data: existingRaw } = await admin
     .from('characters')
-    .select('id, name, claimed_by, status')
+    .select('id, name, last_name, claimed_by, status')
 
   const dbChars: DbChar[] = existingRaw ?? []
-  const dbByExact = new Map<string, DbChar>()
-  const dbByNorm = new Map<string, DbChar>()
-  for (const c of dbChars) {
-    dbByExact.set(c.name.toLowerCase(), c)
-    const norm = normalizeForSearch(c.name)
-    if (!dbByNorm.has(norm)) dbByNorm.set(norm, c)
-  }
+  const findMatch = buildMatcher(dbChars)
 
   const errors: string[] = []
-  const upsertedIds = new Map<string, string>() // uploadedName.lower → charId
+  const upsertedIds = new Map<UploadedChar, string>()
   let added = 0
   let updated = 0
 
+  // Never deletes anything: characters missing from the upload are left alone.
   for (const uc of uploaded) {
-    if (!uc.name?.trim()) continue
-
-    const match = dbByExact.get(uc.name.toLowerCase()) ?? dbByNorm.get(normalizeForSearch(uc.name))
-
+    const match = findMatch(uc)
     try {
       if (!match) {
-        // INSERT new character — genuinely new, not in original 275
         const insertData: Record<string, unknown> = {
           name: uc.name,
+          last_name: uc.last_name ?? null,
           realm: REALM,
-          class: uc.class ?? 'WARRIOR',
+          class: (uc.class ?? 'WARRIOR').toUpperCase(),
           race: uc.race ?? null,
           sex: normaliseSex(uc.sex),
           level: uc.level ?? 1,
           rank_index: uc.rank_index ?? null,
           rank_name: uc.rank_name ?? null,
           note: uc.note ?? null,
+          last_zone: uc.zone ?? null,
+          last_online_days: uc.last_online_days ?? 9999,
           status: 'new',
-          imported_from_grm: false,
+          // Marks the row as coming from the guild roster so members can find & claim it
+          imported_from_grm: true,
           hide_from_roster: false,
           is_main: true,
         }
-
-        // Add last_online_days if provided — column may not exist yet
-        if (uc.last_online_days != null) {
-          insertData.last_online_days = uc.last_online_days
-        } else {
-          insertData.last_online_days = 9999
-        }
-
         const { data: inserted, error } = await admin
           .from('characters')
           .insert(insertData)
           .select('id')
           .single()
-
-        if (error) {
-          // If last_online_days column doesn't exist, retry without it
-          if (error.message?.includes('last_online_days')) {
-            const { data: inserted2, error: err2 } = await admin
-              .from('characters')
-              .insert({ ...insertData, last_online_days: undefined })
-              .select('id')
-              .single()
-            if (err2) throw err2
-            upsertedIds.set(uc.name.toLowerCase(), inserted2.id)
-          } else {
-            throw error
-          }
-        } else {
-          upsertedIds.set(uc.name.toLowerCase(), inserted.id)
-        }
+        if (error) throw error
+        upsertedIds.set(uc, inserted.id)
         added++
       } else {
-        // UPDATE existing — update level/rank/last_online_days
-        // Never touch claimed_by/user_id/is_main/hide_from_roster
+        // Update roster facts only. Never touch claimed_by / user_id / is_main / hide_from_roster.
         const updateData: Record<string, unknown> = {
           level: uc.level ?? 1,
           rank_index: uc.rank_index ?? null,
           rank_name: uc.rank_name ?? null,
-          status: 'new',
           updated_at: new Date().toISOString(),
         }
-
-        // Try with last_online_days first
-        const updateWithOnline = {
-          ...updateData,
-          last_online_days: uc.last_online_days ?? 9999,
-        }
-
-        const { error } = await admin
-          .from('characters')
-          .update(updateWithOnline)
-          .eq('id', match.id)
-
-        if (error?.message?.includes('last_online_days')) {
-          // Column doesn't exist yet — update without it
-          await admin.from('characters').update(updateData).eq('id', match.id)
-        } else if (error) {
-          throw error
-        }
-
-        upsertedIds.set(uc.name.toLowerCase(), match.id)
+        if (uc.last_online_days != null) updateData.last_online_days = uc.last_online_days
+        if (uc.last_name && !match.last_name) updateData.last_name = uc.last_name
+        if (uc.class) updateData.class = uc.class.toUpperCase()
+        if (uc.race) updateData.race = uc.race
+        if (uc.zone) updateData.last_zone = uc.zone
+        const { error } = await admin.from('characters').update(updateData).eq('id', match.id)
+        if (error) throw error
+        upsertedIds.set(uc, match.id)
         updated++
       }
     } catch (err) {
-      errors.push(`${uc.name}: ${(err as Error).message ?? String(err)}`)
+      errors.push(`${displayUploaded(uc)}: ${(err as Error).message ?? String(err)}`)
     }
   }
 
@@ -226,8 +120,8 @@ export async function POST(request: NextRequest) {
   const charIdsForProfDelete: string[] = []
 
   for (const uc of uploaded) {
-    if (!uc.name?.trim() || !uc.professions?.length) continue
-    const charId = upsertedIds.get(uc.name.toLowerCase())
+    if (!uc.professions?.length) continue
+    const charId = upsertedIds.get(uc)
     if (!charId) continue
 
     charIdsForProfDelete.push(charId)

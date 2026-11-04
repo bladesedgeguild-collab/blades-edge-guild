@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { MemberManagement } from './MemberManagement'
+import { extractGuildMembers } from '@/lib/grm-parse'
 
 type DiffNew = { status: 'NEW'; name: string; change: string }
 type DiffUpdated = { status: 'UPDATED'; dbName: string; uploadedName: string; change: string; dbId: string }
@@ -47,6 +48,7 @@ export function OfficersClient() {
   const [fileReady, setFileReady] = useState(false)
   const [charCount, setCharCount] = useState(0)
   const [parseError, setParseError] = useState<string | null>(null)
+  const [parseInfo, setParseInfo] = useState<string | null>(null)
   const [diff, setDiff] = useState<DiffResult | null>(null)
   const [diffLoading, setDiffLoading] = useState(false)
   const [diffError, setDiffError] = useState<string | null>(null)
@@ -64,8 +66,25 @@ export function OfficersClient() {
     setFileReady(false)
     const reader = new FileReader()
     reader.onload = (ev) => {
+      const text = (ev.target?.result as string) ?? ''
+      const isLua = /\.lua$/i.test(file.name) || /^\s*[A-Za-z_][A-Za-z0-9_]*\s*=\s*\{/.test(text.replace(/^\uFEFF/, ''))
       try {
-        const parsed = JSON.parse(ev.target?.result as string)
+        if (isLua) {
+          // GRM SavedVariables (Guild_Roster_Manager.lua): parsed right here in the browser
+          const result = extractGuildMembers(text)
+          if (result.characters.length === 0) {
+            setParseError('Read the .lua file but found no guild members in it. Make sure it is Guild_Roster_Manager.lua from SavedVariables, saved after a /reload or logout.')
+            setRawData(null)
+            setFileReady(false)
+            return
+          }
+          setRawData({ characters: result.characters })
+          setCharCount(result.characters.length)
+          setParseInfo(result.guilds.length ? `Guild: ${result.guilds.join(', ')}` : null)
+          setFileReady(true)
+          return
+        }
+        const parsed = JSON.parse(text)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const chars: any[] = parsed.characters ?? (Array.isArray(parsed) ? parsed : [])
         if (chars.length === 0) {
@@ -76,9 +95,12 @@ export function OfficersClient() {
         }
         setRawData(parsed as object)
         setCharCount(chars.length)
+        setParseInfo(null)
         setFileReady(true)
-      } catch {
-        setParseError('Invalid JSON. Could not parse file.')
+      } catch (err) {
+        setParseError(isLua
+          ? `Could not read that .lua file (${(err as Error).message}). Send it to the site admin to check the format.`
+          : 'Invalid JSON. Could not parse file.')
         setRawData(null)
         setFileReady(false)
       }
@@ -175,15 +197,15 @@ export function OfficersClient() {
               <input
                 ref={fileRef}
                 type="file"
-                accept=".json"
+                accept=".lua,.json"
                 onChange={handleFile}
                 style={{ display: 'none' }}
               />
               <p style={{ fontFamily: "'Cinzel', serif", color: '#c9961a', fontSize: '0.9rem', marginBottom: '0.4rem' }}>
-                Drop your roster JSON here or click to browse
+                Drop Guild_Roster_Manager.lua here or click to browse
               </p>
               <p style={{ fontFamily: "'Spectral', serif", color: '#8a7a5a', fontSize: '0.8rem', fontStyle: 'italic' }}>
-                Generate this file by uploading your GRM .lua to Claude
+                From WTF\Account\YOUR_ACCOUNT\SavedVariables. Do a /reload or log out first. Roster JSON files still work too.
               </p>
             </div>
 
@@ -196,7 +218,7 @@ export function OfficersClient() {
             {fileReady && !parseError && (
               <div style={{ marginTop: '1rem', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
                 <p style={{ fontFamily: "'Spectral', serif", color: '#1aff6e', fontSize: '0.9rem' }}>
-                  {charCount} characters found in file
+                  {charCount} characters found in file{parseInfo ? ` · ${parseInfo}` : ''}
                 </p>
                 {diffError && (
                   <p style={{ color: '#f87171', fontFamily: "'Spectral', serif", fontSize: '0.85rem' }}>
@@ -304,7 +326,7 @@ export function OfficersClient() {
                           {entry.name}
                         </td>
                         <td style={{ padding: '7px 12px', color: '#8a7a5a', fontFamily: "'Spectral', serif", fontSize: '0.82rem', fontStyle: 'italic' }}>
-                          Not in export, may have left
+                          Not in export, may have left (nothing is deleted)
                         </td>
                       </tr>
                     ))}
