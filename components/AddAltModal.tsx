@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { RACE_CLASSES } from '@/lib/guild-config'
+import { RosterFinder, type RosterPick } from '@/components/RosterFinder'
 
 const CLASS_COLORS: Record<string, string> = {
   MAGE: '#3fc7eb', PALADIN: '#f48cba', WARRIOR: '#c69b3a',
@@ -80,6 +81,18 @@ export function AddAltModal({
     onSuccess()
   }
 
+  async function handleClaimFromRoster(pick: RosterPick) {
+    setLoading(true); setError(null)
+    const res = await fetch('/api/characters/claim-existing', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ character_id: pick.id, as: 'alt' }),
+    })
+    const data = await res.json()
+    setLoading(false)
+    if (!res.ok) { setError(data.error ?? 'Could not claim that character'); return }
+    onSuccess()
+  }
+
   const newFormClassColor = CLASS_COLORS[form.cls.toUpperCase()] ?? '#888'
   const availableClasses = form.race ? (RACE_CLASSES[form.race] ?? []) : []
   const inlineNameError = form.name.length >= 1 ? validateWowName(form.name) : null
@@ -111,6 +124,7 @@ export function AddAltModal({
         {step === 'form' && (
           <div>
             <h2 style={{ fontFamily: 'var(--be-font-display)', fontSize: 20, color: 'var(--be-ink)', margin: '0 0 20px' }}>Add an Alt</h2>
+            <RosterFinder disabled={loading} pickLabel="Add as alt" onPick={handleClaimFromRoster} />
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div>
                 <label style={labelStyle}>First Name</label>

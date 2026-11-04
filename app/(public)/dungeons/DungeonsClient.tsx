@@ -6,6 +6,7 @@ import { DUNGEONS } from '@/data/dungeons/index'
 import type { Dungeon, DungeonContinent } from '@/data/dungeons/types'
 import LFGMiniBox from '@/components/LFGMiniBox'
 import './dungeons.css'
+import { GUILD } from '@/lib/guild-config'
 
 type Continent = 'All' | DungeonContinent
 
@@ -18,12 +19,11 @@ function getDungeonStatus(dungeon: Dungeon, level: number): 'active' | 'outlevel
 }
 
 const CONTINENT_BAND: Record<string, string> = {
-  'Outland': '#1aff6e22',
   'Eastern Kingdoms': '#3fc7eb22',
   'Kalimdor': '#ff7c0a22',
 }
 
-const CONTINENTS: Continent[] = ['All', 'Eastern Kingdoms', 'Kalimdor', 'Outland']
+const CONTINENTS: Continent[] = ['All', 'Eastern Kingdoms', 'Kalimdor']
 
 interface Props {
   playerLevel: number
@@ -71,7 +71,7 @@ export default function DungeonsClient({ playerLevel }: Props) {
           onChange={e => setOverrideLevel(Number(e.target.value))}
           className="df-level-select"
         >
-          {Array.from({ length: 70 }, (_, i) => i + 1).map(n => (
+          {Array.from({ length: GUILD.maxLevel }, (_, i) => i + 1).map(n => (
             <option key={n} value={n}>Level {n}</option>
           ))}
         </select>
@@ -124,7 +124,7 @@ export default function DungeonsClient({ playerLevel }: Props) {
                       <div className="df-card-levels">
                         Level {dungeon.recommendedLevelMin}–{dungeon.recommendedLevelMax}
                         {dungeon.heroicRequiresLevel && (
-                          <span className="df-heroic-badge">Heroic Req. 70</span>
+                          <span className="df-heroic-badge">Heroic Req. {dungeon.heroicRequiresLevel}</span>
                         )}
                       </div>
                       <p className="df-card-summary">{dungeon.summary}</p>

@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 import { isOfficerUser } from '@/lib/officer'
+import { fullName } from '@/lib/names'
 
 
 export async function GET() {
@@ -38,7 +39,7 @@ export async function GET() {
       .order('created_at', { ascending: false }),
     admin
       .from('characters')
-      .select('id, name, class, claimed_by, claimed_at')
+      .select('id, name, last_name, class, claimed_by, claimed_at')
       .not('claimed_by', 'is', null)
       .order('claimed_at', { ascending: false }),
   ])
@@ -56,6 +57,7 @@ export async function GET() {
   const claimedChars = (claimedCharsRaw ?? []) as {
     id: string
     name: string
+    last_name: string | null
     class: string
     claimed_by: string | null
     claimed_at: string | null
@@ -70,9 +72,10 @@ export async function GET() {
   if (mainCharIds.length > 0) {
     const { data: mainCharsRaw } = await admin
       .from('characters')
-      .select('id, name, class')
+      .select('id, name, last_name, class')
       .in('id', mainCharIds)
-    mainCharsById = Object.fromEntries((mainCharsRaw ?? []).map((c) => [c.id, c]))
+    // Officers see full first + last names
+    mainCharsById = Object.fromEntries((mainCharsRaw ?? []).map((c) => [c.id, { id: c.id, name: fullName(c.name, c.last_name), class: c.class }]))
   }
 
   const usersById = Object.fromEntries(users.map((u) => [u.id, u]))
@@ -93,7 +96,7 @@ export async function GET() {
     const claimer = c.claimed_by ? usersById[c.claimed_by] : null
     return {
       id: c.id,
-      name: c.name,
+      name: fullName(c.name, c.last_name),
       class: c.class,
       claimed_at: c.claimed_at,
       claimer: claimer

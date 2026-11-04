@@ -5,6 +5,8 @@ import { NavScrollGlow } from './NavScrollGlow'
 import { NavUserMenu } from './NavUserMenu'
 import { NavMobileMenu } from './NavMobileMenu'
 import { NavLinks } from './NavLinks'
+import { isOfficerRole } from '@/lib/officer'
+import { fullName } from '@/lib/names'
 
 type ProfileData = {
   display_name: string | null
@@ -14,7 +16,7 @@ type ProfileData = {
   role?: string | null
 }
 
-type ClaimedChar = { name: string; class: CharacterClass; rank_index: number | null }
+type ClaimedChar = { name: string; last_name: string | null; class: CharacterClass; rank_index: number | null }
 
 export async function NavBar() {
   const supabase = await createClient()
@@ -35,7 +37,7 @@ export async function NavBar() {
     if (claimedCharId) {
       const { data: charData } = await supabase
         .from('characters')
-        .select('name, class, rank_index')
+        .select('name, last_name, class, rank_index')
         .eq('id', claimedCharId)
         .single()
       claimedChar = charData as unknown as ClaimedChar
@@ -43,12 +45,11 @@ export async function NavBar() {
   }
 
   const charColor = claimedChar ? (CLASS_COLORS[claimedChar.class] ?? '#c9961a') : '#c9961a'
-  const displayName = profile?.display_name ?? 'Adventurer'
+  const displayName = (claimedChar ? fullName(claimedChar.name, claimedChar.last_name) : null) || profile?.display_name || 'Adventurer'
   const avatarUrl = !claimedChar && profile?.discord_avatar
     ? `https://cdn.discordapp.com/avatars/${user?.user_metadata?.provider_id}/${profile.discord_avatar}.png?size=32`
     : null
-  const isOfficer = ['admin', 'gm', 'officer'].includes(profile?.role ?? '') ||
-    (claimedChar?.rank_index != null && claimedChar.rank_index <= 3)
+  const isOfficer = isOfficerRole(profile?.role)
 
   return (
     <nav

@@ -68,7 +68,7 @@ const Q3_EVIDENCE: EvidenceImg[] = [
   },
   {
     src: '/images/Summon_toBlastedLands.jpg',
-    caption: 'Summons to the Dark Portal among 16 different locations our Warlock Summoning Army are standing by.',
+    caption: 'Summons to the Blasted Lands among 16 different locations our Warlock Summoning Army are standing by.',
     pos: { bottom: '9%', left: '2%' },
     glow: 'summon',
   },
@@ -89,7 +89,7 @@ const Q4_EVIDENCE: EvidenceImg[] = [
   },
   {
     src: '/images/Recruiting_TophInKharanos.jpg',
-    caption: 'Recruiter Ðeerføx traveling starting zones like Kharanos, Elwynn Forest, Teldrassil & Azuremyst Isle.',
+    caption: 'Recruiter Ðeerføx traveling starting zones like Kharanos, Elwynn Forest & Teldrassil.',
     pos: { top: '12%', left: '1%' },
     glow: 'recruit',
   },
@@ -137,7 +137,7 @@ const QUESTIONS: Question[] = [
     a: [
       { t: 'Chill solo — with group help when I want it', s: 2 },
       { t: 'Social all the way — GRATS spam & guild chat', s: 2 },
-      { t: 'Hardcore. Race to 70, no stops', s: 1 },
+      { t: `Hardcore. Race to ${GUILD.maxLevel}, no stops`, s: 1 },
     ],
     background: 'cycling',
   },
@@ -200,7 +200,7 @@ function getResult(score: number) {
     body: [
       "You're one of us. The oath knows it — fam-",
       "friendly, helpful, here for the long haul. Grab",
-      "your free bags and let's ride to 70 together.",
+      `your free bags and let's ride to ${GUILD.maxLevel} together.`,
     ],
   }
   if (ratio >= 0.50) return {
