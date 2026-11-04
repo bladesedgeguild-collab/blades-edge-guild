@@ -83,20 +83,46 @@ holds the ruleset string. Characters have a first + last name
 4. Onboarding wizard lets user create their character
 5. After onboarding: has_completed_onboarding = true → access to full site
 
-## Onboarding flow (single path — no returning-member claim)
-1. **Create your main**: First name, Last name, Race dropdown, Class dropdown
-   (filtered by `RACE_CLASSES`), Level (1 to `GUILD.maxLevel`). Validate:
-   letters only (accented/special letters allowed, never stripped), no
-   duplicate first+last name (case-insensitive).
-2. **Confirm**: character card with full name, race/class in class color,
-   rank "Fresh Recruit", professions "To Be Determined".
-3. **Charter cinematic**: "The Charter Is Signed" — wax seal stamp animation
-   (`be-stamp` keyframe, never modify), ember particles, dark amber bg.
-   `animation-fill-mode` stays `both` everywhere, never `forwards`.
-4. **Add alts (optional, skippable)**: manual entry only, same
-   first/last/race/class/level form. No claiming from an existing pool —
-   there isn't one. Add as many as they want, each `is_main = false`.
-5. → Hall.
+## Onboarding flow
+1. **Claim or create your main**: a "Find your name" search (components/
+   RosterFinder.tsx → `/api/characters/search?unclaimed=true&q=`) lists
+   unclaimed characters imported from the guild roster. "This is me" calls
+   `/api/characters/claim-existing` and jumps to the cinematic. Otherwise
+   the manual form: First name, Last name, Race, Class (filtered by
+   `RACE_CLASSES`), Level (1 to `GUILD.maxLevel`). Letters only (accented
+   letters allowed, never stripped). If the typed first+last name already
+   exists unclaimed, claim-new adopts that roster row instead of making a
+   duplicate; if it's claimed by someone else → 409 (officer can release it).
+2. **Confirm**: character card with full name, race/class in class color.
+3. **Charter cinematic**: "The Charter Is Signed" — shows the FULL name
+   (first + last). Wax seal stamp animation (`be-stamp` keyframe, never
+   modify). `animation-fill-mode` stays `both` everywhere, never `forwards`.
+4. **Add alts (optional)**: same roster search ("Add as alt") or the manual
+   form; also available later via AddAltModal on My Roster.
+5. → Hall. complete-onboarding writes users.display_name = first + last.
+
+## Names
+Always show characters as first + last (`fullName()` in lib/names.ts).
+Hall feed, greeting and NavBar read the claimed character's name + last_name
+and only fall back to users.display_name.
+
+## Officer access
+Role-only: users.role in admin/gm/officer (lib/officer.ts). The in-game
+rank_index NO LONGER grants officer access, because imported characters are
+claimable by anyone. Promote officers by setting users.role.
+
+## Roster sync (GRM)
+Officers upload the Guild Roster Manager SavedVariables file
+(`WTF\Account\<ACCOUNT>\SavedVariables\Guild_Roster_Manager.lua`, after
+/reload or logout) on /officers. lib/grm-parse.ts parses the Lua in the
+browser (roster JSON still accepted). roster-diff previews; roster-apply
+inserts new members (imported_from_grm, status 'new', unclaimed) and updates
+level/rank/etc. Matching is first+last name (fallback: unique first name).
+Nothing is ever deleted; claims are never touched.
+
+## Content scope
+WoW: Forever is Classic-era, level cap `GUILD.maxLevel` (60). No TBC content:
+no Outland/Karazhan/heroics/level 70 in copy, data or seeds.
 
 WoW: Forever Alliance race/class rules (original WoW combos, no Draenei):
 Human: Warrior, Paladin, Rogue, Priest, Mage, Warlock
@@ -174,7 +200,7 @@ art, but is not selectable in onboarding since Draenei was removed.)
   user's own characters + professions, clears onboarding, sends them back
   through /onboarding — behind a confirm dialog)
 - Admin import page at /import (not /admin/import — route group issue)
-- Officers roster sync tool at /officers (upload/diff/apply GRM export JSON)
+- Officers roster sync tool at /officers (upload GRM .lua or JSON → diff → apply)
 
 ## What still needs building (priority order)
 1. My Roster page further polish

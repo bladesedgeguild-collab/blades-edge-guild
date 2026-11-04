@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import { GUILD } from '@/lib/guild-config'
+import { claimExistingCharacter } from '@/lib/claim'
 
 export async function POST(request: NextRequest) {
   const cookieStore = await cookies()
@@ -52,7 +53,12 @@ export async function POST(request: NextRequest) {
     .maybeSingle()
 
   if (existing) {
-    return NextResponse.json({ error: 'That name is already taken. Choose a different first or last name.' }, { status: 409 })
+    if (!existing.claimed_by) {
+      const result = await claimExistingCharacter(admin, user.id, existing.id, false, { race, class: characterClass })
+      if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status })
+      return NextResponse.json({ success: true, character: result.character, claimedFromRoster: true })
+    }
+    return NextResponse.json({ error: 'That name is already claimed by another member. If it is yours, ask an officer to release it.' }, { status: 409 })
   }
 
   const { data: newChar, error: insertError } = await admin

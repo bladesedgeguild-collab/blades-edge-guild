@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient } from '@supabase/supabase-js'
 import { DUNGEONS } from '@/data/dungeons/index'
+import { fullName } from '@/lib/names'
 
 export async function GET() {
   const supabase = await createServerClient()
@@ -17,7 +18,7 @@ export async function GET() {
   // Get all user's characters
   const { data: myChars } = await service
     .from('characters')
-    .select('id, name, level')
+    .select('id, name, last_name, level')
     .eq('claimed_by', user.id)
 
   if (!myChars || myChars.length === 0) return NextResponse.json([])
@@ -54,7 +55,7 @@ export async function GET() {
       const dungeon = DUNGEONS.find(d => d.id === post.dungeon_slug)
       if (!dungeon) return []
 
-      const matchingChars = (myChars as { name: string; level: number }[]).filter(c =>
+      const matchingChars = (myChars as { name: string; last_name: string | null; level: number }[]).filter(c =>
         c.level >= dungeon.recommendedLevelMin - 5 &&
         c.level <= dungeon.recommendedLevelMax + 5
       )
@@ -71,7 +72,7 @@ export async function GET() {
         available_window: post.available_window,
         notes: post.notes,
         current_group: post.current_group ?? { tank: 0, healer: 0, dps: 0 },
-        matching_chars: matchingChars.map(c => ({ name: c.name, level: c.level })),
+        matching_chars: matchingChars.map(c => ({ name: fullName(c.name, c.last_name), level: c.level })),
       }]
     })
 

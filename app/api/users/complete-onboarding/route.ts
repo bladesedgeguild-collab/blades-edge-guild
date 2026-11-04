@@ -30,7 +30,7 @@ export async function PATCH() {
 
   // Fetch the character name so we can write display_name in the same update.
   // Backfill for users who completed onboarding before this fix:
-  //   UPDATE public.users u SET display_name = c.name
+  //   UPDATE public.users u SET display_name = concat_ws(' ', c.name, c.last_name)
   //   FROM public.characters c
   //   WHERE u.claimed_character_id = c.id
   //     AND u.has_completed_onboarding = true
@@ -45,10 +45,10 @@ export async function PATCH() {
   if (userRow?.claimed_character_id) {
     const { data: charRow } = await admin
       .from('characters')
-      .select('name')
+      .select('name, last_name')
       .eq('id', userRow.claimed_character_id)
       .single()
-    if (charRow?.name) displayName = charRow.name
+    if (charRow?.name) displayName = [charRow.name, charRow.last_name].filter(Boolean).join(' ')
   }
 
   const { error } = await admin

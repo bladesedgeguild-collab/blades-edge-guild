@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { OfficersClient } from './OfficersClient'
+import { isOfficerRole } from '@/lib/officer'
 
 export default async function OfficersPage() {
   const cookieStore = await cookies()
@@ -31,16 +32,8 @@ export default async function OfficersPage() {
     .eq('id', user.id)
     .single()
 
-  let isOfficer = ['admin', 'gm', 'officer'].includes(profile?.role ?? '')
-
-  if (!isOfficer && profile?.claimed_character_id) {
-    const { data: char } = await admin
-      .from('characters')
-      .select('rank_index')
-      .eq('id', profile.claimed_character_id)
-      .single()
-    if (char?.rank_index != null && char.rank_index <= 3) isOfficer = true
-  }
+  // Role-only: claimable imported characters must not grant officer access (see lib/officer.ts)
+  const isOfficer = isOfficerRole(profile?.role)
 
   if (!isOfficer) redirect('/dashboard')
 

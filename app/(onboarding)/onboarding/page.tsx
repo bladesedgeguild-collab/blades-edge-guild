@@ -5,6 +5,8 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useRef, useState } from 'react'
 import { getCharacterArt } from '@/lib/character-art'
 import { GUILD, RACE_CLASSES } from '@/lib/guild-config'
+import { fullName } from '@/lib/names'
+import { RosterFinder, type RosterPick } from '@/components/RosterFinder'
 
 const CLASS_COLORS: Record<string, string> = {
   MAGE: '#3fc7eb', PALADIN: '#f48cba', WARRIOR: '#c69b3a',
@@ -262,6 +264,26 @@ export default function OnboardingPage() {
     setStep('cinematic')
   }
 
+  // Found their name on the imported guild roster → claim that row
+  async function handleClaimFromRoster(pick: RosterPick, as: 'main' | 'alt') {
+    setLoading(true); setError(null)
+    const res = await fetch('/api/characters/claim-existing', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ character_id: pick.id, as }),
+    })
+    const data = await res.json()
+    setLoading(false)
+    if (!res.ok) { setError(data.error ?? 'Could not claim that character'); return }
+    const c = data.character
+    if (as === 'main') {
+      setMainChar({ id: c.id, name: c.name, lastName: c.last_name ?? '', race: c.race ?? '', cls: (c.class ?? '').toUpperCase(), level: c.level })
+      setStep('cinematic')
+    } else {
+      setAddedAlts((prev) => [...prev, { id: c.id, name: c.name, lastName: c.last_name ?? '', class: (c.class ?? '').toUpperCase() }])
+      setStep('alts')
+    }
+  }
+
   async function handleFinish() {
     setLoading(true)
     try { await fetch('/api/users/complete-onboarding', { method: 'PATCH' }) } catch (e) { console.error(e) }
@@ -338,8 +360,8 @@ export default function OnboardingPage() {
           <p style={{ fontFamily: 'var(--be-font-display)', fontSize: '1.4rem', letterSpacing: '0.25em', color: 'var(--be-portal)', textTransform: 'uppercase', margin: 0, opacity: 0, animation: 'be-fade-in 0.8s ease-out 1.8s both' }}>
             The Charter Is Signed
           </p>
-          <p className="character-name oath-name" style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: '7rem', color: 'var(--be-ink)', lineHeight: 1, margin: 0, opacity: 0, animation: 'be-fade-in 0.8s ease-out 2.1s both' }}>
-            {mainChar?.name}
+          <p className="character-name oath-name" style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: 'clamp(3rem, 6.5vw, 6rem)', color: 'var(--be-ink)', lineHeight: 1.05, margin: 0, opacity: 0, animation: 'be-fade-in 0.8s ease-out 2.1s both', textAlign: 'center', overflowWrap: 'anywhere' }}>
+            {fullName(mainChar?.name, mainChar?.lastName)}
           </p>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: 0, animation: 'be-fade-in 0.6s ease-out 2.4s both' }}>
             <span style={{ display: 'inline-block', width: 16, height: 16, borderRadius: '50%', backgroundColor: CLASS_COLORS[mainChar?.cls ?? ''] ?? '#888' }} />
@@ -412,10 +434,11 @@ export default function OnboardingPage() {
           {/* ── FORM ── */}
           {step === 'form' && (
             <div>
-              <StepHeader current={1} total={3} label="Create Your Main" />
+              <StepHeader current={1} total={3} label="Claim Your Main" />
               <p style={{ fontFamily: 'var(--be-font-body)', fontStyle: 'italic', color: 'var(--be-ink-3)', fontSize: 15, marginBottom: 20, textAlign: 'center' }}>
                 Declare the founding member who will carry your banner into {GUILD.game}.
               </p>
+              <RosterFinder disabled={loading} onPick={(p) => handleClaimFromRoster(p, 'main')} />
               <CharFormFields form={form} errors={errors} onChange={setForm} onSubmit={handleFormSubmit} submitLabel="Continue →" />
             </div>
           )}
@@ -495,7 +518,8 @@ export default function OnboardingPage() {
           {step === 'altForm' && (
             <div>
               {ghostBtn('← Back to alts', () => setStep('alts'))}
-              <h2 style={{ fontFamily: 'var(--be-font-display)', fontSize: 22, color: 'var(--be-ink)', margin: '0 0 20px', textAlign: 'center' }}>Create a new alt</h2>
+              <h2 style={{ fontFamily: 'var(--be-font-display)', fontSize: 22, color: 'var(--be-ink)', margin: '0 0 20px', textAlign: 'center' }}>Add an alt</h2>
+              <RosterFinder disabled={loading} pickLabel="Add as alt" onPick={(p) => handleClaimFromRoster(p, 'alt')} />
               <CharFormFields form={altForm} errors={altErrors} onChange={setAltForm} onSubmit={handleAltFormSubmit} submitLabel="Continue →" />
             </div>
           )}

@@ -1,21 +1,18 @@
 [
   {
-    "id": "shadow-labyrinth",
-    "name": "Shadow Labyrinth",
-    "zone": "Auchindoun",
-    "region": "Terokkar Forest",
-    "min_level": 67,
-    "max_level": 70,
+    "id": "deadmines",
+    "name": "The Deadmines",
+    "zone": "Westfall",
+    "region": "Eastern Kingdoms",
+    "min_level": 15,
+    "max_level": 21,
     "heroic": false,
-    "description": "The Shadow Council has taken root in the depths of Auchindoun. Fight through their ranks to stop the summoning of a dark entity.",
-    "location_note": "Enter from the center of the Auchindoun ruins in Terokkar Forest.",
+    "description": "Classic Alliance dungeon in Westfall. Fight through Edwin VanCleef's pirate crew in the bowels of an old mine.",
+    "location_note": "Format example only. Replace with verified WoW: Forever details before importing.",
     "bosses": [
-      { "name": "Ambassador Hellmaw", "notable_loot": ["Wastewalker Shoulderpads"] },
-      { "name": "Blackheart the Inciter", "notable_loot": ["Inciter's Pauldrons"] },
-      { "name": "Grandmaster Vorpil", "notable_loot": ["Vorpil's View"] },
-      { "name": "Murmur", "notable_loot": ["Sonic Spear", "Sonic Vibration"] }
+      { "name": "Edwin VanCleef" }
     ],
-    "tags": ["shadow-council", "aoe-friendly", "good-rep"],
-    "image_key": "shadow-labyrinth"
+    "tags": ["classic", "alliance", "leveling"],
+    "image_key": "deadmines"
   }
 ]

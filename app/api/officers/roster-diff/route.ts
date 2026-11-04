@@ -7,40 +7,15 @@ import { createClient } from '@supabase/supabase-js'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
-
-function normalizeForSearch(str: string): string {
-  return str.toLowerCase()
-    .replace(/[åàáâãäæ]/g, 'a')
-    .replace(/[ðď]/g, 'd')
-    .replace(/[èéêë]/g, 'e')
-    .replace(/[ìíîï]/g, 'i')
-    .replace(/[øòóôõö]/g, 'o')
-    .replace(/[ùúûü]/g, 'u')
-    .replace(/[ýÿ]/g, 'y')
-    .replace(/[ß]/g, 'b')
-    .replace(/[þ]/g, 't')
-    .replace(/[ñ]/g, 'n')
-    .replace(/[çć]/g, 'c')
-    .replace(/[žźż]/g, 'z')
-    .replace(/[šś]/g, 's')
-    .replace(/[łĺ]/g, 'l')
-    .replace(/[ř]/g, 'r')
-}
-
-type UploadedChar = {
-  name: string
-  class?: string
-  race?: string
-  level?: number
-  rank_index?: number | null
-  rank_name?: string | null
-  last_online_days?: number | null
-  professions?: { name: string; abbr?: string | null; skill_level?: number }[]
-}
+import { isOfficerUser } from '@/lib/officer'
+import { buildMatcher, displayUploaded, normalizeUploaded, type UploadedChar } from '@/lib/roster-sync'
+import { fullName } from '@/lib/names'
 
 type DbChar = {
   id: string
   name: string
+  last_name: string | null
+  claimed_by?: string | null
   class: string
   race: string | null
   level: number
@@ -50,28 +25,6 @@ type DbChar = {
   last_online_days?: number | null
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function isOfficerUser(admin: any, userId: string): Promise<boolean> {
-  const { data: profileRaw } = await admin
-    .from('users')
-    .select('role, claimed_character_id')
-    .eq('id', userId)
-    .single()
-  const profile = profileRaw as { role: string | null; claimed_character_id: string | null } | null
-
-  if (['admin', 'gm', 'officer'].includes(profile?.role ?? '')) return true
-
-  if (profile?.claimed_character_id) {
-    const { data: charRaw } = await admin
-      .from('characters')
-      .select('rank_index')
-      .eq('id', profile.claimed_character_id)
-      .single()
-    const char = charRaw as { rank_index: number | null } | null
-    if (char?.rank_index != null && char.rank_index <= 3) return true
-  }
-  return false
-}
 
 export async function POST(request: NextRequest) {
   const cookieStore = await cookies()
@@ -99,7 +52,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  const uploaded: UploadedChar[] = body.characters ?? (Array.isArray(body) ? body : [])
+  const uploaded: UploadedChar[] = normalizeUploaded(body.characters ?? (Array.isArray(body) ? body : []))
 
   if (uploaded.length === 0) {
     return NextResponse.json({ error: 'No characters in payload' }, { status: 400 })
@@ -111,26 +64,20 @@ export async function POST(request: NextRequest) {
 
   const { data: withCol, error: withColErr } = await admin
     .from('characters')
-    .select('id, name, class, race, level, rank_index, rank_name, status, last_online_days')
+    .select('id, name, last_name, claimed_by, class, race, level, rank_index, rank_name, status, last_online_days')
 
   if (withColErr) {
     hasLastOnline = false
     const { data: withoutCol } = await admin
       .from('characters')
-      .select('id, name, class, race, level, rank_index, rank_name, status')
+      .select('id, name, last_name, claimed_by, class, race, level, rank_index, rank_name, status')
     dbChars = (withoutCol ?? []).map((c) => ({ ...c, last_online_days: null }))
   } else {
     dbChars = withCol ?? []
   }
 
-  // Build lookup maps: exact lowercase and normalized
-  const dbByExact = new Map<string, DbChar>()
-  const dbByNorm = new Map<string, DbChar>()
-  for (const c of dbChars) {
-    dbByExact.set(c.name.toLowerCase(), c)
-    const norm = normalizeForSearch(c.name)
-    if (!dbByNorm.has(norm)) dbByNorm.set(norm, c)
-  }
+  // Match on first + last name (accent-insensitive)
+  const findMatch = buildMatcher(dbChars)
 
   const foundDbIds = new Set<string>()
 
@@ -142,13 +89,12 @@ export async function POST(request: NextRequest) {
   let unchangedCount = 0
 
   for (const uc of uploaded) {
-    if (!uc.name?.trim()) continue
-    const match = dbByExact.get(uc.name.toLowerCase()) ?? dbByNorm.get(normalizeForSearch(uc.name))
+    const match = findMatch(uc)
 
     if (!match) {
       newEntries.push({
         status: 'NEW',
-        name: uc.name,
+        name: displayUploaded(uc),
         change: [uc.race, uc.class, uc.level != null ? `L${uc.level}` : null, uc.rank_name ?? 'Fresh Recruit']
           .filter(Boolean).join(' '),
       })
@@ -156,6 +102,9 @@ export async function POST(request: NextRequest) {
       foundDbIds.add(match.id)
       const changes: string[] = []
 
+      if (uc.last_name && !match.last_name) {
+        changes.push(`Last name → ${uc.last_name}`)
+      }
       if (uc.level != null && uc.level !== match.level) {
         changes.push(`Level ${match.level} → ${uc.level}`)
       }
@@ -171,8 +120,8 @@ export async function POST(request: NextRequest) {
       if (changes.length > 0) {
         updatedEntries.push({
           status: 'UPDATED',
-          dbName: match.name,
-          uploadedName: uc.name,
+          dbName: fullName(match.name, match.last_name),
+          uploadedName: displayUploaded(uc),
           change: changes.join(', '),
           dbId: match.id,
         })
@@ -184,7 +133,7 @@ export async function POST(request: NextRequest) {
 
   const missingEntries = dbChars
     .filter((c) => !foundDbIds.has(c.id))
-    .map((c) => ({ name: c.name, id: c.id }))
+    .map((c) => ({ name: fullName(c.name, c.last_name), id: c.id, claimed: !!c.claimed_by }))
 
   return NextResponse.json({
     new: newEntries,

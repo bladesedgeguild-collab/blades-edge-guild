@@ -94,6 +94,27 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ total: total ?? 0, unclaimed: unclaimed ?? 0 })
   }
 
+  // "Find your character" during onboarding / add-alt: unclaimed roster rows only,
+  // read fresh (no cache) so someone who just claimed drops out immediately.
+  if (request.nextUrl.searchParams.get('unclaimed') === 'true') {
+    if (q.trim().length < 2) return NextResponse.json({ characters: [] })
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    )
+    const { data } = await supabase
+      .from('characters')
+      .select('id, name, last_name, class, race, level, rank_name')
+      .is('claimed_by', null)
+      .is('user_id', null)
+      .order('level', { ascending: false })
+    const nq = normalizeForSearch(q.trim())
+    const results = (data ?? [])
+      .filter((c) => normalizeForSearch(`${c.name} ${c.last_name ?? ''}`.trim()).includes(nq))
+      .slice(0, 12)
+    return NextResponse.json({ characters: results })
+  }
+
   const chars = await getCharCache()
 
   if (isDefault === 'true') {

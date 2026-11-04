@@ -434,7 +434,7 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
             {dungeon.heroicRequiresLevel && (
               <>
                 <span className="dd-meta-sep">|</span>
-                <span className="df-heroic-badge">Heroic Req. 70</span>
+                <span className="df-heroic-badge">Heroic Req. {dungeon.heroicRequiresLevel}</span>
               </>
             )}
             <span className={`dd-source-badge ${sourceBadgeClass}`}>

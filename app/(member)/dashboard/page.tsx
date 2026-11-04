@@ -7,9 +7,11 @@ import LFGMiniBox from '@/components/LFGMiniBox'
 import CampaignBanner from '@/components/CampaignBanner'
 import GMCorner from '@/components/GMCorner'
 import { GUILD } from '@/lib/guild-config'
+import { fullName } from '@/lib/names'
 
 type MainChar = {
   id: string
+  last_name?: string | null
   name: string
   class: CharacterClass
   race: string | null
@@ -50,10 +52,10 @@ const eyebrow: CSSProperties = {
 }
 
 const PLACEHOLDER_EVENTS = [
-  { date: 'TUE', time: '20:00', name: 'Karazhan Progression', signups: 0, cap: 25 },
+  { date: 'TUE', time: '20:00', name: 'Leveling Group',          signups: 0, cap: 5  },
   { date: 'THU', time: '20:00', name: 'Dungeon Night',           signups: 0, cap: 10 },
   { date: 'SAT', time: '14:00', name: 'Guild Meeting',           signups: 0, cap: 50 },
-  { date: 'SUN', time: '20:00', name: 'Heroic Runs',             signups: 0, cap: 5  },
+  { date: 'SUN', time: '20:00', name: 'Roleplay Gathering',      signups: 0, cap: 40 },
 ]
 
 function relativeTime(dateStr: string | null): string {
@@ -93,7 +95,7 @@ export default async function DashboardPage() {
   if (profile?.claimed_character_id) {
     const { data: charData } = await supabase
       .from('characters')
-      .select('id, name, class, race, level, rank_name, professions(name, skill_level, is_primary)')
+      .select('id, name, last_name, class, race, level, rank_name, professions(name, skill_level, is_primary)')
       .eq('id', profile.claimed_character_id)
       .single()
     mainChar = charData as unknown as MainChar
@@ -133,27 +135,27 @@ export default async function DashboardPage() {
     .map(u => u.claimed_character_id)
     .filter((id): id is string => id !== null)
 
-  const feedCharMap: Record<string, { class: string }> = {}
+  const feedCharMap: Record<string, { class: string; name: string; last_name: string | null }> = {}
   if (charIds.length > 0) {
     const { data: feedCharData } = await adminDb
       .from('characters')
-      .select('id, class')
+      .select('id, class, name, last_name')
       .in('id', charIds)
-    for (const c of (feedCharData ?? []) as { id: string; class: string }[]) {
-      feedCharMap[c.id] = { class: c.class }
+    for (const c of (feedCharData ?? []) as { id: string; class: string; name: string; last_name: string | null }[]) {
+      feedCharMap[c.id] = c
     }
   }
 
   const feedEntries: FeedEntry[] = [
     ...((feedUsers ?? []) as { id: string; display_name: string | null; updated_at: string; claimed_character_id: string | null }[]).map(u => {
       const char = u.claimed_character_id ? feedCharMap[u.claimed_character_id] : null
-      return { key: u.id, who: u.display_name ?? '???', what: 'signed the Blades Edge charter.', cls: char?.class ?? null, when: u.updated_at }
+      return { key: u.id, who: (char ? fullName(char.name, char.last_name) : null) || u.display_name || '???', what: 'signed the Blades Edge charter.', cls: char?.class ?? null, when: u.updated_at }
     }),
     { key: 'guild-founded', who: GUILD.guildMaster, what: 'founded Blades Edge', cls: null, when: null },
   ]
 
   const charCount = yourCharCount ?? 0
-  const displayName = profile?.display_name ?? 'Adventurer'
+  const displayName = (mainChar ? fullName(mainChar.name, mainChar.last_name) : null) || profile?.display_name || 'Adventurer'
 
   return (
     <div className="be-hall-page page-container" style={{ display: 'flex', flexDirection: 'column', gap: 20, paddingTop: '1.75rem', paddingBottom: '1.75rem' }}>

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { getDungeon } from '@/data/dungeons/index'
 import DungeonDetail from './DungeonDetail'
+import { fullName } from '@/lib/names'
 
 interface Props {
   params: Promise<{ slug: string }>
@@ -44,20 +45,21 @@ export default async function DungeonPage({ params, searchParams }: Props) {
     if (profile?.claimed_character_id) {
       const { data: char } = await supabase
         .from('characters')
-        .select('name')
+        .select('name, last_name')
         .eq('id', profile.claimed_character_id)
         .single()
-      characterName = char?.name ?? profile?.display_name ?? undefined
+      characterName = (char ? fullName(char.name, char.last_name) : null) || profile?.display_name || undefined
     } else {
       characterName = profile?.display_name ?? undefined
     }
 
     const { data: chars } = await supabase
       .from('characters')
-      .select('id, name, level, class, is_main')
+      .select('id, name, last_name, level, class, is_main')
       .eq('claimed_by', user.id)
       .order('is_main', { ascending: false })
-    userChars = (chars ?? []) as typeof userChars
+    // Full first + last names for the character picker and LFG posts
+    userChars = (chars ?? []).map((c) => ({ id: c.id, name: fullName(c.name, c.last_name), level: c.level, class: c.class, is_main: c.is_main }))
   }
 
   // Fetch active LFG posts for this dungeon

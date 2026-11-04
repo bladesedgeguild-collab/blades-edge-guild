@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { CLASS_COLORS, CharacterClass } from '@/types'
 import { ReleaseButton } from '@/components/admin/ReleaseButton'
+import { fullName } from '@/lib/names'
 
 export default async function ApprovalsPage() {
   const supabase = await createClient()
@@ -14,7 +15,7 @@ export default async function ApprovalsPage() {
   // Claimed characters — gracefully handles pre-migration state
   const { data: claimedRaw } = await supabase
     .from('characters')
-    .select('id, name, class, level, claimed_by, claimed_at')
+    .select('id, name, last_name, class, level, claimed_by, claimed_at')
     .not('claimed_by', 'is', null)
     .order('claimed_at', { ascending: false })
 
@@ -119,7 +120,7 @@ export default async function ApprovalsPage() {
                       key={char.id}
                       style={{ backgroundColor: i % 2 === 0 ? '#060b18' : '#0d1326', borderTop: '1px solid #1e2a45' }}
                     >
-                      <td className="px-4 py-3 font-medium text-white">{char.name}</td>
+                      <td className="px-4 py-3 font-medium text-white">{fullName(char.name, char.last_name)}</td>
                       <td className="px-4 py-3">
                         <span className="flex items-center gap-1.5">
                           <span className="w-2 h-2 rounded-full" style={{ backgroundColor: classColor }} />

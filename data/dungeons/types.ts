@@ -1,4 +1,4 @@
-export type DungeonContinent = 'Eastern Kingdoms' | 'Kalimdor' | 'Outland';
+export type DungeonContinent = 'Eastern Kingdoms' | 'Kalimdor';
 export type DungeonDifficulty = 'normal' | 'heroic' | 'both';
 export type QuestImportance = 'must-grab' | 'nice-to-have' | 'chain-unlock' | 'skip' | 'heroic-attunement';
 export type LootRating = 'bis' | 'prebis' | 'excellent' | 'good' | 'usable' | 'offspec' | 'skip';
