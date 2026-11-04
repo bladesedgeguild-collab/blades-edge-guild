@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { GUILD } from '@/lib/guild-config'
 
 const AVATAR_IMAGES = [
   '/images/AvatarOdys_speaking1_withScroll_noVertBar.png',
@@ -97,7 +98,7 @@ export default function GMCorner({ quote, image, scrollActivate = false }: GMCor
             color: '#c9961a',
             letterSpacing: '0.05em',
           }}>
-            Åvatarødys
+            {GUILD.guildMaster}
           </div>
           <div style={{
             fontFamily: 'Cinzel, serif',
