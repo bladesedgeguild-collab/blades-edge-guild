@@ -71,7 +71,7 @@ export default async function LandingPage() {
 
       {/* ── Hero ── */}
       <section
-        className="relative min-h-screen"
+        className="hero-section relative min-h-screen"
         style={{
           // Avatar Odys <Blades Edge> nameplate sits ~53% across, ~58% down.
           // Keep it centered in the crop on wide desktops and tall phones.
@@ -82,14 +82,14 @@ export default async function LandingPage() {
         }}
       >
         <div
-          className="absolute inset-0 pointer-events-none"
+          className="hero-overlay absolute inset-0 pointer-events-none"
           style={{
             background:
               'linear-gradient(to bottom, rgba(26,18,8,0.2) 0%, transparent 30%, transparent 62%, rgba(26,18,8,0.75) 82%, #1a1208 100%)',
           }}
         />
         <div
-          className="absolute inset-0 pointer-events-none"
+          className="hero-overlay absolute inset-0 pointer-events-none"
           style={{
             background:
               'linear-gradient(to right, rgba(13,11,7,0.7) 0%, transparent 20%, transparent 80%, rgba(13,11,7,0.7) 100%)',
@@ -97,7 +97,7 @@ export default async function LandingPage() {
         />
 
         <div
-          className="absolute z-10 w-full"
+          className="hero-countdown-panel absolute z-10 w-full"
           style={{
             bottom: -55,
             left: '50%',
@@ -117,10 +117,10 @@ export default async function LandingPage() {
           <FoundersMeter swornCount={swornCount} />
         </div>
 
-        {/* Mobile hero text — right-aligned, pinned to bottom */}
+        {/* Mobile hero text — stacked in flow above the countdown (see .hero-section in globals.css) */}
         <div
-          className="hero-title-wrapper block sm:hidden absolute inset-0 z-20 flex flex-col"
-          style={{ alignItems: 'flex-end', justifyContent: 'flex-end', paddingBottom: 8, paddingRight: 16, gap: 8 }}
+          className="hero-title-wrapper flex sm:hidden relative z-20 flex-col"
+          style={{ alignItems: 'flex-end', paddingBottom: 8, paddingRight: 16, paddingLeft: 16, gap: 8 }}
         >
           <p
             className="hero-guild-name"

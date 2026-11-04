@@ -2831,6 +2831,43 @@ input[type=number] { -moz-appearance: textfield; }
   }
 }
 
+/* ── Mobile hero stack (< sm / 640px) ──
+   Image band on top (Avatar Odys nameplate stays in view), then title,
+   tagline and Start Here, then the countdown panel, all in normal flow.
+   !important overrides the desktop inline positioning; desktop untouched. */
+@media (max-width: 639px) {
+  .hero-section {
+    min-height: auto !important;
+    display: flex;
+    flex-direction: column;
+    padding-top: var(--hero-m-img);
+    background-size: auto var(--hero-m-img) !important;
+    background-position: 53% top !important;
+    background-repeat: no-repeat;
+    --hero-m-img: 560px;
+  }
+  .hero-section .hero-overlay {
+    bottom: auto !important;
+    height: var(--hero-m-img);
+  }
+  .hero-section .hero-title-wrapper {
+    order: 1;
+    margin-top: -64px;
+  }
+  .hero-section .hero-countdown-panel {
+    order: 2;
+    position: relative !important;
+    bottom: auto !important;
+    left: auto !important;
+    transform: none !important;
+    margin-top: 16px;
+    padding: 18px 20px 22px !important;
+  }
+  .hero-section .hero-guild-subtitle {
+    white-space: normal;
+  }
+}
+
 .nav-recruit-link {
   font-family: 'Cinzel', serif;
   font-size: 0.8rem;
