@@ -8,7 +8,7 @@ export function ReleaseButton({ characterId }: { characterId: string }) {
   const [loading, setLoading] = useState(false)
 
   async function handleRelease() {
-    if (!confirm('Release this character claim? The character will return to MIA status.')) return
+    if (!confirm('Release this character claim? The character will become unclaimed.')) return
     setLoading(true)
     await fetch('/api/characters/release', {
       method: 'POST',

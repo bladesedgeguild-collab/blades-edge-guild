@@ -450,13 +450,13 @@ export function RecruitPage() {
           </span>
 
           <h1 style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: 'clamp(3.5rem, 10vw, 7rem)', lineHeight: 1.0, color: '#f0e6c8', marginBottom: 24 }}>
-            Answer<br />
+            Take<br />
             <span style={{ color: 'var(--be-gold)' }}>the</span><br />
-            Call
+            Oath
           </h1>
 
           <p className="rc-sub">
-            <span style={{ display: 'block' }}>Take the Oath. Six questions, sixty seconds.</span>
+            <span style={{ display: 'block' }}>Six questions, sixty seconds.</span>
             <span style={{ display: 'block' }}>Find out if your blade belongs with ours.</span>
           </p>
 

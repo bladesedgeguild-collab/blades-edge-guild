@@ -3,7 +3,7 @@ export const GUILD = {
   established: 2023,
   game: 'WoW: Forever',
   faction: 'Alliance',
-  ruleset: 'Normal',            // Aaron will confirm: Normal | PvP | Roleplaying | Hardcore
+  ruleset: 'Roleplaying',       // Normal | PvP | Roleplaying | Hardcore
   launchAt: '2026-11-04T15:00:00-08:00', // WoW: Forever global launch, 3:00 PM PST
   maxLevel: 60,                 // adjust if Blizzard confirms otherwise
   foundersGoal: 50,
