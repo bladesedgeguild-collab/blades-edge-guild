@@ -100,7 +100,7 @@ export function CtaLoginPanel() {
             Continue with Discord
           </button>
           <p style={{ fontFamily: "'Crimson Pro', serif", fontSize: '0.8rem', color: '#8a7a5a' }}>
-            Fastest way back
+            Fastest way in
           </p>
         </div>
 
