@@ -160,7 +160,7 @@ export default async function DashboardPage() {
       {/* ── Header ── */}
       <div>
         <p style={{ fontFamily: 'var(--be-font-display)', fontSize: '0.65rem', letterSpacing: '0.2em', color: 'var(--be-gold)', textTransform: 'uppercase', margin: '0 0 6px' }}>
-          Welcome Back
+          Welcome, Founder
         </p>
         <h1 className="character-name hall-greeting-name" style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: '3rem', color: '#f0e6c8', lineHeight: 1, margin: '0 0 8px' }}>
           {displayName}

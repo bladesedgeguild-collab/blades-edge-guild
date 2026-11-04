@@ -139,7 +139,7 @@ export default async function LandingPage() {
               margin: 0,
             }}
           >
-            Est. {GUILD.established} · {GUILD.game} · {GUILD.faction}
+            Est. {GUILD.established} · {GUILD.game} · {GUILD.faction} · {GUILD.ruleset}
           </p>
           <a href="/recruit" className="hero-recruit-btn" style={{ marginTop: 0 }}>
             ✦ New? Start Here
@@ -172,7 +172,7 @@ export default async function LandingPage() {
               marginTop: 8,
             }}
           >
-            Est. {GUILD.established} · {GUILD.game} · {GUILD.faction}
+            Est. {GUILD.established} · {GUILD.game} · {GUILD.faction} · {GUILD.ruleset}
           </p>
           <a href="/recruit" className="hero-recruit-btn">
             ✦ New to Blades Edge? Start Here

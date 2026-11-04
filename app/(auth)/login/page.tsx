@@ -112,13 +112,13 @@ function LoginCard() {
           className="text-2xl font-bold mb-1"
           style={{ fontFamily: "'Cinzel Decorative', serif", color: '#c9961a' }}
         >
-          Welcome back to Blades Edge
+          Welcome to Blades Edge
         </h1>
         <p
           className="text-sm italic"
           style={{ fontFamily: "'Crimson Pro', serif", color: '#8a7a5a' }}
         >
-          Log in to register your return
+          Log in to sign the Founding Charter
         </p>
       </div>
 
