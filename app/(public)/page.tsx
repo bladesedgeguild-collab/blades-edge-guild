@@ -73,16 +73,19 @@ export default async function LandingPage() {
       <section
         className="relative min-h-screen"
         style={{
-          backgroundImage: "url('/images/hero-portal.png')",
+          // Avatar Odys <Blades Edge> nameplate sits ~53% across, ~58% down.
+          // Keep it centered in the crop on wide desktops and tall phones.
+          backgroundColor: '#0d0b07',
+          backgroundImage: "url('/images/home-hero-avatar-odys.webp')",
           backgroundSize: 'cover',
-          backgroundPosition: 'center',
+          backgroundPosition: '53% 45%',
         }}
       >
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
             background:
-              'linear-gradient(to bottom, rgba(26,18,8,0.2) 0%, transparent 30%, rgba(26,18,8,0.75) 70%, #1a1208 100%)',
+              'linear-gradient(to bottom, rgba(26,18,8,0.2) 0%, transparent 30%, transparent 62%, rgba(26,18,8,0.75) 82%, #1a1208 100%)',
           }}
         />
         <div

@@ -148,8 +148,12 @@ SHAMAN=#0070dd, DEATH_KNIGHT=#c41e3a, MONK=#00ff98, DEMON_HUNTER=#a330c9
 art, but is not selectable in onboarding since Draenei was removed.)
 
 ## Key images in public/images/
-- hero-portal.png: painterly Dark Portal scene — used as hero background and
-  onboarding background
+- home-hero-avatar-odys.webp / .jpg: night village with clock tower, campfire and
+  the "Avatar Odys <Blades Edge>" nameplate — homepage hero background (from
+  Aaron, Nov 2026). Nameplate is ~53% across / ~58% down; keep it visible on
+  desktop and mobile when touching the hero crop or gradients.
+- hero-portal.png: painterly Dark Portal scene — previous homepage hero, kept in
+  the repo; still used as the onboarding background and a recruit perk image
 - guild-photo.png: illustrated group portrait of the old roster with guild
   crest — kept in the repo but no longer displayed on the landing page
 - guild-crest.png: the guild crest icon (circular, gold/blue)
