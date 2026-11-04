@@ -6,6 +6,7 @@ import ActiveLFGCalls from '@/components/ActiveLFGCalls'
 import LFGMiniBox from '@/components/LFGMiniBox'
 import CampaignBanner from '@/components/CampaignBanner'
 import GMCorner from '@/components/GMCorner'
+import { GUILD } from '@/lib/guild-config'
 
 type MainChar = {
   id: string
@@ -148,7 +149,7 @@ export default async function DashboardPage() {
       const char = u.claimed_character_id ? feedCharMap[u.claimed_character_id] : null
       return { key: u.id, who: u.display_name ?? '???', what: 'signed the Blades Edge charter.', cls: char?.class ?? null, when: u.updated_at }
     }),
-    { key: 'guild-founded', who: 'Åvatarødys', what: 'founded Blades Edge', cls: null, when: null },
+    { key: 'guild-founded', who: GUILD.guildMaster, what: 'founded Blades Edge', cls: null, when: null },
   ]
 
   const charCount = yourCharCount ?? 0
