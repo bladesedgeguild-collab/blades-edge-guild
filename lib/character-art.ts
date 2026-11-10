@@ -1,38 +1,45 @@
-const RACE_MAP: Record<string, string> = {
+import { canonicalClass, canonicalRace } from '@/lib/guild-config'
+
+/** Filename token for a canonical race. Night Elf files are NightElf_*.png. */
+const RACE_FILE: Record<string, string> = {
+  Human: 'Human',
+  Dwarf: 'Dwarf',
   'Night Elf': 'NightElf',
-  'NightElf': 'NightElf',
-  'night elf': 'NightElf',
-  'Draenei': 'Draenei',
-  'draenei': 'Draenei',
-  'Dwarf': 'Dwarf',
-  'dwarf': 'Dwarf',
-  'Gnome': 'Gnome',
-  'gnome': 'Gnome',
-  'Human': 'Human',
-  'human': 'Human',
+  Gnome: 'Gnome',
+  Skyborne: 'Skyborne',
 }
 
-const CLASS_MAP: Record<string, string> = {
-  'DRUID': 'Druid',    'Druid': 'Druid',
-  'MAGE': 'Mage',      'Mage': 'Mage',
-  'WARRIOR': 'Warrior','Warrior': 'Warrior',
-  'PALADIN': 'Paladin','Paladin': 'Paladin',
-  'PRIEST': 'Priest',  'Priest': 'Priest',
-  'HUNTER': 'Hunter',  'Hunter': 'Hunter',
-  'ROGUE': 'Rogue',    'Rogue': 'Rogue',
-  'WARLOCK': 'Lock',   'Warlock': 'Lock',
-  'SHAMAN': 'Shaman',  'Shaman': 'Shaman',
+/**
+ * Filename token for a canonical class.
+ * Warlock files keep the existing Lock token (Human_Lock_M.png).
+ */
+const CLASS_FILE: Record<string, string> = {
+  Druid: 'Druid',
+  Mage: 'Mage',
+  Warrior: 'Warrior',
+  Paladin: 'Paladin',
+  Priest: 'Priest',
+  Hunter: 'Hunter',
+  Rogue: 'Rogue',
+  Warlock: 'Lock',
+  Shaman: 'Shaman',
 }
 
+/**
+ * Wireframe paths for a race and class. Returns the URL even when the PNG
+ * is not in the repo yet (the 16 Forever images). Callers must hide the
+ * image if it fails to load. Unknown races, including removed ones, return null.
+ */
 export function getCharacterArt(
   race: string | null,
   characterClass: string | null
 ): { male: string; female: string } | null {
-  if (!race || !characterClass) return null
-  const racePart = RACE_MAP[race]
-  if (!racePart) return null
-  const classPart = CLASS_MAP[characterClass]
-  if (!classPart) return null
+  const raceName = canonicalRace(race)
+  const className = canonicalClass(characterClass)
+  if (!raceName || !className) return null
+  const racePart = RACE_FILE[raceName]
+  const classPart = CLASS_FILE[className]
+  if (!racePart || !classPart) return null
   return {
     male: `/images/characters/${racePart}_${classPart}_M.png`,
     female: `/images/characters/${racePart}_${classPart}_F.png`,

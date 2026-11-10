@@ -1,3 +1,4 @@
+import { allianceComboWarning } from '@/lib/guild-config'
 import { nameKey, normalizeForSearch, splitRosterName, fullName } from '@/lib/names'
 
 /** One member row as uploaded on /officers (from the GRM .lua parser or a JSON file). */
@@ -65,14 +66,79 @@ export function displayUploaded(uc: UploadedChar): string {
   return fullName(uc.name, uc.last_name)
 }
 
+/**
+ * WoW UnitSex, which is what GRM stores: 1 = unknown, 2 = male, 3 = female.
+ * String labels from a hand-edited JSON upload are still accepted.
+ */
 export function normaliseSex(raw: unknown): string | null {
-  // Same numeric convention the old JSON import used (1 = male, 2 = female)
-  if (raw === 1 || raw === '1') return 'Male'
-  if (raw === 2 || raw === '2') return 'Female'
+  if (raw === 2 || raw === '2') return 'Male'
+  if (raw === 3 || raw === '3') return 'Female'
   if (typeof raw === 'string') {
-    const l = raw.toLowerCase()
+    const l = raw.trim().toLowerCase()
     if (l === 'male') return 'Male'
     if (l === 'female') return 'Female'
   }
   return null
+}
+
+/** Fields written for a brand-new roster row. Public note and zone are never included. */
+export function rosterInsertFields(uc: UploadedChar, realm: string): Record<string, unknown> {
+  return {
+    name: uc.name,
+    last_name: uc.last_name ?? null,
+    realm,
+    class: (uc.class ?? 'WARRIOR').toUpperCase(),
+    race: uc.race ?? null,
+    sex: normaliseSex(uc.sex),
+    level: uc.level ?? 1,
+    rank_index: uc.rank_index ?? null,
+    rank_name: uc.rank_name ?? null,
+    last_online_days: uc.last_online_days ?? 9999,
+    status: 'new',
+    imported_from_grm: true,
+    hide_from_roster: false,
+    is_main: true,
+  }
+}
+
+/**
+ * Roster facts updated on a row that already exists. Claim columns stay off
+ * this object, and so do the public note and last zone.
+ */
+export function rosterUpdateFields(
+  uc: UploadedChar,
+  match: { last_name: string | null },
+): Record<string, unknown> {
+  const updateData: Record<string, unknown> = {
+    level: uc.level ?? 1,
+    rank_index: uc.rank_index ?? null,
+    rank_name: uc.rank_name ?? null,
+    updated_at: new Date().toISOString(),
+  }
+  if (uc.last_online_days != null) updateData.last_online_days = uc.last_online_days
+  if (uc.last_name && !match.last_name) updateData.last_name = uc.last_name
+  if (uc.class) updateData.class = uc.class.toUpperCase()
+  if (uc.race) updateData.race = uc.race
+  const sex = normaliseSex(uc.sex)
+  if (sex) updateData.sex = sex
+  return updateData
+}
+
+export type RosterWritePlan = {
+  op: 'insert' | 'update'
+  fields: Record<string, unknown>
+  warning: string | null
+}
+
+/** Build the database write for one uploaded row. Never refuses the row. */
+export function rosterWritePlan(
+  uc: UploadedChar,
+  realm: string,
+  existing: { last_name: string | null } | null,
+): RosterWritePlan {
+  const warning = allianceComboWarning(uc.race, uc.class)
+  if (!existing) {
+    return { op: 'insert', fields: rosterInsertFields(uc, realm), warning }
+  }
+  return { op: 'update', fields: rosterUpdateFields(uc, existing), warning }
 }

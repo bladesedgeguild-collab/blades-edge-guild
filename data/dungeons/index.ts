@@ -303,7 +303,7 @@ export const DUNGEONS: Dungeon[] = [
     tags: ['classic', 'pre-raid', 'three-wings'],
   }),
 
-  // WoW: Forever is Classic-era (level cap 60): no Outland / TBC dungeons.
+  // WoW: Forever dungeon list is Classic-era, level cap 60.
 ];
 
 export function getDungeon(id: string): Dungeon | undefined {

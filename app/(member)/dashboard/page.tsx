@@ -6,7 +6,7 @@ import ActiveLFGCalls from '@/components/ActiveLFGCalls'
 import LFGMiniBox from '@/components/LFGMiniBox'
 import CampaignBanner from '@/components/CampaignBanner'
 import GMCorner from '@/components/GMCorner'
-import { GUILD } from '@/lib/guild-config'
+import { GUILD, displayRace } from '@/lib/guild-config'
 import { fullName } from '@/lib/names'
 
 type MainChar = {
@@ -171,7 +171,7 @@ export default async function DashboardPage() {
         {mainChar && (
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 8 }}>
             <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'rgba(138,122,90,0.8)', fontSize: '1rem', margin: 0 }}>
-              {[mainChar.race, mainChar.class, `Level ${mainChar.level}`].filter(Boolean).join(' · ')}
+              {[displayRace(mainChar.race), mainChar.class, `Level ${mainChar.level}`].filter(Boolean).join(' · ')}
             </p>
             {mainChar.rank_name && (
               <div className="be-rank-pill" style={{ whiteSpace: 'nowrap', marginLeft: 16 }}>

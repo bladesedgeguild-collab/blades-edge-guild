@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createPortal } from 'react-dom'
+import { displayRace } from '@/lib/guild-config'
 
 const CLASS_COLORS: Record<string, string> = {
   MAGE: '#3fc7eb', PALADIN: '#f48cba', WARRIOR: '#c69b3a',
@@ -106,7 +107,7 @@ function NameChip({ char }: { char: RosterChar }) {
           {/* Class · Race · Level */}
           <div style={{ fontFamily: "'Cinzel', serif", fontSize: '0.85rem', color: 'var(--be-ink)', marginBottom: '0.35rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: classColor, flexShrink: 0 }} />
-            {char.class} · {char.race ?? '—'} · Level {char.level}
+            {char.class} · {displayRace(char.race) ?? '—'} · Level {char.level}
           </div>
 
           {/* Rank */}

@@ -3,6 +3,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import { GUILD } from '@/lib/guild-config'
+import { normaliseSex } from '@/lib/roster-sync'
 
 // Valid WoW class names normalised to our DB format
 const CLASS_MAP: Record<string, string> = {
@@ -13,13 +14,6 @@ const CLASS_MAP: Record<string, string> = {
 function normaliseClass(raw: unknown): string | null {
   if (typeof raw !== 'string') return null
   return CLASS_MAP[raw.toLowerCase().trim()] ?? null
-}
-
-function normaliseSex(raw: unknown): string | null {
-  if (raw === 1 || raw === '1' || String(raw).toLowerCase() === 'male') return 'Male'
-  if (raw === 2 || raw === '2' || String(raw).toLowerCase() === 'female') return 'Female'
-  if (typeof raw === 'string' && raw.length > 0) return raw
-  return null
 }
 
 function pick<T>(obj: Record<string, unknown>, ...keys: string[]): T | undefined {
@@ -154,7 +148,6 @@ export async function POST(request: NextRequest) {
       level: Number(pick(o, 'level') ?? 1),
       rank_name: pick(o, 'rankName', 'rank_name', 'rank') ?? null,
       rank_index: pick(o, 'rankIndex', 'rank_index') != null ? Number(pick(o, 'rankIndex', 'rank_index')) : null,
-      last_zone: pick(o, 'lastZone', 'last_zone', 'zone') ?? null,
       joined_guild_at: pick(o, 'joinedGuildAt', 'joined_guild_at', 'joinDate', 'joined') ?? null,
       hair_color: pick(o, 'hairColor', 'hair_color') ?? null,
       skin_tone: pick(o, 'skinTone', 'skin_tone') ?? null,

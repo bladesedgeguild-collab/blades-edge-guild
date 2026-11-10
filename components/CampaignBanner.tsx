@@ -6,10 +6,10 @@ import Link from 'next/link'
 import { GUILD } from '@/lib/guild-config'
 
 const CAMPAIGN_IMAGES = [
-  '/images/GuildiesInShattrath.jpg',
   '/images/Recruiting_TophinDarkshire.jpg',
   '/images/Summon_toBlastedLands.jpg',
   '/images/Summon_toWinterspring.jpg',
+  '/images/Summon_toStormwind.jpg',
 ]
 
 const eyebrow: CSSProperties = {

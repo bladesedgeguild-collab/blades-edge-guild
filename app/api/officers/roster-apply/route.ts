@@ -4,7 +4,7 @@ import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import { isOfficerUser } from '@/lib/officer'
 import { GUILD } from '@/lib/guild-config'
-import { buildMatcher, displayUploaded, normaliseSex, normalizeUploaded, type UploadedChar } from '@/lib/roster-sync'
+import { buildMatcher, displayUploaded, normalizeUploaded, rosterWritePlan, type UploadedChar } from '@/lib/roster-sync'
 
 type DbChar = {
   id: string
@@ -56,37 +56,22 @@ export async function POST(request: NextRequest) {
   const findMatch = buildMatcher(dbChars)
 
   const errors: string[] = []
+  const warnings: string[] = []
   const upsertedIds = new Map<UploadedChar, string>()
   let added = 0
   let updated = 0
 
   // Never deletes anything: characters missing from the upload are left alone.
+  // Rows outside the Alliance matrix are still written; they are only noted.
   for (const uc of uploaded) {
     const match = findMatch(uc)
+    const plan = rosterWritePlan(uc, REALM, match ? { last_name: match.last_name } : null)
+    if (plan.warning) warnings.push(`${displayUploaded(uc)}: ${plan.warning}`)
     try {
       if (!match) {
-        const insertData: Record<string, unknown> = {
-          name: uc.name,
-          last_name: uc.last_name ?? null,
-          realm: REALM,
-          class: (uc.class ?? 'WARRIOR').toUpperCase(),
-          race: uc.race ?? null,
-          sex: normaliseSex(uc.sex),
-          level: uc.level ?? 1,
-          rank_index: uc.rank_index ?? null,
-          rank_name: uc.rank_name ?? null,
-          note: uc.note ?? null,
-          last_zone: uc.zone ?? null,
-          last_online_days: uc.last_online_days ?? 9999,
-          status: 'new',
-          // Marks the row as coming from the guild roster so members can find & claim it
-          imported_from_grm: true,
-          hide_from_roster: false,
-          is_main: true,
-        }
         const { data: inserted, error } = await admin
           .from('characters')
-          .insert(insertData)
+          .insert(plan.fields)
           .select('id')
           .single()
         if (error) throw error
@@ -94,18 +79,7 @@ export async function POST(request: NextRequest) {
         added++
       } else {
         // Update roster facts only. Never touch claimed_by / user_id / is_main / hide_from_roster.
-        const updateData: Record<string, unknown> = {
-          level: uc.level ?? 1,
-          rank_index: uc.rank_index ?? null,
-          rank_name: uc.rank_name ?? null,
-          updated_at: new Date().toISOString(),
-        }
-        if (uc.last_online_days != null) updateData.last_online_days = uc.last_online_days
-        if (uc.last_name && !match.last_name) updateData.last_name = uc.last_name
-        if (uc.class) updateData.class = uc.class.toUpperCase()
-        if (uc.race) updateData.race = uc.race
-        if (uc.zone) updateData.last_zone = uc.zone
-        const { error } = await admin.from('characters').update(updateData).eq('id', match.id)
+        const { error } = await admin.from('characters').update(plan.fields).eq('id', match.id)
         if (error) throw error
         upsertedIds.set(uc, match.id)
         updated++
@@ -163,5 +137,5 @@ export async function POST(request: NextRequest) {
     })
   } catch { /* non-critical */ }
 
-  return NextResponse.json({ added, updated, errors, total: uploaded.length })
+  return NextResponse.json({ added, updated, errors, warnings, total: uploaded.length })
 }

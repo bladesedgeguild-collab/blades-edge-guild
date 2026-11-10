@@ -2,6 +2,8 @@ import type { CSSProperties } from 'react'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { getCharacterArt } from '@/lib/character-art'
+import { CharacterArtImg } from '@/components/CharacterArtImg'
+import { displayRace } from '@/lib/guild-config'
 import { AddAltSection } from './AddAltSection'
 import ActiveLFGCalls from '@/components/ActiveLFGCalls'
 import LFGMiniBox from '@/components/LFGMiniBox'
@@ -78,7 +80,7 @@ export default async function MyRosterPage() {
   const classLabel = mainChar.class.charAt(0) + mainChar.class.slice(1).toLowerCase().replace('_', ' ')
 
   const vitalsRows: { label: string; value: string | null; pill?: boolean; classDot?: boolean; professions?: boolean }[] = [
-    { label: 'Race',        value: mainChar.race ?? '—' },
+    { label: 'Race',        value: displayRace(mainChar.race) ?? '—' },
     { label: 'Class',       value: classLabel,                                       classDot: true },
     { label: 'Level',       value: String(mainChar.level) },
     { label: 'Professions', value: primaryProfs.map((p) => `${p.skill_level} ${p.name}`).join('  ') || null, professions: true },
@@ -112,7 +114,7 @@ export default async function MyRosterPage() {
           </div>
 
           <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'rgba(138,122,90,0.65)', fontSize: '1.1rem', margin: '0 0 6px' }}>
-            {[mainChar.race, classLabel, `Level ${mainChar.level}`].filter(Boolean).join(' · ')}
+            {[displayRace(mainChar.race), classLabel, `Level ${mainChar.level}`].filter(Boolean).join(' · ')}
           </p>
           <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'rgba(138,122,90,0.4)', fontSize: '0.82rem', margin: '0 0 18px' }}>
             {'<'}Blades Edge{'>'}
@@ -123,10 +125,8 @@ export default async function MyRosterPage() {
         {/* Character art */}
         {art && (
           <div className="roster-hero-art">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={art.female} className="roster-hero-fig" alt="" />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={art.male}   className="roster-hero-fig" alt="" />
+            <CharacterArtImg src={art.female} className="roster-hero-fig" />
+            <CharacterArtImg src={art.male} className="roster-hero-fig" />
           </div>
         )}
 

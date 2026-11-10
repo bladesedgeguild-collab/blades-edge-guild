@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useRef, useState } from 'react'
 import { getCharacterArt } from '@/lib/character-art'
+import { CharacterArtImg } from '@/components/CharacterArtImg'
 import { GUILD, RACE_CLASSES } from '@/lib/guild-config'
 import { fullName } from '@/lib/names'
 import { RosterFinder, type RosterPick } from '@/components/RosterFinder'
@@ -333,18 +334,13 @@ export default function OnboardingPage() {
             {leftFigure && (
               <div className="figure-container">
                 <div className="layer-positioner">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={leftFigure} className="figure-ghost ghost-drift-left" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+                  <CharacterArtImg src={leftFigure} className="figure-ghost ghost-drift-left" />
                 </div>
                 <div className="layer-positioner">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={leftFigure} className="figure-echo echo-drift-left" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+                  <CharacterArtImg src={leftFigure} className="figure-echo echo-drift-left" />
                 </div>
                 <div className="layer-positioner">
-                  <span className="figure-hero-glow-wrap">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={leftFigure} className="figure-hero" alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
-                  </span>
+                  <CharacterArtImg src={leftFigure} className="figure-hero" frameClassName="figure-hero-glow-wrap" />
                 </div>
               </div>
             )}
@@ -390,18 +386,13 @@ export default function OnboardingPage() {
             {rightFigure && (
               <div className="figure-container">
                 <div className="layer-positioner">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={rightFigure} className="figure-ghost ghost-drift-right" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+                  <CharacterArtImg src={rightFigure} className="figure-ghost ghost-drift-right" />
                 </div>
                 <div className="layer-positioner">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={rightFigure} className="figure-echo echo-drift-right" alt="" aria-hidden="true" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
+                  <CharacterArtImg src={rightFigure} className="figure-echo echo-drift-right" />
                 </div>
                 <div className="layer-positioner">
-                  <span className="figure-hero-glow-wrap">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={rightFigure} className="figure-hero" alt="" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none' }} />
-                  </span>
+                  <CharacterArtImg src={rightFigure} className="figure-hero" frameClassName="figure-hero-glow-wrap" />
                 </div>
               </div>
             )}
@@ -414,7 +405,7 @@ export default function OnboardingPage() {
 
   // ── SHELL ──
   return (
-    <div style={{ minHeight: '100vh', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingTop: 56, paddingBottom: 64, paddingLeft: 16, paddingRight: 16, background: "url('/images/hero-portal.png') center/cover no-repeat fixed" }}>
+    <div style={{ minHeight: '100vh', width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-start', paddingTop: 56, paddingBottom: 64, paddingLeft: 16, paddingRight: 16, background: "url('/images/home-hero-avatar-odys.webp') center/cover no-repeat fixed" }}>
       <div style={{ width: '100%', maxWidth: 560 }}>
 
         <div className="onboarding-crest-wrap" style={{ textAlign: 'center', marginBottom: -60, position: 'relative', zIndex: 2 }}>

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { fullName } from '@/lib/names'
+import { displayRace } from '@/lib/guild-config'
 
 export type RosterPick = {
   id: string
@@ -74,7 +75,7 @@ export function RosterFinder({ onPick, disabled, pickLabel = 'This is me' }: {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontFamily: 'var(--be-font-display)', color: 'var(--be-gold)', fontSize: '0.95rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{fullName(c.name, c.last_name)}</div>
                   <div style={{ fontFamily: 'var(--be-font-body)', color: 'var(--be-ink-3)', fontSize: '0.8rem' }}>
-                    {[c.level ? `Level ${c.level}` : null, c.race, cls ? titleCase(cls) : null, c.rank_name].filter(Boolean).join(' · ')}
+                    {[c.level ? `Level ${c.level}` : null, displayRace(c.race), cls ? titleCase(cls) : null, c.rank_name].filter(Boolean).join(' · ')}
                   </div>
                 </div>
                 <button type="button" disabled={disabled} onClick={() => onPick(c)}
