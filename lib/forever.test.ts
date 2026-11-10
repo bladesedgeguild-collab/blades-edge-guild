@@ -92,6 +92,8 @@ describe('WoW Forever Alliance matrix', () => {
       const art = getCharacterArt(race, cls)
       assert.equal(art?.male, `/images/characters/${stem}_M.png`)
       assert.equal(art?.female, `/images/characters/${stem}_F.png`)
+      assert.equal(existsSync(path.join(ROOT, 'public/images/characters', `${stem}_M.png`)), true, `${stem}_M.png`)
+      assert.equal(existsSync(path.join(ROOT, 'public/images/characters', `${stem}_F.png`)), true, `${stem}_F.png`)
     }
     assert.equal(getCharacterArt('Human', 'Warlock')?.male, '/images/characters/Human_Lock_M.png')
     assert.equal(getCharacterArt('NightElf', 'Hunter')?.female, '/images/characters/NightElf_Hunter_F.png')
@@ -222,6 +224,7 @@ describe('removed scene art', () => {
   it('is gone from the image folders and from app source', () => {
     const characters = readdirSync(path.join(ROOT, 'public/images/characters'))
     assert.equal(characters.some((name) => name.startsWith('Draenei_')), false)
+    assert.equal(existsSync(path.join(ROOT, 'public/images/GuildiesGroup.jpg')), true)
     for (const gone of ['GuildiesInShattrath.jpg', 'guild-photo.jpg', 'guild-photo.png', 'hero-portal.png']) {
       assert.equal(existsSync(path.join(ROOT, 'public/images', gone)), false, gone)
     }

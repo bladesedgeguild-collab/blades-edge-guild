@@ -36,7 +36,7 @@ const AVATAR_PER_Q = [
 const PERK_IMAGES: Record<string, string> = {
   bags:    '/images/Recruiting_TophBagsFullofBags.jpg',
   summons: '/images/Summon_toMaraudon2.jpg',
-  fam:     '/images/Recruiting_TophinDarkshire.jpg',
+  fam:     '/images/GuildiesGroup.jpg',
   guild:   '/images/Summon_toStormwind.jpg',
 }
 
@@ -376,7 +376,7 @@ export function RecruitPage() {
           <div className="rc-bg-pinned" style={{ backgroundImage: 'url(/images/Recruiting_TophInKharanos.jpg)' }} />
         )}
         {bgMode === 'banner' && (
-          <div className="rc-bg-pinned" style={{ backgroundImage: 'url(/images/home-hero-avatar-odys.webp)' }} />
+          <div className="rc-bg-pinned" style={{ backgroundImage: 'url(/images/GuildiesGroup.jpg)' }} />
         )}
       </div>
 

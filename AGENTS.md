@@ -176,10 +176,12 @@ include Shaman.)
 
 ## Key images in public/images/
 - home-hero-avatar-odys.webp / .jpg: night village with clock tower, campfire and
-  the "Avatar Odys <Blades Edge>" nameplate — homepage hero, onboarding backdrop,
-  and the recruit oath's banner/result background (from Aaron, Nov 2026).
-  Nameplate is ~53% across / ~58% down; keep it visible on desktop and mobile
-  when touching the hero crop or gradients.
+  the "Avatar Odys <Blades Edge>" nameplate — homepage hero and onboarding backdrop
+  (from Aaron, Nov 2026). Nameplate is ~53% across / ~58% down; keep it visible on
+  desktop and mobile when touching the hero crop or gradients.
+- GuildiesGroup.jpg: Alliance five-hero group in an Elwynn-style forest. First slide
+  of the Hall campaign banner, the recruit "GRATS Fam" perk, and the recruit
+  banner/result background.
 - guild-crest.png: the guild crest icon (circular, gold/blue)
 - BladesEdge_DiscordServerBanner.jpg: guild banner used in Hall campaign tile
 
