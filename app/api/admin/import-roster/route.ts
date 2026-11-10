@@ -4,17 +4,7 @@ import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import { GUILD } from '@/lib/guild-config'
-
-function normaliseSex(raw: unknown): string | null {
-  if (raw === 1 || raw === '1') return 'Male'
-  if (raw === 2 || raw === '2') return 'Female'
-  if (typeof raw === 'string') {
-    const l = raw.toLowerCase()
-    if (l === 'male') return 'Male'
-    if (l === 'female') return 'Female'
-  }
-  return null
-}
+import { normaliseSex } from '@/lib/roster-sync'
 
 type RosterChar = {
   name: string
@@ -102,7 +92,6 @@ export async function POST(request: NextRequest) {
         level: char.level ?? 1,
         rank_name: char.rank_name ?? null,
         rank_index: char.rank_index != null ? Number(char.rank_index) : null,
-        note: char.note ?? null,
         race: char.race ?? null,
         sex: normaliseSex(char.sex),
         hide_from_roster: false,

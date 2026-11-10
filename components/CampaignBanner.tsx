@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { GUILD } from '@/lib/guild-config'
 
 const CAMPAIGN_IMAGES = [
-  '/images/GuildiesInShattrath.jpg',
+  '/images/GuildiesGroup.jpg',
   '/images/Recruiting_TophinDarkshire.jpg',
   '/images/Summon_toBlastedLands.jpg',
   '/images/Summon_toWinterspring.jpg',

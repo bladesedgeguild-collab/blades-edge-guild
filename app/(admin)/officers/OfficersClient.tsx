@@ -20,6 +20,7 @@ type ApplyResult = {
   added: number
   updated: number
   errors: string[]
+  warnings?: string[]
   total: number
 }
 
@@ -397,6 +398,18 @@ export function OfficersClient() {
                 <ul style={{ marginTop: '0.5rem', paddingLeft: '1rem' }}>
                   {applyResult.errors.map((e, i) => (
                     <li key={i} style={{ color: '#f87171', fontSize: '0.8rem', fontFamily: "'Spectral', serif" }}>{e}</li>
+                  ))}
+                </ul>
+              </details>
+            )}
+            {(applyResult.warnings?.length ?? 0) > 0 && (
+              <details style={{ marginBottom: '0.75rem' }}>
+                <summary style={{ fontFamily: "'Spectral', serif", color: '#8a7a5a', fontSize: '0.85rem', cursor: 'pointer' }}>
+                  {applyResult.warnings?.length} outside the Alliance matrix (imported anyway)
+                </summary>
+                <ul style={{ marginTop: '0.5rem', paddingLeft: '1rem' }}>
+                  {(applyResult.warnings ?? []).map((w, i) => (
+                    <li key={i} style={{ color: '#c4b490', fontSize: '0.8rem', fontFamily: "'Spectral', serif" }}>{w}</li>
                   ))}
                 </ul>
               </details>

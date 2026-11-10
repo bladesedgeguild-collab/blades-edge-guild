@@ -8,8 +8,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 ## What this is
 Guild name is "Blades Edge" — plain ASCII, no special characters.
 A **World of Warcraft: Forever** guild website for Blades Edge, Alliance. The
-site pivoted from an old Burning Crusade Classic guild into a brand-new
-guild forming ahead of the WoW: Forever launch (Nov 4, 2026). The theme is a
+site is a new guild formed for the WoW: Forever launch (Nov 4, 2026). The theme is a
 **Founding Charter**: new players sign the charter and become founding
 members before launch. There is no "returning member" concept — everyone
 who signs up is founding the guild fresh.
@@ -51,7 +50,7 @@ On Mac: git push may need token auth — use https with personal access token.
 ## Guild config — single source of truth
 `lib/guild-config.ts` exports `GUILD` (name, established, game, faction,
 ruleset, launchAt, maxLevel, foundersGoal) and `RACE_CLASSES` (Alliance
-race → class rules for original WoW, no Draenei). Never hardcode the game
+race → class rules for WoW: Forever, including Skyborne). Never hardcode the game
 name, ruleset, or race/class rules elsewhere — import from here.
 
 WoW: Forever has **rulesets**, not realms/servers (Normal | PvP |
@@ -118,17 +117,19 @@ Officers upload the Guild Roster Manager SavedVariables file
 browser (roster JSON still accepted). roster-diff previews; roster-apply
 inserts new members (imported_from_grm, status 'new', unclaimed) and updates
 level/rank/etc. Matching is first+last name (fallback: unique first name).
-Nothing is ever deleted; claims are never touched.
+Nothing is ever deleted; claims are never touched. GRM public notes and
+`last_zone` are not written. Sex uses WoW UnitSex: 2 = male, 3 = female.
 
 ## Content scope
-WoW: Forever is Classic-era, level cap `GUILD.maxLevel` (60). No TBC content:
-no Outland/Karazhan/heroics/level 70 in copy, data or seeds.
+WoW: Forever is Classic-era, level cap `GUILD.maxLevel` (60). Keep later-expansion
+zones, raids, and level 70 out of copy, data, and seeds.
 
-WoW: Forever Alliance race/class rules (original WoW combos, no Draenei):
-Human: Warrior, Paladin, Rogue, Priest, Mage, Warlock
-Dwarf: Warrior, Paladin, Hunter, Rogue, Priest
+WoW: Forever Alliance race/class rules (`RACE_CLASSES`):
+Human: Warrior, Paladin, Hunter, Rogue, Priest, Mage, Warlock
+Dwarf: Warrior, Paladin, Hunter, Rogue, Priest, Shaman
 Night Elf: Warrior, Hunter, Rogue, Priest, Druid
-Gnome: Warrior, Rogue, Mage, Warlock
+Gnome: Warrior, Rogue, Priest, Mage, Warlock
+Skyborne (High Order): Warrior, Hunter, Rogue, Mage, Druid
 
 ## Database tables (Supabase/Postgres)
 - public.users: id, discord_id, discord_username, discord_avatar, display_name,
@@ -147,7 +148,7 @@ Gnome: Warrior, Rogue, Mage, Warlock
 Always use service role client (SUPABASE_SERVICE_ROLE_KEY) for admin operations
 and any writes that need to bypass RLS.
 
-The old Dreamscythe TBC roster was archived to the private `archives` Supabase
+The previous guild roster was archived to the private `archives` Supabase
 Storage bucket as part of the fresh-start reset. Old character/onboarding data
 is not guaranteed to still be present in the live tables going forward.
 
@@ -170,23 +171,22 @@ WoW class colors:
 MAGE=#3fc7eb, PALADIN=#f48cba, WARRIOR=#c69b3a, PRIEST=#ffffff,
 DRUID=#ff7c0a, HUNTER=#aad372, ROGUE=#fff468, WARLOCK=#8788ee,
 SHAMAN=#0070dd, DEATH_KNIGHT=#c41e3a, MONK=#00ff98, DEMON_HUNTER=#a330c9
-(Shaman stays in the class color map for legacy characters and decorative
-art, but is not selectable in onboarding since Draenei was removed.)
+(Shaman is selectable for Dwarves. Skyborne on this Alliance guild does not
+include Shaman.)
 
 ## Key images in public/images/
 - home-hero-avatar-odys.webp / .jpg: night village with clock tower, campfire and
-  the "Avatar Odys <Blades Edge>" nameplate — homepage hero background (from
-  Aaron, Nov 2026). Nameplate is ~53% across / ~58% down; keep it visible on
+  the "Avatar Odys <Blades Edge>" nameplate — homepage hero and onboarding backdrop
+  (from Aaron, Nov 2026). Nameplate is ~53% across / ~58% down; keep it visible on
   desktop and mobile when touching the hero crop or gradients.
-- hero-portal.png: painterly Dark Portal scene — previous homepage hero, kept in
-  the repo; still used as the onboarding background and a recruit perk image
-- guild-photo.png: illustrated group portrait of the old roster with guild
-  crest — kept in the repo but no longer displayed on the landing page
+- GuildiesGroup.jpg: Alliance five-hero group in an Elwynn-style forest. First slide
+  of the Hall campaign banner, the recruit "GRATS Fam" perk, and the recruit
+  banner/result background.
 - guild-crest.png: the guild crest icon (circular, gold/blue)
 - BladesEdge_DiscordServerBanner.jpg: guild banner used in Hall campaign tile
 
 ## What is built and working
-- Landing page: hero portal art, launch countdown to `GUILD.launchAt`,
+- Landing page: night-village hero, launch countdown to `GUILD.launchAt`,
   founders-sworn meter (live DB data), scrolling roster rows fed by live
   characters only (hidden with a placeholder line if fewer than 8 exist),
   CTA section with dual login
@@ -206,8 +206,9 @@ art, but is not selectable in onboarding since Draenei was removed.)
 1. My Roster page further polish
 2. Roster page (/roster) further polish (search + class filter now live)
 3. Dungeon LFG board refinements
-4. Charter cinematic character art (wireframe M+F per Race+Class, 52 images
-   via Midjourney)
+4. Charter cinematic character art (wireframe M+F per race and class).
+   Forever additions are mapped as `{Race}_{Class}_{M|F}.png` and render when
+   the PNGs land in `public/images/characters/`. Missing files hide themselves.
 5. Email notifications when new member registers
 6. Altaholic meter on profile page
 7. Discord channel integration

@@ -36,8 +36,8 @@ const AVATAR_PER_Q = [
 const PERK_IMAGES: Record<string, string> = {
   bags:    '/images/Recruiting_TophBagsFullofBags.jpg',
   summons: '/images/Summon_toMaraudon2.jpg',
-  fam:     '/images/GuildiesInShattrath.jpg',
-  guild:   '/images/hero-portal.png',
+  fam:     '/images/GuildiesGroup.jpg',
+  guild:   '/images/Summon_toStormwind.jpg',
 }
 
 interface EvidenceImg {
@@ -113,7 +113,7 @@ const PERKS = [
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type BgMode = 'cycling' | 'summon' | 'perks' | 'shattrath'
+type BgMode = 'cycling' | 'summon' | 'perks' | 'banner'
 type Screen = 'intro' | 'quiz' | 'result'
 
 interface RawAnswer {
@@ -186,7 +186,7 @@ const QUESTIONS: Question[] = [
       { t: 'Yes — I want to rep ⟨Blades Edge⟩', s: 2 },
       { t: 'Not really, honestly (And no worries if you choose this!)', s: 1 },
     ],
-    background: 'shattrath',
+    background: 'banner',
   },
 ]
 
@@ -267,7 +267,7 @@ export function RecruitPage() {
   const currentQ = QUESTIONS[qIdx]
 
   const bgMode: BgMode =
-    screen === 'result' ? 'shattrath' :
+    screen === 'result' ? 'banner' :
     screen !== 'quiz' ? 'cycling' :
     (currentQ?.background ?? 'cycling')
 
@@ -373,10 +373,10 @@ export function RecruitPage() {
           <div className="rc-bg-pinned" style={{ backgroundImage: 'url(/images/Summon_toBlastedLands.jpg)' }} />
         )}
         {bgMode === 'perks' && (
-          <div className="rc-bg-pinned" style={{ backgroundImage: 'url(/images/guild-photo.jpg)' }} />
+          <div className="rc-bg-pinned" style={{ backgroundImage: 'url(/images/Recruiting_TophInKharanos.jpg)' }} />
         )}
-        {bgMode === 'shattrath' && (
-          <div className="rc-bg-pinned" style={{ backgroundImage: 'url(/images/GuildiesInShattrath.jpg)' }} />
+        {bgMode === 'banner' && (
+          <div className="rc-bg-pinned" style={{ backgroundImage: 'url(/images/GuildiesGroup.jpg)' }} />
         )}
       </div>
 

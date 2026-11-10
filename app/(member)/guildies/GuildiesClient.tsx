@@ -3,7 +3,9 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getCharacterArt } from '@/lib/character-art'
+import { CharacterArtImg } from '@/components/CharacterArtImg'
 import { AddAltModal } from '@/components/AddAltModal'
+import { displayRace } from '@/lib/guild-config'
 
 const CLASS_COLORS: Record<string, string> = {
   MAGE: '#3fc7eb', PALADIN: '#f48cba', WARRIOR: '#c69b3a',
@@ -129,7 +131,7 @@ function sortChars<T extends AnyChar>(chars: T[], key: SortKey, filter?: string 
       case 'level':  return b.level - a.level
       case 'rank':   return (a.rank_index ?? 9999) - (b.rank_index ?? 9999)
       case 'class':  return a.class.localeCompare(b.class) || b.level - a.level
-      case 'race':   return (a.race ?? 'zzz').localeCompare(b.race ?? 'zzz') || b.level - a.level
+      case 'race':   return (displayRace(a.race) ?? 'zzz').localeCompare(displayRace(b.race) ?? 'zzz') || b.level - a.level
       case 'profession': {
         const getSkill = (c: T): number => {
           if (filter) return c.professions?.find(p => p.name === filter)?.skill_level ?? 0
@@ -148,7 +150,7 @@ function getSubmenuValues(key: SortKey, members: AnyChar[]): string[] {
       return [...new Set(members.map(m => m.class))].sort()
     case 'race':
       return [...new Set(
-        members.map(m => m.race === 'NightElf' ? 'Night Elf' : m.race).filter((r): r is string => r !== null)
+        members.map(m => displayRace(m.race)).filter((r): r is string => r !== null)
       )].sort()
     case 'rank': {
       const presentNormalized = new Set(
@@ -169,7 +171,7 @@ function applyFilter<T extends AnyChar>(list: T[], sort: SortKey, filter: string
   if (!filter) return list
   switch (sort) {
     case 'class':      return list.filter(c => c.class === filter)
-    case 'race':       return list.filter(c => (c.race === 'NightElf' ? 'Night Elf' : c.race) === filter)
+    case 'race':       return list.filter(c => displayRace(c.race) === filter)
     case 'rank':       return list.filter(c => c.rank_name && displayRank(c.rank_name) === filter)
     case 'profession': return list.filter(c => c.professions?.some(p => p.name === filter))
     default:           return list
@@ -308,10 +310,8 @@ export function GuildiesClient({
               <div className="guildie-art">
                 {char.isClaimed && art ? (
                   <>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={art.female} className="guildie-art-fig" alt="" />
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={art.male}   className="guildie-art-fig" alt="" />
+                    <CharacterArtImg src={art.female} className="guildie-art-fig" />
+                    <CharacterArtImg src={art.male} className="guildie-art-fig" />
                   </>
                 ) : (
                   <div style={{ width: 64 }} />
@@ -321,7 +321,7 @@ export function GuildiesClient({
                 <span data-character-name style={{ color: char.isClaimed ? color : 'var(--be-muted)', fontFamily: 'Cinzel, serif', textTransform: 'none', fontVariant: 'normal' }}>
                   {char.name}{char.last_name && <span style={{ opacity: 0.65 }}> {char.last_name}</span>}
                 </span>
-                <span className="guildie-sub">{char.race === 'NightElf' ? 'Night Elf' : char.race}</span>
+                <span className="guildie-sub">{displayRace(char.race)}</span>
               </div>
               <div className="guildie-class-col">
                 <span style={{ color }}>● {classLabel(char.class)}</span>

@@ -15,7 +15,10 @@ type LuaTable = Map<string | number, LuaValue>
 
 class LuaParser {
   private i = 0
-  constructor(private src: string) {}
+  private src: string
+  constructor(src: string) {
+    this.src = src
+  }
 
   private skip() {
     const s = this.src
@@ -175,6 +178,8 @@ function toMember(t: LuaTable, keyName: string | undefined): UploadedChar | null
   const rawClass = str(get(t, 'class', 'classFile', 'classToken'))
   if (level == null && !rawClass) return null
   const cls = rawClass ? (CLASS_TOKENS[rawClass.toLowerCase()] ?? rawClass.toUpperCase()) : undefined
+  // sex is WoW UnitSex (2 = male, 3 = female). Mapped later by normaliseSex.
+  // Public note and current zone are private and are not copied out of the file.
   return {
     name,
     class: cls,
@@ -183,8 +188,6 @@ function toMember(t: LuaTable, keyName: string | undefined): UploadedChar | null
     level,
     rank_name: str(get(t, 'rankName', 'rank')) ?? null,
     rank_index: num(get(t, 'rankIndex', 'rankInd')) ?? null,
-    note: str(get(t, 'note', 'publicNote')) ?? null,
-    zone: str(get(t, 'zone')) ?? null,
   }
 }
 

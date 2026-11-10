@@ -3,6 +3,8 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { AddAltModal } from '@/components/AddAltModal'
+import { CharacterArtImg } from '@/components/CharacterArtImg'
+import { displayRace } from '@/lib/guild-config'
 
 const CLASS_COLORS: Record<string, string> = {
   MAGE: '#3fc7eb', PALADIN: '#f48cba', WARRIOR: '#c69b3a',
@@ -63,7 +65,7 @@ export function AddAltSection({ alts }: { alts: AltChar[]; mainCharId: string })
                       {alt.name}{alt.last_name && <span style={{ color: 'var(--be-muted)', fontWeight: 400 }}> {alt.last_name}</span>}
                     </span>
                     <span className="alt-card-sub">
-                      {[alt.class.charAt(0) + alt.class.slice(1).toLowerCase().replace('_', ' '), alt.race, `Level ${alt.level}`].filter(Boolean).join(' · ')}
+                      {[alt.class.charAt(0) + alt.class.slice(1).toLowerCase().replace('_', ' '), displayRace(alt.race), `Level ${alt.level}`].filter(Boolean).join(' · ')}
                     </span>
                   </div>
                   <div className="alt-card-professions">{altProfessions(alt.professions)}</div>
@@ -82,16 +84,11 @@ export function AddAltSection({ alts }: { alts: AltChar[]; mainCharId: string })
           )}
           <button className="add-alt-btn" onClick={() => setModalOpen(true)}>
             <div className="alt-btn-figures">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/characters/Gnome_Warrior_M.png"   className="alt-fig alt-fig-1" alt="" />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/characters/Human_Priest_M.png"    className="alt-fig alt-fig-2" alt="" />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/characters/Draenei_Shaman_M.png"  className="alt-fig alt-fig-3" alt="" />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/characters/NightElf_Druid_F.png"  className="alt-fig alt-fig-4" alt="" />
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/characters/Dwarf_Rogue_F.png"     className="alt-fig alt-fig-5" alt="" />
+              <CharacterArtImg src="/images/characters/Gnome_Warrior_M.png" className="alt-fig alt-fig-1" />
+              <CharacterArtImg src="/images/characters/Human_Priest_M.png" className="alt-fig alt-fig-2" />
+              <CharacterArtImg src="/images/characters/Dwarf_Paladin_M.png" className="alt-fig alt-fig-3" />
+              <CharacterArtImg src="/images/characters/NightElf_Druid_F.png" className="alt-fig alt-fig-4" />
+              <CharacterArtImg src="/images/characters/Dwarf_Rogue_F.png" className="alt-fig alt-fig-5" />
             </div>
             <div className="alt-btn-label">
               <span className="alt-btn-title">Add an Alt</span>

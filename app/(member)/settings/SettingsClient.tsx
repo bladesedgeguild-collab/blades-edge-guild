@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { displayRace } from '@/lib/guild-config'
 
 type MainChar = {
   id: string
@@ -230,7 +231,7 @@ export function SettingsClient({
                   {mainChar.name}{mainChar.last_name && <span style={{ color: 'rgba(138,122,90,0.6)', fontSize: '0.6em' }}> {mainChar.last_name}</span>}
                 </p>
                 <p style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'rgba(138,122,90,0.8)', margin: '0 0 0.5rem', fontSize: '0.9rem' }}>
-                  {[mainChar.race, mainChar.class.charAt(0) + mainChar.class.slice(1).toLowerCase().replace('_', ' '), `Level ${mainChar.level}`].filter(Boolean).join(' · ')}
+                  {[displayRace(mainChar.race), mainChar.class.charAt(0) + mainChar.class.slice(1).toLowerCase().replace('_', ' '), `Level ${mainChar.level}`].filter(Boolean).join(' · ')}
                 </p>
                 {mainChar.rank_name && (
                   <div className="be-rank-pill" style={{ display: 'inline-block', fontSize: '0.6rem', padding: '2px 10px' }}>
@@ -303,7 +304,7 @@ export function SettingsClient({
                         {alt.name}{alt.last_name && <span style={{ color: 'rgba(138,122,90,0.7)' }}> {alt.last_name}</span>}
                       </span>
                       <span style={{ fontFamily: "'Spectral', serif", fontStyle: 'italic', color: 'rgba(138,122,90,0.7)', fontSize: '0.8rem', marginLeft: '0.75rem' }}>
-                        {[alt.race, alt.class.charAt(0) + alt.class.slice(1).toLowerCase().replace('_', ' '), `Level ${alt.level}`].filter(Boolean).join(' · ')}
+                        {[displayRace(alt.race), alt.class.charAt(0) + alt.class.slice(1).toLowerCase().replace('_', ' '), `Level ${alt.level}`].filter(Boolean).join(' · ')}
                       </span>
                     </div>
                     {pendingRemoveAlt?.id !== alt.id && (
