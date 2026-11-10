@@ -30,9 +30,9 @@ export default async function DungeonPage({ params, searchParams }: Props) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  let characterName: string | undefined
   let userRole: string | undefined
-  let userChars: { id: string; name: string; level: number; class: string; is_main: boolean }[] = []
+  let playerLevel: number | null = null
+  let userChars: { id: string; name: string; level: number; class: string; is_main: boolean; roles: string[] | null }[] = []
   if (user) {
     const { data: profile } = await supabase
       .from('users')
@@ -42,30 +42,38 @@ export default async function DungeonPage({ params, searchParams }: Props) {
 
     userRole = (profile as { role?: string } | null)?.role ?? undefined
 
-    if (profile?.claimed_character_id) {
-      const { data: char } = await supabase
-        .from('characters')
-        .select('name, last_name')
-        .eq('id', profile.claimed_character_id)
-        .single()
-      characterName = (char ? fullName(char.name, char.last_name) : null) || profile?.display_name || undefined
-    } else {
-      characterName = profile?.display_name ?? undefined
-    }
-
     const { data: chars } = await supabase
+      .from('characters')
+      .select('id, name, last_name, level, class, is_main, roles')
+      .eq('claimed_by', user.id)
+      .order('is_main', { ascending: false })
+    const rows = chars ?? await supabase
       .from('characters')
       .select('id, name, last_name, level, class, is_main')
       .eq('claimed_by', user.id)
       .order('is_main', { ascending: false })
-    // Full first + last names for the character picker and LFG posts
-    userChars = (chars ?? []).map((c) => ({ id: c.id, name: fullName(c.name, c.last_name), level: c.level, class: c.class, is_main: c.is_main }))
+      .then(result => result.data)
+    userChars = (rows ?? []).map((c) => ({
+      id: c.id,
+      name: fullName(c.name, c.last_name),
+      level: c.level,
+      class: c.class,
+      is_main: c.is_main,
+      roles: 'roles' in c ? (c.roles as string[] | null) : null,
+    }))
+    const main = userChars.find(character => character.is_main) ?? userChars[0]
+    if (profile?.claimed_character_id) {
+      const claimed = userChars.find(character => character.id === profile.claimed_character_id)
+      playerLevel = claimed?.level ?? main?.level ?? null
+    } else {
+      playerLevel = main?.level ?? null
+    }
   }
 
   // Fetch active LFG posts for this dungeon
   const { data: activePosts } = await supabase
     .from('dungeon_lfg')
-    .select('id, character_name, role, available_window, notes')
+    .select('id, character_name, role, available_window, notes, starts_at, ends_at')
     .eq('dungeon_slug', slug)
     .gt('expires_at', new Date().toISOString())
     .order('created_at', { ascending: false })
@@ -79,11 +87,14 @@ export default async function DungeonPage({ params, searchParams }: Props) {
     )
     const { data } = await adminDb
       .from('dungeon_lfg')
-      .select('id, user_id, character_name, role, available_window, days_available, time_start, time_end, notes, current_group')
+      .select('id, user_id, character_name, role, available_window, notes, current_group, starts_at, ends_at, needs')
       .eq('id', lfgId)
       .gt('expires_at', new Date().toISOString())
       .single()
-    featuredLFG = data ?? null
+    if (data) {
+      const { user_id: ownerId, ...rest } = data
+      featuredLFG = { ...rest, is_owner: ownerId === user?.id }
+    }
   }
 
   return (
@@ -91,11 +102,10 @@ export default async function DungeonPage({ params, searchParams }: Props) {
       dungeon={dungeon}
       initialPosts={activePosts ?? []}
       isLoggedIn={!!user}
-      characterName={characterName}
       featuredLFG={featuredLFG}
-      userId={user?.id}
-      userRole={userRole}
+      isOfficer={['admin', 'officer', 'gm'].includes(userRole ?? '')}
       userChars={userChars}
+      playerLevel={playerLevel}
     />
   )
 }

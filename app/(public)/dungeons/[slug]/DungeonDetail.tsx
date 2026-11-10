@@ -1,8 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { opensOnLabel } from '@/data/dungeons/index'
 import type { Dungeon, WoWClass } from '@/data/dungeons/types'
+import { GroupBoard } from '@/components/lfg/GroupBoard'
+import { ScheduleFields } from '@/components/lfg/ScheduleFields'
+import { normalizeGroup, partyXpWarning, resolveNeeds, type Needs } from '@/lib/lfg-group'
+import { formatRange, localFieldsFromInstant, SERVER_TIME_ZONE } from '@/lib/lfg-time'
+import { levelFit, levelFitLabel } from '@/lib/level-fit'
+import { displayClassName, effectiveRoles, type LfgRole } from '@/lib/roles'
 import '../dungeons.css'
 
 const WOW_CLASSES: WoWClass[] = [
@@ -22,404 +29,180 @@ const CLASS_COLORS: Record<WoWClass, string> = {
   Shaman: '#0070dd',
 }
 
-const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-
-const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
-  const h = Math.floor(i / 2)
-  const m = i % 2 === 0 ? '00' : '30'
-  const ampm = h < 12 ? 'AM' : 'PM'
-  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h
-  return `${h12}:${m} ${ampm}`
-})
-
 type LfgPost = {
   id: string
   character_name: string
   role: string
   available_window: string | null
   notes: string | null
-  days_available?: string[] | null
-  time_start?: string | null
-  time_end?: string | null
+  starts_at?: string | null
+  ends_at?: string | null
 }
 
-type FeaturedLFG = {
+type FeaturedLFG = LfgPost & {
+  is_owner?: boolean
+  needs?: Needs | null
+  current_group: unknown
+}
+
+type UserChar = {
   id: string
-  user_id?: string
-  character_name: string
-  role: string
-  available_window: string | null
-  notes: string | null
-  days_available: string[] | null
-  time_start: string | null
-  time_end: string | null
-  current_group: {
-    tank: string[] | number
-    healer: string[] | number
-    dps: string[] | number
-  } | null
+  name: string
+  level: number
+  class: string
+  is_main: boolean
+  roles?: string[] | null
 }
-
-type FeaturedEditUpdates = {
-  days_available: string[] | null
-  time_start: string | null
-  time_end: string | null
-  notes: string | null
-  available_window: string | null
-}
-
-function FeaturedEditForm({
-  post,
-  onSave,
-  onCancel,
-}: {
-  post: FeaturedLFG
-  onSave: (updates: FeaturedEditUpdates) => Promise<void>
-  onCancel: () => void
-}) {
-  const [days, setDays] = useState<string[]>(post.days_available ?? [])
-  const [anyDay, setAnyDay] = useState((post.days_available ?? []).length === 0)
-  const [timeStart, setTimeStart] = useState(post.time_start ?? '')
-  const [timeEnd, setTimeEnd] = useState(post.time_end ?? '')
-  const [notes, setNotes] = useState(post.notes ?? '')
-  const [saving, setSaving] = useState(false)
-
-  function toggleDay(day: string) {
-    setDays(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day])
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setSaving(true)
-    await onSave({
-      days_available: anyDay ? [] : days,
-      time_start: timeStart || null,
-      time_end: timeEnd || null,
-      notes: notes || null,
-      available_window: null,
-    })
-    setSaving(false)
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="lfg-edit-form">
-      <div className="dd-lfg-field">
-        <label className="dd-lfg-label">Days Available</label>
-        <div className="lfg-day-row">
-          {DAYS.map(d => (
-            <button
-              key={d}
-              type="button"
-              className={`lfg-day-btn${days.includes(d) && !anyDay ? ' lfg-day-btn--active' : ''}`}
-              onClick={() => { setAnyDay(false); toggleDay(d) }}
-            >{d}</button>
-          ))}
-          <button
-            type="button"
-            className={`lfg-day-btn${anyDay ? ' lfg-day-btn--active' : ''}`}
-            onClick={() => { setAnyDay(true); setDays([]) }}
-          >Any</button>
-        </div>
-      </div>
-      <div className="lfg-time-row">
-        <div className="dd-lfg-field" style={{ flex: 1 }}>
-          <label className="dd-lfg-label lfg-field-label">Start Time (Server Time)</label>
-          <select className="dd-lfg-select lfg-time-select" value={timeStart} onChange={e => setTimeStart(e.target.value)}>
-            <option value="">Select...</option>
-            {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-        </div>
-        <span className="lfg-time-to">to</span>
-        <div className="dd-lfg-field" style={{ flex: 1 }}>
-          <label className="dd-lfg-label lfg-field-label">End Time (Server Time)</label>
-          <select className="dd-lfg-select lfg-time-select" value={timeEnd} onChange={e => setTimeEnd(e.target.value)}>
-            <option value="">Select...</option>
-            {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
-        </div>
-      </div>
-      <div className="dd-lfg-field">
-        <label className="dd-lfg-label">Notes</label>
-        <textarea className="dd-lfg-textarea" value={notes} onChange={e => setNotes(e.target.value)} rows={3} />
-      </div>
-      <div className="lfg-edit-actions">
-        <button type="submit" className="dd-lfg-btn df-lfg-btn" disabled={saving}>
-          {saving ? 'Saving…' : 'Save Changes'}
-        </button>
-        <button type="button" className="lfg-cancel-btn" onClick={onCancel}>Discard</button>
-      </div>
-    </form>
-  )
-}
-
-function formatWindow(post: LfgPost): string {
-  const days = post.days_available?.length
-    ? post.days_available.join(', ')
-    : post.days_available !== undefined && post.days_available !== null
-    ? 'Any day'
-    : null
-  if (post.time_start && post.time_end)
-    return `${days || 'Any day'}, ${post.time_start}–${post.time_end} Server Time`
-  if (days) return days
-  return post.available_window ?? ''
-}
-
-function formatFeaturedWindow(post: FeaturedLFG): string {
-  const days = post.days_available?.length
-    ? post.days_available.join(', ')
-    : post.days_available !== null
-    ? 'Any day'
-    : null
-  if (post.time_start && post.time_end)
-    return `${days || 'Any day'}, ${post.time_start}–${post.time_end} Server Time`
-  if (days) return days
-  return post.available_window ?? ''
-}
-
-function normalizeGroup(g: FeaturedLFG['current_group']): { tank: string[]; healer: string[]; dps: string[] } {
-  if (!g) return { tank: [], healer: [], dps: [] }
-  return {
-    tank: Array.isArray(g.tank) ? g.tank : [],
-    healer: Array.isArray(g.healer) ? g.healer : [],
-    dps: Array.isArray(g.dps) ? g.dps : [],
-  }
-}
-
-function getFeaturedNeedsText(g: FeaturedLFG['current_group']): string {
-  const group = normalizeGroup(g)
-  const needsTank = group.tank.length === 0
-  const needsHealer = group.healer.length === 0
-  const needsDPS = group.dps.length < 3
-  if (!needsTank && !needsHealer && !needsDPS) return 'Group is Full!'
-  const needs: string[] = []
-  if (needsTank) needs.push('Tank')
-  if (needsHealer) needs.push('Heals')
-  if (needsDPS) needs.push('DPS')
-  if (needs.length === 3) return 'Needs All.'
-  if (needs.length === 1) return `Needs ${needs[0]} then Good To Go.`
-  return `Needs ${needs[0]} and ${needs[1]}.`
-}
-
-const MT_ZONES = ['America/Denver', 'America/Phoenix', 'America/Boise', 'America/Creston']
-
-type UserChar = { id: string; name: string; level: number; class: string; is_main: boolean }
 
 interface Props {
   dungeon: Dungeon
   initialPosts: LfgPost[]
   isLoggedIn: boolean
-  characterName?: string
   featuredLFG?: FeaturedLFG | null
-  userId?: string
-  userRole?: string
+  isOfficer?: boolean
   userChars?: UserChar[]
+  playerLevel?: number | null
 }
 
-export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, characterName, featuredLFG, userId, userRole, userChars = [] }: Props) {
+export default function DungeonDetail({
+  dungeon,
+  initialPosts,
+  isLoggedIn,
+  featuredLFG,
+  isOfficer = false,
+  userChars = [],
+  playerLevel = null,
+}: Props) {
   const [selectedClass, setSelectedClass] = useState<WoWClass>('Warrior')
   const [openBoss, setOpenBoss] = useState<number | null>(null)
-  const [role, setRole] = useState('DPS')
-  const [selectedDays, setSelectedDays] = useState<string[]>([])
-  const [anyDay, setAnyDay] = useState(false)
-  const [timeStart, setTimeStart] = useState('')
-  const [timeEnd, setTimeEnd] = useState('')
+  const [selectedCharId, setSelectedCharId] = useState(userChars.find(character => character.is_main)?.id ?? userChars[0]?.id ?? '')
+  const selectedChar = userChars.find(character => character.id === selectedCharId) ?? userChars[0]
+  const roleOptions = selectedChar ? effectiveRoles(selectedChar.class, selectedChar.roles) : (['DPS'] as LfgRole[])
+  const [role, setRole] = useState<LfgRole>(roleOptions[0] ?? 'DPS')
+  const [needs, setNeeds] = useState<Needs>({
+    tank: dungeon.groupComp.tank,
+    healer: dungeon.groupComp.healer,
+    dps: dungeon.groupComp.dps,
+  })
+  const [date, setDate] = useState('')
+  const [start, setStart] = useState('')
+  const [end, setEnd] = useState('')
   const [notes, setNotes] = useState('')
-  const [detectedTimezone, setDetectedTimezone] = useState('')
+  const [timeZone, setTimeZone] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [success, setSuccess] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [success, setSuccess] = useState<string | null>(null)
   const [posts, setPosts] = useState<LfgPost[]>(initialPosts)
-  const [showBannerForm, setShowBannerForm] = useState(!featuredLFG)
+  const [showForm, setShowForm] = useState(!featuredLFG)
   const [featuredPost, setFeaturedPost] = useState(featuredLFG ?? null)
-  const [featuredEditMode, setFeaturedEditMode] = useState(false)
-  const [joiningRole, setJoiningRole] = useState<'tank' | 'healer' | 'dps' | null>(null)
-  const [joinCharId, setJoinCharId] = useState<string>('')
-  const [joining, setJoining] = useState(false)
-  const [selectedCharId, setSelectedCharId] = useState<string>(
-    userChars.find(c => c.is_main)?.id ?? userChars[0]?.id ?? ''
-  )
-
-  const isAdmin = ['admin', 'officer', 'gm'].includes(userRole ?? '')
-  const isFeaturedOwner = !!userId && featuredPost?.user_id === userId
-
-  async function handleFeaturedCancel() {
-    if (!featuredPost) return
-    try {
-      const res = await fetch(`/api/dungeons/lfg/${featuredPost.id}`, { method: 'DELETE' })
-      if (res.ok) {
-        setFeaturedPost(null)
-        setShowBannerForm(true)
-      }
-    } catch { }
-  }
-
-  async function handleFeaturedSave(updates: {
-    days_available: string[] | null
-    time_start: string | null
-    time_end: string | null
-    notes: string | null
-    available_window: string | null
-  }) {
-    if (!featuredPost) return
-    try {
-      const res = await fetch(`/api/dungeons/lfg/${featuredPost.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updates),
-      })
-      if (res.ok) {
-        setFeaturedPost(prev => prev ? { ...prev, ...updates } : null)
-        setFeaturedEditMode(false)
-      }
-    } catch { }
-  }
-
-  async function handleJoin(role: 'tank' | 'healer' | 'dps') {
-    if (!featuredPost || !joinCharId) return
-    setJoining(true)
-    try {
-      const res = await fetch(`/api/dungeons/lfg/${featuredPost.id}/join`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ role, characterId: joinCharId }),
-      })
-      if (res.ok) {
-        const { current_group } = await res.json()
-        setFeaturedPost(prev => prev ? { ...prev, current_group } : null)
-        setJoiningRole(null)
-      }
-    } finally {
-      setJoining(false)
-    }
-  }
-
-  function openJoinSlot(role: 'tank' | 'healer' | 'dps') {
-    const mainChar = userChars.find(c => c.is_main)
-    setJoinCharId(mainChar?.id ?? userChars[0]?.id ?? '')
-    setJoiningRole(role)
-  }
+  const [editing, setEditing] = useState(false)
 
   useEffect(() => {
-    setDetectedTimezone(Intl.DateTimeFormat().resolvedOptions().timeZone)
+    const id = window.setTimeout(() => {
+      setTimeZone(Intl.DateTimeFormat().resolvedOptions().timeZone)
+    }, 0)
+    return () => window.clearTimeout(id)
   }, [])
 
-  function toggleDay(day: string) {
-    setSelectedDays(prev =>
-      prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day]
-    )
-  }
-
-  function getLocalEquivalent(serverTimeStr: string): string | null {
-    if (!serverTimeStr || !detectedTimezone) return null
-    try {
-      const match = serverTimeStr.match(/^(\d{1,2}):(\d{2})\s+(AM|PM)$/i)
-      if (!match) return null
-      let h = parseInt(match[1], 10)
-      const m = parseInt(match[2], 10)
-      if (match[3].toUpperCase() === 'PM' && h !== 12) h += 12
-      if (match[3].toUpperCase() === 'AM' && h === 12) h = 0
-
-      const now = new Date()
-      const mtFmt = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'America/Denver',
-        hour: 'numeric', minute: 'numeric', hour12: false,
-      })
-      const mtParts = mtFmt.formatToParts(now)
-      let mtH = parseInt(mtParts.find(p => p.type === 'hour')?.value ?? '0')
-      const mtM = parseInt(mtParts.find(p => p.type === 'minute')?.value ?? '0')
-      if (mtH === 24) mtH = 0
-
-      const nowUtcMins = now.getUTCHours() * 60 + now.getUTCMinutes()
-      const nowMtMins = mtH * 60 + mtM
-      const mtOffsetMins = nowMtMins - nowUtcMins
-
-      const serverMins = h * 60 + m
-      const utcTotalMins = serverMins - mtOffsetMins
-      const utcH = Math.floor(((utcTotalMins % 1440) + 1440) % 1440 / 60)
-      const utcMin = ((utcTotalMins % 60) + 60) % 60
-
-      const utcDate = new Date(Date.UTC(
-        now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(),
-        utcH, utcMin,
-      ))
-
-      return utcDate.toLocaleTimeString('en-US', {
-        hour: '2-digit', minute: '2-digit', hour12: true,
-        timeZone: detectedTimezone,
-      })
-    } catch {
-      return null
-    }
-  }
-
-  const isSameMT = MT_ZONES.includes(detectedTimezone)
-  const localStartEquiv = timeStart ? getLocalEquivalent(timeStart) : null
-  const localEndEquiv = timeEnd ? getLocalEquivalent(timeEnd) : null
+  const chosenRole = roleOptions.includes(role) ? role : (roleOptions[0] ?? 'DPS')
 
   const classLoot = dungeon.loot.filter(item => {
-    const rel = item.relevance[selectedClass]
-    return rel !== undefined && rel.rating !== 'skip'
+    const relevance = item.relevance[selectedClass]
+    return relevance !== undefined && relevance.rating !== 'skip'
   })
+  const allianceQuests = dungeon.quests.filter(quest => quest.faction !== 'Horde')
+  const namesOnly = dungeon.bosses.length > 0 && dungeon.bosses.every(boss => boss.quickTips.length === 0)
+  const opens = opensOnLabel(dungeon)
+  const fit = playerLevel != null ? levelFit(dungeon, playerLevel) : null
+  const fitLabel = fit ? levelFitLabel(fit, dungeon) : null
+  const featuredNeeds = featuredPost
+    ? resolveNeeds(featuredPost.needs, { tank: dungeon.groupComp.tank, healer: dungeon.groupComp.healer, dps: dungeon.groupComp.dps })
+    : null
+  const featuredGroup = featuredPost ? normalizeGroup(featuredPost.current_group) : null
 
-  const allianceQuests = dungeon.quests.filter(q => q.faction !== 'Horde')
-
-  async function handleLFGSubmit(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleSubmit(event: React.FormEvent) {
+    event.preventDefault()
+    if (!selectedChar) return
     setSubmitting(true)
-    const postingChar = userChars.find(c => c.id === selectedCharId)
-    const postingName = postingChar?.name ?? characterName ?? ''
+    setError(null)
     try {
       const res = await fetch('/api/dungeons/lfg', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           dungeonSlug: dungeon.id,
-          dungeonName: dungeon.name,
-          role,
-          daysAvailable: anyDay ? [] : selectedDays,
-          timeStart,
-          timeEnd,
-          timezoneLabel: detectedTimezone,
+          role: chosenRole,
+          characterId: selectedChar.id,
           notes,
-          characterName: postingName,
+          date,
+          start,
+          end: end || null,
+          timeZone,
+          needs,
         }),
       })
-      if (res.ok) {
-        const newPost = await res.json()
-        setPosts(prev => [newPost, ...prev])
-        setSuccess(true)
-        setTimeout(() => {
-          setSuccess(false)
-          setSelectedDays([])
-          setAnyDay(false)
-          setTimeStart('')
-          setTimeEnd('')
-          setNotes('')
-        }, 5000)
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        setError(typeof data.error === 'string' ? data.error : 'Could not raise the banner.')
+        return
       }
+      setPosts(prev => [data, ...prev])
+      setSuccess(timeZone && data.starts_at
+        ? `${formatRange(data.starts_at, data.ends_at, timeZone)} · Server time: ${formatRange(data.starts_at, data.ends_at, SERVER_TIME_ZONE)}`
+        : 'Banner raised.')
+      setNotes('')
     } finally {
       setSubmitting(false)
     }
   }
 
-  const sourceBadgeClass = dungeon.sourceStatus === 'verified' || dungeon.sourceStatus === 'source-checked'
-    ? 'dd-source-badge--verified'
-    : 'dd-source-badge--placeholder'
-
-  const sourceBadgeLabel: Record<typeof dungeon.sourceStatus, string> = {
-    placeholder: 'Draft',
-    draft: 'Draft',
-    'source-checked': 'Reviewed',
-    verified: 'Verified',
+  async function cancelFeatured() {
+    if (!featuredPost) return
+    const res = await fetch(`/api/dungeons/lfg/${featuredPost.id}`, { method: 'DELETE' })
+    if (res.ok) {
+      setFeaturedPost(null)
+      setShowForm(true)
+    }
   }
 
-  const daysLabel = anyDay ? 'Any day' : selectedDays.length > 0 ? selectedDays.join(', ') : ''
+  async function saveFeatured(event: React.FormEvent) {
+    event.preventDefault()
+    if (!featuredPost) return
+    const res = await fetch(`/api/dungeons/lfg/${featuredPost.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ notes, date, start, end: end || null, timeZone, needs }),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      setError(typeof data.error === 'string' ? data.error : 'Could not save.')
+      return
+    }
+    setFeaturedPost(prev => prev ? { ...prev, notes, starts_at: data.starts_at, ends_at: data.ends_at, needs: data.needs } : prev)
+    setEditing(false)
+  }
 
-  const featuredGroup = featuredPost ? normalizeGroup(featuredPost.current_group) : null
-  const featuredWindow = featuredPost ? formatFeaturedWindow(featuredPost as FeaturedLFG) : null
+  function beginEdit() {
+    if (!featuredPost?.starts_at || !timeZone) {
+      setDate('')
+      setStart('')
+      setEnd('')
+    } else {
+      const fields = localFieldsFromInstant(featuredPost.starts_at, timeZone)
+      setDate(fields.date)
+      setStart(fields.time)
+      setEnd(featuredPost.ends_at ? localFieldsFromInstant(featuredPost.ends_at, timeZone).time : '')
+    }
+    setNotes(featuredPost?.notes ?? '')
+    setEditing(true)
+  }
+
+  const posterWarning = selectedChar
+    ? partyXpWarning([selectedChar.level], dungeon.recommendedLevelMax)
+    : null
 
   return (
     <div className="dd-page">
-      {/* Hero Bar */}
       <div className="dd-hero">
         <div className="dd-hero-inner">
           <Link href="/dungeons" className="dd-back">← All Dungeons</Link>
@@ -428,248 +211,154 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
           <div className="dd-meta-row">
             <span>Level {dungeon.recommendedLevelMin}–{dungeon.recommendedLevelMax}</span>
             <span className="dd-meta-sep">|</span>
-            <span>~{dungeon.estimatedTimeMinutes} min</span>
+            <span>Door {dungeon.minLevel}</span>
             <span className="dd-meta-sep">|</span>
-            <span>{dungeon.maxPlayers}-player</span>
-            {dungeon.heroicRequiresLevel && (
+            {dungeon.estimatedTimeMinutes != null && (
               <>
+                <span>~{dungeon.estimatedTimeMinutes} min</span>
                 <span className="dd-meta-sep">|</span>
-                <span className="df-heroic-badge">Heroic Req. {dungeon.heroicRequiresLevel}</span>
               </>
             )}
-            <span className={`dd-source-badge ${sourceBadgeClass}`}>
-              {sourceBadgeLabel[dungeon.sourceStatus]}
-            </span>
+            <span>{dungeon.maxPlayers}-player {dungeon.instanceType}</span>
+            {opens && <span className="df-heroic-badge">{opens}</span>}
+            {fitLabel && <span className="df-heroic-badge">{fitLabel}</span>}
           </div>
           <p className="dd-summary">{dungeon.summary}</p>
         </div>
       </div>
 
-      {/* Body */}
       <div className="dd-body">
-
-        {/* Featured LFG */}
-        {featuredPost && featuredGroup && (
+        {featuredPost && featuredNeeds && featuredGroup && (
           <div className="dungeon-featured-lfg">
             <div className="dungeon-featured-header">
               <div className="dungeon-featured-title">Active Call for This Dungeon</div>
-              {(isFeaturedOwner || isAdmin) && (
+              {(featuredPost.is_owner || isOfficer) && (
                 <div className="dungeon-featured-actions">
-                  {isFeaturedOwner && !featuredEditMode && (
-                    <button className="lfg-edit-btn" onClick={() => setFeaturedEditMode(true)}>Edit</button>
+                  {featuredPost.is_owner && !editing && (
+                    <button className="lfg-edit-btn" onClick={beginEdit}>Edit</button>
                   )}
-                  {(isFeaturedOwner || isAdmin) && (
-                    <button className="lfg-cancel-btn" onClick={handleFeaturedCancel}>Cancel Request</button>
-                  )}
+                  <button className="lfg-cancel-btn" onClick={cancelFeatured}>Cancel Request</button>
                 </div>
               )}
             </div>
-
             <p className="lfg-big-meta">
-              <strong>{featuredPost.role} {featuredPost.character_name}</strong> is seeking more.{' '}
-              <span className="lfg-needs-text">{getFeaturedNeedsText(featuredPost.current_group)}</span>
+              <strong>{featuredPost.role} {featuredPost.character_name}</strong> is seeking more.
             </p>
-
-            {/* 2-column role layout */}
-            <div className="lfg-roles-2col" style={{ marginBottom: '1rem' }}>
-              <div className="lfg-roles-left">
-                <div className="lfg-role-block">
-                  <div className="lfg-role-header">
-                    <span className="lfg-role-label">Tank</span>
-                  </div>
-                  <div className="lfg-role-slot">
-                    {featuredGroup.tank[0] ? (
-                      <span className="lfg-slot-name">{featuredGroup.tank[0]}</span>
-                    ) : joiningRole === 'tank' ? (
-                      <div className="lfg-assign-wrap" onClick={e => e.stopPropagation()}>
-                        <p className="lfg-assign-prompt">Who is joining as Tank?</p>
-                        <select className="lfg-assign-select" value={joinCharId} onChange={e => setJoinCharId(e.target.value)}>
-                          {userChars.map(c => <option key={c.id} value={c.id}>{c.is_main ? '★ ' : ''}{c.name} — Lvl {c.level} {c.class}</option>)}
-                        </select>
-                        <div className="lfg-assign-btns">
-                          <button className="lfg-assign-confirm" onClick={() => handleJoin('tank')} disabled={joining}>{joining ? '…' : 'Confirm'}</button>
-                          <button className="lfg-assign-cancel" onClick={() => setJoiningRole(null)}>Cancel</button>
-                        </div>
-                      </div>
-                    ) : !isFeaturedOwner && isLoggedIn && userChars.length > 0 ? (
-                      <button className="lfg-slot-need-btn" onClick={e => { e.stopPropagation(); openJoinSlot('tank') }}>NEED — Click to Join</button>
-                    ) : (
-                      <span className="lfg-slot-need">NEED</span>
-                    )}
-                  </div>
-                </div>
-                <div className="lfg-role-block">
-                  <div className="lfg-role-header">
-                    <span className="lfg-role-label">Healer</span>
-                  </div>
-                  <div className="lfg-role-slot">
-                    {featuredGroup.healer[0] ? (
-                      <span className="lfg-slot-name">{featuredGroup.healer[0]}</span>
-                    ) : joiningRole === 'healer' ? (
-                      <div className="lfg-assign-wrap" onClick={e => e.stopPropagation()}>
-                        <p className="lfg-assign-prompt">Who is joining as Healer?</p>
-                        <select className="lfg-assign-select" value={joinCharId} onChange={e => setJoinCharId(e.target.value)}>
-                          {userChars.map(c => <option key={c.id} value={c.id}>{c.is_main ? '★ ' : ''}{c.name} — Lvl {c.level} {c.class}</option>)}
-                        </select>
-                        <div className="lfg-assign-btns">
-                          <button className="lfg-assign-confirm" onClick={() => handleJoin('healer')} disabled={joining}>{joining ? '…' : 'Confirm'}</button>
-                          <button className="lfg-assign-cancel" onClick={() => setJoiningRole(null)}>Cancel</button>
-                        </div>
-                      </div>
-                    ) : !isFeaturedOwner && isLoggedIn && userChars.length > 0 ? (
-                      <button className="lfg-slot-need-btn" onClick={e => { e.stopPropagation(); openJoinSlot('healer') }}>NEED — Click to Join</button>
-                    ) : (
-                      <span className="lfg-slot-need">NEED</span>
-                    )}
-                  </div>
-                </div>
+            {featuredPost.starts_at && timeZone && (
+              <div className="dungeon-featured-window">
+                {formatRange(featuredPost.starts_at, featuredPost.ends_at, timeZone)}
+                <div className="lfg-server-hint">Server time: {formatRange(featuredPost.starts_at, featuredPost.ends_at, SERVER_TIME_ZONE)}</div>
               </div>
-              <div className="lfg-role-block lfg-role-block--dps">
-                <div className="lfg-role-header">
-                  <span className="lfg-role-label">DPS</span>
+            )}
+            <GroupBoard
+              lfgId={featuredPost.id}
+              needs={featuredNeeds}
+              group={featuredGroup}
+              recommendedLevelMax={dungeon.recommendedLevelMax}
+              isLoggedIn={isLoggedIn}
+              isOwner={!!featuredPost.is_owner}
+              userChars={userChars}
+              onChange={group => setFeaturedPost(prev => prev ? { ...prev, current_group: group } : prev)}
+            />
+            {editing ? (
+              <form onSubmit={saveFeatured} className="lfg-edit-form">
+                <ScheduleFields date={date} start={start} end={end} onChange={next => { setDate(next.date); setStart(next.start); setEnd(next.end) }} />
+                <textarea className="dd-lfg-textarea" value={notes} onChange={event => setNotes(event.target.value)} rows={3} />
+                <div className="lfg-edit-actions">
+                  <button type="submit" className="dd-lfg-btn df-lfg-btn">Save Changes</button>
+                  <button type="button" className="lfg-cancel-btn" onClick={() => setEditing(false)}>Discard</button>
                 </div>
-                {[0, 1, 2].map(i => (
-                  <div key={i} className="lfg-role-slot">
-                    <span className="lfg-dps-label">DPS {i + 1}:</span>
-                    {featuredGroup.dps[i] ? (
-                      <span className="lfg-slot-name">{featuredGroup.dps[i]}</span>
-                    ) : joiningRole === 'dps' && i === featuredGroup.dps.length ? (
-                      <div className="lfg-assign-wrap" onClick={e => e.stopPropagation()}>
-                        <p className="lfg-assign-prompt">Who is joining as DPS?</p>
-                        <select className="lfg-assign-select" value={joinCharId} onChange={e => setJoinCharId(e.target.value)}>
-                          {userChars.map(c => <option key={c.id} value={c.id}>{c.is_main ? '★ ' : ''}{c.name} — Lvl {c.level} {c.class}</option>)}
-                        </select>
-                        <div className="lfg-assign-btns">
-                          <button className="lfg-assign-confirm" onClick={() => handleJoin('dps')} disabled={joining}>{joining ? '…' : 'Confirm'}</button>
-                          <button className="lfg-assign-cancel" onClick={() => setJoiningRole(null)}>Cancel</button>
-                        </div>
-                      </div>
-                    ) : !isFeaturedOwner && isLoggedIn && userChars.length > 0 ? (
-                      <button className="lfg-slot-need-btn" onClick={e => { e.stopPropagation(); openJoinSlot('dps') }}>NEED — Click to Join</button>
-                    ) : (
-                      <span className="lfg-slot-need">NEED</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {featuredEditMode ? (
-              <FeaturedEditForm post={featuredPost} onSave={handleFeaturedSave} onCancel={() => setFeaturedEditMode(false)} />
-            ) : (
-              <>
-                {featuredPost.notes && (
-                  <div className="lfg-hover-note" style={{ marginBottom: '1rem' }}>
-                    <span className="lfg-hover-note-label">Note:</span>
-                    <p className="lfg-hover-note-text">{featuredPost.notes}</p>
-                  </div>
-                )}
-                {featuredWindow && (
-                  <div className="dungeon-featured-window">{featuredWindow}</div>
-                )}
-                {!isFeaturedOwner && (
-                  <button className="dungeon-join-btn" onClick={() => setShowBannerForm(true)}>
-                    Answer the Call
-                  </button>
-                )}
-              </>
+              </form>
+            ) : featuredPost.notes && (
+              <div className="lfg-hover-note"><span className="lfg-hover-note-label">Note:</span><p className="lfg-hover-note-text">{featuredPost.notes}</p></div>
             )}
           </div>
         )}
 
-        {/* Quick Card */}
         <div className="dd-section">
           <div className="dd-section-title">Before You Go</div>
           <div className="dd-quick-card">
             <div className="dd-quick-row">
-              <span>
-                <span className="dd-quick-label">Tanks:</span>{dungeon.groupComp.tank}
-              </span>
-              <span>
-                <span className="dd-quick-label">Healers:</span>{dungeon.groupComp.healer}
-              </span>
-              <span>
-                <span className="dd-quick-label">DPS:</span>{dungeon.groupComp.dps}
-              </span>
-              {dungeon.groupComp.usefulClasses && dungeon.groupComp.usefulClasses.length > 0 && (
-                <span>
-                  <span className="dd-quick-label">Useful:</span>
-                  {dungeon.groupComp.usefulClasses.join(', ')}
-                </span>
-              )}
+              <span><span className="dd-quick-label">Tanks:</span>{dungeon.groupComp.tank}</span>
+              <span><span className="dd-quick-label">Healers:</span>{dungeon.groupComp.healer}</span>
+              <span><span className="dd-quick-label">DPS:</span>{dungeon.groupComp.dps}</span>
             </div>
-            {dungeon.groupComp.notes && (
-              <div className="dd-quick-row">
-                <span style={{ color: 'var(--be-muted)' }}>{dungeon.groupComp.notes}</span>
-              </div>
-            )}
-            {dungeon.specialMechanic && (
+            {dungeon.groupComp.notes && <div className="dd-quick-row"><span style={{ color: 'var(--be-muted)' }}>{dungeon.groupComp.notes}</span></div>}
+            {dungeon.requirement && <div className="dd-requirement">{dungeon.requirement}</div>}
+            {dungeon.specialMechanic && dungeon.specialMechanic !== dungeon.requirement && (
               <div className="dd-special-note">⚡ {dungeon.specialMechanic}</div>
             )}
+            {opens && <div className="dd-special-note">{opens}. You can still schedule a group ahead of the door.</div>}
           </div>
         </div>
 
-        {/* Quests */}
+        {dungeon.tips.length > 0 && (
+          <div className="dd-section">
+            <div className="dd-section-title">Guild Tips</div>
+            <div className="dd-boss-tips">
+              {dungeon.tips.map(tip => <div key={tip} className="dd-boss-tip">• {tip}</div>)}
+            </div>
+          </div>
+        )}
+
+        {dungeon.uncertain.length > 0 && (
+          <div className="dd-section">
+            <div className="dd-section-title">Less certain</div>
+            <div className="dd-boss-tips">
+              {dungeon.uncertain.map(note => <div key={note} className="dd-boss-tip">• {note}</div>)}
+            </div>
+          </div>
+        )}
+
         <div className="dd-section">
           <div className="dd-section-title">Quests</div>
           {allianceQuests.length === 0 ? (
-            <p className="dd-quest-empty">Quest details coming soon.</p>
+            <p className="dd-quest-empty">Quest details are not listed yet. Nothing here is filled in from guesswork.</p>
           ) : (
             <div className="dd-quest-list">
-              {allianceQuests.map((q, i) => (
-                <div key={i} className="dd-quest-item">
-                  <div className="dd-quest-name">{q.name}</div>
-                  <div className="dd-quest-starts">Starts: {q.startsAt}</div>
-                  <span className={`dd-quest-importance dd-quest-importance--${q.importance}`}>
-                    {q.importance.replace(/-/g, ' ')}
-                  </span>
-                  {q.rewardNote && (
-                    <span style={{ fontSize: '0.8rem', color: 'var(--be-muted)', fontStyle: 'italic', fontFamily: 'Spectral, serif' }}>
-                      {q.rewardNote}
-                    </span>
-                  )}
+              {allianceQuests.map(quest => (
+                <div key={quest.name} className="dd-quest-item">
+                  <div className="dd-quest-name">{quest.name}</div>
+                  <div className="dd-quest-starts">Starts: {quest.startsAt}</div>
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        {/* Bosses */}
         <div className="dd-section">
           <div className="dd-section-title">Bosses</div>
           {dungeon.bosses.length === 0 ? (
-            <p className="dd-boss-empty">Boss guides coming soon.</p>
+            <p className="dd-boss-empty">Boss guides are not listed yet.</p>
+          ) : namesOnly ? (
+            <>
+              <p className="dd-boss-empty">
+                {dungeon.bosses.some(boss => boss.unconfirmed)
+                  ? 'These names are incomplete or disagree across sources, so they are listed without a kill order or tactics.'
+                  : 'Names only. Tactics are not written up yet.'}
+              </p>
+              <div className="dd-boss-list">
+                {dungeon.bosses.map(boss => (
+                  <div key={boss.order} className="dd-boss-item">
+                    <div className="dd-boss-header">
+                      <span className="dd-boss-order">{boss.order}.</span>
+                      <span className="dd-boss-name">{boss.name}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
           ) : (
             <div className="dd-boss-list">
               {dungeon.bosses.map(boss => (
                 <div key={boss.order} className="dd-boss-item">
-                  <button
-                    className="dd-boss-header"
-                    onClick={() => setOpenBoss(openBoss === boss.order ? null : boss.order)}
-                  >
+                  <button className="dd-boss-header" onClick={() => setOpenBoss(openBoss === boss.order ? null : boss.order)}>
                     <span className="dd-boss-order">{boss.order}.</span>
                     <span className="dd-boss-name">{boss.name}</span>
-                    {boss.wipeRisk && (
-                      <span className={`dd-boss-wipe dd-boss-wipe--${boss.wipeRisk}`}>
-                        {boss.wipeRisk} risk
-                      </span>
-                    )}
-                    <span className={`dd-boss-chevron${openBoss === boss.order ? ' dd-boss-chevron--open' : ''}`}>▼</span>
                   </button>
                   {openBoss === boss.order && (
                     <div className="dd-boss-tips">
-                      {boss.quickTips.map((tip, i) => (
-                        <div key={i} className="dd-boss-tip">• {tip}</div>
-                      ))}
-                      {boss.tankTip && (
-                        <div className="dd-boss-role-tip dd-boss-role-tip--tank">🛡 Tank: {boss.tankTip}</div>
-                      )}
-                      {boss.healerTip && (
-                        <div className="dd-boss-role-tip dd-boss-role-tip--healer">💚 Healer: {boss.healerTip}</div>
-                      )}
-                      {boss.dpsTip && (
-                        <div className="dd-boss-role-tip dd-boss-role-tip--dps">⚔️ DPS: {boss.dpsTip}</div>
-                      )}
+                      {boss.quickTips.map(tip => <div key={tip} className="dd-boss-tip">• {tip}</div>)}
                     </div>
                   )}
                 </div>
@@ -678,7 +367,6 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
           )}
         </div>
 
-        {/* Loot by Class */}
         <div className="dd-section">
           <div className="dd-section-title">Loot by Class</div>
           <div className="dd-class-tabs">
@@ -694,20 +382,16 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
             ))}
           </div>
           {classLoot.length === 0 ? (
-            <p className="dd-loot-empty">
-              No notable loot for {selectedClass}, or loot data not yet sourced.
-            </p>
+            <p className="dd-loot-empty">Loot for {selectedClass} is not sourced yet.</p>
           ) : (
             <div className="dd-loot-list">
-              {classLoot.map((item, i) => {
-                const rel = item.relevance[selectedClass]!
+              {classLoot.map(item => {
+                const relevance = item.relevance[selectedClass]!
                 return (
-                  <div key={i} className="dd-loot-item">
+                  <div key={`${item.name}-${item.boss}`} className="dd-loot-item">
                     <span className="dd-loot-name">{item.name}</span>
                     <span className="dd-loot-slot">{item.slot}</span>
-                    <span className={`dd-loot-rating dd-loot-rating--${rel.rating}`}>
-                      {rel.rating}
-                    </span>
+                    <span className={`dd-loot-rating dd-loot-rating--${relevance.rating}`}>{relevance.rating}</span>
                     <span className="dd-loot-boss">{item.boss}</span>
                   </div>
                 )
@@ -716,193 +400,99 @@ export default function DungeonDetail({ dungeon, initialPosts, isLoggedIn, chara
           )}
         </div>
 
-        {/* LFG Section */}
         <div className="dd-section">
           <div className="dd-section-title">Call the Guild</div>
           <div className="dd-lfg-board">
-            {/* Form */}
-            {showBannerForm ? (
+            {showForm ? (
               <div className="dd-lfg-form-wrap">
                 <div className="dd-lfg-form-title">Raise the Banner</div>
                 {!isLoggedIn ? (
-                  <p className="dd-lfg-auth-note">
-                    <Link href="/login">Log in</Link> to post a LFG request.
-                  </p>
+                  <p className="dd-lfg-auth-note"><Link href="/login">Log in</Link> to post a LFG request.</p>
                 ) : success ? (
                   <div className="dd-lfg-success">
-                    <div>Banner raised! Your guildmates have been alerted.</div>
-                    {daysLabel && (
-                      <div className="lfg-confirm-time">
-                        <strong>Your window:</strong>{' '}
-                        {daysLabel}
-                        {timeStart && timeEnd ? ` from ${timeStart} to ${timeEnd} Server Time` : ''}
-                        {detectedTimezone && localStartEquiv && localEndEquiv && (
-                          <>
-                            <br />
-                            <span className="lfg-confirm-local">
-                              That is {localStartEquiv} to {localEndEquiv} in your local time
-                              {isSameMT ? ' (same timezone)' : ''}.
-                            </span>
-                          </>
-                        )}
-                      </div>
-                    )}
+                    <div>Banner raised. Matched guildmates can see it on the site.</div>
+                    <div className="lfg-confirm-time">{success}</div>
                   </div>
                 ) : (
-                  <form onSubmit={handleLFGSubmit}>
-                    {/* Posting as — character picker */}
+                  <form onSubmit={handleSubmit}>
                     {userChars.length > 0 && (
                       <div className="dd-lfg-field">
                         <label className="dd-lfg-label">Posting as</label>
-                        <select
-                          className="dd-lfg-select lfg-assign-select"
-                          value={selectedCharId}
-                          onChange={e => setSelectedCharId(e.target.value)}
-                        >
-                          {userChars.map(c => (
-                            <option key={c.id} value={c.id}>
-                              {c.is_main ? '★ ' : ''}{c.name} — Lvl {c.level} {c.class}
+                        <select className="dd-lfg-select" value={selectedCharId} onChange={event => setSelectedCharId(event.target.value)}>
+                          {userChars.map(character => (
+                            <option key={character.id} value={character.id}>
+                              {character.is_main ? '★ ' : ''}{character.name} — Lvl {character.level} {displayClassName(character.class)}
                             </option>
                           ))}
                         </select>
                       </div>
                     )}
-
-                    {/* Role */}
                     <div className="dd-lfg-field">
                       <label className="dd-lfg-label">Your Role</label>
-                      <select
-                        className="dd-lfg-select lfg-role-select"
-                        value={role}
-                        onChange={e => setRole(e.target.value)}
-                      >
-                        <option>Tank</option>
-                        <option>Healer</option>
-                        <option>DPS</option>
-                        <option>Flex</option>
+                      <select className="dd-lfg-select" value={chosenRole} onChange={event => setRole(event.target.value as LfgRole)}>
+                        {roleOptions.map(option => <option key={option}>{option}</option>)}
                       </select>
                     </div>
-
-                    {/* Days */}
-                    <div className="dd-lfg-field">
-                      <label className="dd-lfg-label lfg-field-label">Day(s) Available</label>
-                      <div className="lfg-day-checkboxes">
-                        {DAYS.map(day => (
-                          <label key={day} className={`lfg-day-chip${selectedDays.includes(day) ? ' lfg-day-chip--on' : ''}`}>
-                            <input
-                              type="checkbox"
-                              value={day}
-                              checked={selectedDays.includes(day)}
-                              disabled={anyDay}
-                              onChange={() => toggleDay(day)}
-                            />
-                            {day}
-                          </label>
-                        ))}
-                        <label className={`lfg-day-chip lfg-day-any${anyDay ? ' lfg-day-chip--on' : ''}`}>
-                          <input
-                            type="checkbox"
-                            checked={anyDay}
-                            onChange={e => {
-                              setAnyDay(e.target.checked)
-                              if (e.target.checked) setSelectedDays([])
-                            }}
-                          />
-                          Any Day
-                        </label>
-                      </div>
-                    </div>
-
-                    {/* Time range */}
                     <div className="lfg-time-row">
-                      <div className="dd-lfg-field" style={{ flex: 1 }}>
-                        <label className="dd-lfg-label lfg-field-label">Start Time (Server Time)</label>
-                        <select
-                          className="dd-lfg-select lfg-time-select"
-                          value={timeStart}
-                          onChange={e => setTimeStart(e.target.value)}
-                        >
-                          <option value="">Select...</option>
-                          {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-                        </select>
-                      </div>
-                      <span className="lfg-time-to">to</span>
-                      <div className="dd-lfg-field" style={{ flex: 1 }}>
-                        <label className="dd-lfg-label lfg-field-label">End Time (Server Time)</label>
-                        <select
-                          className="dd-lfg-select lfg-time-select"
-                          value={timeEnd}
-                          onChange={e => setTimeEnd(e.target.value)}
-                        >
-                          <option value="">Select...</option>
-                          {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-                        </select>
-                      </div>
+                      {(['tank', 'healer', 'dps'] as const).map(key => (
+                        <div key={key} className="dd-lfg-field" style={{ flex: 1 }}>
+                          <label className="dd-lfg-label">{key === 'dps' ? 'DPS slots' : `${key[0].toUpperCase()}${key.slice(1)} slots`}</label>
+                          <input
+                            className="dd-lfg-select"
+                            type="number"
+                            min={0}
+                            max={dungeon.maxPlayers}
+                            value={needs[key]}
+                            onChange={event => setNeeds(prev => ({ ...prev, [key]: Number(event.target.value) }))}
+                          />
+                        </div>
+                      ))}
                     </div>
-
-                    {/* Timezone */}
-                    {detectedTimezone && (
-                      <div className="lfg-timezone">
-                        <span className="lfg-tz-label">Your timezone:</span>
-                        <span className="lfg-tz-value">{detectedTimezone}</span>
-                        {localStartEquiv && timeStart && (
-                          <span className="lfg-tz-equiv">
-                            {timeStart} Server Time is {localStartEquiv} in your local time
-                            {isSameMT ? ' (same timezone)' : ''}.
-                          </span>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Notes */}
+                    <ScheduleFields
+                      date={date}
+                      start={start}
+                      end={end}
+                      onChange={next => { setDate(next.date); setStart(next.start); setEnd(next.end) }}
+                    />
+                    {posterWarning && <p className="lfg-xp-warning">{posterWarning}</p>}
+                    {fit === 'locked' && fitLabel && <p className="lfg-xp-warning">{fitLabel}. This character cannot enter yet.</p>}
                     <div className="dd-lfg-field">
                       <label className="dd-lfg-label">Notes</label>
-                      <textarea
-                        className="dd-lfg-textarea"
-                        value={notes}
-                        onChange={e => setNotes(e.target.value)}
-                        placeholder="Any notes for your group..."
-                      />
+                      <textarea className="dd-lfg-textarea" value={notes} onChange={event => setNotes(event.target.value)} placeholder="Route, attunement, or who you still need" />
                     </div>
-
-                    <button type="submit" className="dd-lfg-btn df-lfg-btn" disabled={submitting}>
+                    {error && <p className="lfg-xp-warning">{error}</p>}
+                    <button type="submit" className="dd-lfg-btn df-lfg-btn" disabled={submitting || userChars.length === 0}>
                       {submitting ? 'Raising...' : 'Raise the Banner'}
                     </button>
                   </form>
                 )}
               </div>
             ) : (
-              <button className="dungeon-own-run-btn" onClick={() => setShowBannerForm(true)}>
-                Schedule your own run instead?
-              </button>
+              <button className="dungeon-own-run-btn" onClick={() => setShowForm(true)}>Schedule your own run instead?</button>
             )}
 
-            {/* Active Posts */}
             <div className="dd-lfg-posts-wrap">
               <div className="dd-lfg-posts-title">Active LFG Posts</div>
               {posts.length === 0 ? (
                 <p className="dd-lfg-empty">No active banners. Be the first to call the guild.</p>
-              ) : (
-                posts.map(post => (
-                  <div key={post.id} className="dd-lfg-post">
-                    <div>
-                      <span className="dd-lfg-post-name">{post.character_name}</span>
-                      {' '}is seeking more as{' '}
-                      <span className="dd-lfg-post-role">{post.role}</span>
-                    </div>
-                    {formatWindow(post) && (
-                      <div className="dd-lfg-post-window">{formatWindow(post)}</div>
-                    )}
-                    {post.notes && (
-                      <div className="dd-lfg-post-notes">{post.notes}</div>
-                    )}
+              ) : posts.map(post => (
+                <div key={post.id} className="dd-lfg-post">
+                  <div>
+                    <span className="dd-lfg-post-name">{post.character_name}</span>
+                    {' '}is seeking more as <span className="dd-lfg-post-role">{post.role}</span>
                   </div>
-                ))
-              )}
+                  {post.starts_at && timeZone ? (
+                    <div className="dd-lfg-post-window">
+                      {formatRange(post.starts_at, post.ends_at, timeZone)}
+                      <div className="lfg-server-hint">Server time: {formatRange(post.starts_at, post.ends_at, SERVER_TIME_ZONE)}</div>
+                    </div>
+                  ) : post.available_window && <div className="dd-lfg-post-window">{post.available_window}</div>}
+                  {post.notes && <div className="dd-lfg-post-notes">{post.notes}</div>}
+                </div>
+              ))}
             </div>
           </div>
         </div>
-
       </div>
     </div>
   )

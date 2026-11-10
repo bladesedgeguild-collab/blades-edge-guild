@@ -2,25 +2,18 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { DUNGEONS } from '@/data/dungeons/index'
+import { DUNGEONS, opensOnLabel } from '@/data/dungeons/index'
 import type { Dungeon, DungeonContinent } from '@/data/dungeons/types'
 import LFGMiniBox from '@/components/LFGMiniBox'
-import './dungeons.css'
 import { GUILD } from '@/lib/guild-config'
+import { levelFit, levelFitLabel, type LevelFit } from '@/lib/level-fit'
+import './dungeons.css'
 
 type Continent = 'All' | DungeonContinent
 
-function getDungeonStatus(dungeon: Dungeon, level: number): 'active' | 'outleveled' | 'locked' {
-  if (level >= dungeon.recommendedLevelMin && level <= dungeon.recommendedLevelMax + 5)
-    return 'active'
-  if (level > dungeon.recommendedLevelMax + 5)
-    return 'outleveled'
-  return 'locked'
-}
-
 const CONTINENT_BAND: Record<string, string> = {
   'Eastern Kingdoms': '#3fc7eb22',
-  'Kalimdor': '#ff7c0a22',
+  Kalimdor: '#ff7c0a22',
 }
 
 const CONTINENTS: Continent[] = ['All', 'Eastern Kingdoms', 'Kalimdor']
@@ -31,29 +24,29 @@ interface Props {
 
 export default function DungeonsClient({ playerLevel }: Props) {
   const [continent, setContinent] = useState<Continent>('All')
+  const [kind, setKind] = useState<'All' | 'dungeon' | 'raid'>('All')
   const [overrideLevel, setOverrideLevel] = useState<number | null>(null)
   const [showOnlyMyLevel, setShowOnlyMyLevel] = useState(false)
 
   const effectiveLevel = overrideLevel ?? playerLevel
 
   const filtered = DUNGEONS
-    .filter(d => continent === 'All' || d.continent === continent)
-    .filter(d => {
+    .filter(dungeon => continent === 'All' || dungeon.continent === continent)
+    .filter(dungeon => kind === 'All' || dungeon.instanceType === kind)
+    .filter(dungeon => {
       if (!showOnlyMyLevel) return true
-      return getDungeonStatus(d, effectiveLevel) === 'active'
+      return levelFit(dungeon, effectiveLevel) === 'active'
     })
 
   return (
     <>
-      {/* Header */}
       <div className="df-header">
         <h1 className="df-title">Dungeon Finder</h1>
         <p className="df-subtitle">
-          Every den of darkness, every vault of peril. Sorted for your level.
+          WoW: Forever instances for Alliance, with the level ranges from the Group Finder.
         </p>
       </div>
 
-      {/* Full-width LFG section above level selector */}
       <LFGMiniBox title="Active LFG Calls" columns={4} maxRows={2} className="df-lfg-full-section" />
 
       <div className="df-level-selector">
@@ -68,29 +61,43 @@ export default function DungeonsClient({ playerLevel }: Props) {
         )}
         <select
           value={effectiveLevel}
-          onChange={e => setOverrideLevel(Number(e.target.value))}
+          onChange={event => setOverrideLevel(Number(event.target.value))}
           className="df-level-select"
         >
-          {Array.from({ length: GUILD.maxLevel }, (_, i) => i + 1).map(n => (
-            <option key={n} value={n}>Level {n}</option>
+          {Array.from({ length: GUILD.maxLevel }, (_, index) => index + 1).map(level => (
+            <option key={level} value={level}>Level {level}</option>
           ))}
         </select>
       </div>
+      <p className="df-level-note">
+        A green border means the run is in range. Gray means the door is shut or the run is outleveled.
+        At level {GUILD.maxLevel}, outleveled runs stay readable: No XP (loot, quests or attunement only).
+      </p>
 
       <div className="df-tabs">
-        {CONTINENTS.map(c => (
+        {CONTINENTS.map(name => (
           <button
-            key={c}
-            onClick={() => setContinent(c)}
-            className={`df-tab${continent === c ? ' df-tab--active' : ''}`}
+            key={name}
+            onClick={() => setContinent(name)}
+            className={`df-tab${continent === name ? ' df-tab--active' : ''}`}
           >
-            {c}
+            {name}
+          </button>
+        ))}
+        <span className="df-tabs-divider" />
+        {(['All', 'dungeon', 'raid'] as const).map(value => (
+          <button
+            key={value}
+            onClick={() => setKind(value)}
+            className={`df-tab${kind === value ? ' df-tab--active' : ''}`}
+          >
+            {value === 'All' ? 'Dungeons & Raids' : value === 'dungeon' ? 'Dungeons' : 'Raids'}
           </button>
         ))}
         <span className="df-tabs-divider" />
         <button
           className={`df-tab df-tab-recommended${showOnlyMyLevel ? ' active' : ''}`}
-          onClick={() => setShowOnlyMyLevel(v => !v)}
+          onClick={() => setShowOnlyMyLevel(value => !value)}
         >
           ★ Your Level
         </button>
@@ -98,7 +105,7 @@ export default function DungeonsClient({ playerLevel }: Props) {
 
       {showOnlyMyLevel && (
         <p className="df-level-note">
-          Showing only dungeons for level {effectiveLevel}. Click ★ Your Level again to see all dungeons.
+          Showing only dungeons in range for level {effectiveLevel}. Click ★ Your Level again to see all.
         </p>
       )}
 
@@ -107,54 +114,58 @@ export default function DungeonsClient({ playerLevel }: Props) {
           <p className="df-empty">No dungeons found.</p>
         ) : (
           <div className="df-grid">
-            {filtered.map(dungeon => {
-              const status = getDungeonStatus(dungeon, effectiveLevel)
-              return (
-                <Link href={`/dungeons/${dungeon.id}`} key={dungeon.id} className="df-card-link">
-                  <div className={`df-card df-card--${status}`}>
-                    <div
-                      className="df-card-band"
-                      style={{ background: CONTINENT_BAND[dungeon.continent] ?? '#ffffff11' }}
-                    />
-                    <div className="df-card-body">
-                      <div className="df-card-zone">
-                        {dungeon.continent} &middot; {dungeon.zone}
-                      </div>
-                      <h3 className="df-card-name">{dungeon.name}</h3>
-                      <div className="df-card-levels">
-                        Level {dungeon.recommendedLevelMin}–{dungeon.recommendedLevelMax}
-                        {dungeon.heroicRequiresLevel && (
-                          <span className="df-heroic-badge">Heroic Req. {dungeon.heroicRequiresLevel}</span>
-                        )}
-                      </div>
-                      <p className="df-card-summary">{dungeon.summary}</p>
-                      <div className="df-card-meta">
-                        <span>🗡 {dungeon.groupComp.tank} Tank</span>
-                        <span>💚 {dungeon.groupComp.healer} Healer</span>
-                        <span>⚔️ {dungeon.groupComp.dps} DPS</span>
-                        <span>⏱ ~{dungeon.estimatedTimeMinutes}m</span>
-                      </div>
-                      {dungeon.quests.filter(q => q.faction !== 'Horde').length > 0 && (
-                        <div className="df-card-quests">
-                          📜 {dungeon.quests.filter(q => q.faction !== 'Horde').length} quests available
-                        </div>
-                      )}
-                      {dungeon.specialMechanic && (
-                        <div className="df-card-special">{dungeon.specialMechanic}</div>
-                      )}
-                      {status === 'locked' && (
-                        <div className="df-requires-pill">
-                          Requires Level {dungeon.recommendedLevelMin}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </Link>
-              )
-            })}
+            {filtered.map(dungeon => (
+              <DungeonCard key={dungeon.id} dungeon={dungeon} level={effectiveLevel} />
+            ))}
           </div>
         )}
       </div>
     </>
+  )
+}
+
+function DungeonCard({ dungeon, level }: { dungeon: Dungeon; level: number }) {
+  const status: LevelFit = levelFit(dungeon, level)
+  const label = levelFitLabel(status, dungeon)
+  const opens = opensOnLabel(dungeon)
+  return (
+    <Link href={`/dungeons/${dungeon.id}`} className="df-card-link">
+      <div className={`df-card df-card--${status}`}>
+        <div
+          className="df-card-band"
+          style={{ background: CONTINENT_BAND[dungeon.continent] ?? '#ffffff11' }}
+        />
+        <div className="df-card-body">
+          <div className="df-card-zone">
+            {dungeon.continent} &middot; {dungeon.zone}
+          </div>
+          <h3 className="df-card-name">{dungeon.name}</h3>
+          <div className="df-card-levels">
+            Level {dungeon.recommendedLevelMin}–{dungeon.recommendedLevelMax}
+            <span className="df-heroic-badge">
+              {dungeon.maxPlayers}-player {dungeon.instanceType}
+            </span>
+            {dungeon.isNewInForever && <span className="df-heroic-badge">New in Forever</span>}
+            {opens && <span className="df-heroic-badge">{opens}</span>}
+          </div>
+          <p className="df-card-summary">{dungeon.summary}</p>
+          <div className="df-card-meta">
+            <span>🗡 {dungeon.groupComp.tank} Tank</span>
+            <span>💚 {dungeon.groupComp.healer} Healer</span>
+            <span>⚔️ {dungeon.groupComp.dps} DPS</span>
+            {dungeon.estimatedTimeMinutes != null && <span>⏱ ~{dungeon.estimatedTimeMinutes}m</span>}
+          </div>
+          {dungeon.requirement && <div className="df-card-special">{dungeon.requirement}</div>}
+          {!dungeon.requirement && dungeon.specialMechanic && (
+            <div className="df-card-special">{dungeon.specialMechanic}</div>
+          )}
+          {label && (
+            <div className={`df-requires-pill${status === 'no-xp' ? ' df-requires-pill--open' : ''}`}>
+              {label}
+            </div>
+          )}
+        </div>
+      </div>
+    </Link>
   )
 }

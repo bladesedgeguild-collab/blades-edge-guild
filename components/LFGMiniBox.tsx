@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { DUNGEONS } from '@/data/dungeons/index'
+import { DUNGEONS, getDungeon } from '@/data/dungeons/index'
+import { memberName, needsSummary, normalizeGroup as sharedGroup, resolveNeeds } from '@/lib/lfg-group'
+import { formatRange, SERVER_TIME_ZONE } from '@/lib/lfg-time'
 import { useIsMobile } from '@/hooks/useIsMobile'
 
 const DAY_MAP: Record<string, number> = {
@@ -92,34 +94,34 @@ type LFGPost = {
   time_start: string | null
   time_end: string | null
   notes: string | null
+  starts_at?: string | null
+  ends_at?: string | null
+  needs?: { tank: number; healer: number; dps: number } | null
   current_group: RawGroup
 }
 
 function normalizeGroup(group: RawGroup): NameGroup {
-  if (!group) return { tank: [], healer: [], dps: [] }
+  const shared = sharedGroup(group)
   return {
-    tank: Array.isArray(group.tank) ? group.tank : [],
-    healer: Array.isArray(group.healer) ? group.healer : [],
-    dps: Array.isArray(group.dps) ? group.dps : [],
+    tank: shared.tank.map(member => memberName(member)),
+    healer: shared.healer.map(member => memberName(member)),
+    dps: shared.dps.map(member => memberName(member)),
   }
 }
 
-function getNeedsText(group: RawGroup): string {
-  const g = normalizeGroup(group)
-  const needsTank = g.tank.length === 0
-  const needsHealer = g.healer.length === 0
-  const needsDPS = g.dps.length < 3
-  if (!needsTank && !needsHealer && !needsDPS) return 'Group is Full!'
-  const needs: string[] = []
-  if (needsTank) needs.push('Tank')
-  if (needsHealer) needs.push('Heals')
-  if (needsDPS) needs.push('DPS')
-  if (needs.length === 3) return 'Needs All.'
-  if (needs.length === 1) return `Need ${needs[0]} then GTG!`
-  return `Needs ${needs[0]} + ${needs[1]}.`
+function getNeedsText(post: LFGPost): string {
+  const dungeon = getDungeon(post.dungeon_slug) ?? DUNGEONS.find(item => item.id === post.dungeon_slug)
+  const fallback = dungeon
+    ? { tank: dungeon.groupComp.tank, healer: dungeon.groupComp.healer, dps: dungeon.groupComp.dps }
+    : { tank: 1, healer: 1, dps: 3 }
+  return needsSummary(resolveNeeds(post.needs, fallback), sharedGroup(post.current_group))
 }
 
 function formatWindow(post: LFGPost): string {
+  if (post.starts_at) {
+    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    return `${formatRange(post.starts_at, post.ends_at, zone)} · Server ${formatRange(post.starts_at, post.ends_at, SERVER_TIME_ZONE)}`
+  }
   const days = post.days_available?.length
     ? post.days_available.join(', ')
     : (post.days_available !== null && post.days_available !== undefined)
@@ -206,7 +208,7 @@ export default function LFGMiniBox({ title, columns = 3, maxRows = 2, maxItems, 
               <CalendarBadge daysAvailable={post.days_available} timeStart={post.time_start} />
               <span className="lfg-mini-dungeon">{formatDungeonName(post.dungeon_slug)}</span>
               <span className="lfg-mini-caller">{post.role} · {post.character_name}</span>
-              <span className="lfg-mini-needs">{getNeedsText(post.current_group)}</span>
+              <span className="lfg-mini-needs">{getNeedsText(post)}</span>
               {win && <span className="lfg-mini-window">{win}</span>}
               <span className="lfg-mini-view">View →</span>
             </div>
@@ -233,7 +235,7 @@ export default function LFGMiniBox({ title, columns = 3, maxRows = 2, maxItems, 
             <h2 className="lfg-hover-dungeon">{formatDungeonName(hoveredPost.dungeon_slug)}</h2>
             <p className="lfg-hover-meta">
               {hoveredPost.role} {hoveredPost.character_name} is seeking more.{' '}
-              <strong>{getNeedsText(hoveredPost.current_group)}</strong>
+              <strong>{getNeedsText(hoveredPost)}</strong>
             </p>
             <div className="lfg-hover-roles">
               <div className="lfg-roles-left">

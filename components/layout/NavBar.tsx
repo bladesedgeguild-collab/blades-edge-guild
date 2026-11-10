@@ -5,6 +5,7 @@ import { NavScrollGlow } from './NavScrollGlow'
 import { NavUserMenu } from './NavUserMenu'
 import { NavMobileMenu } from './NavMobileMenu'
 import { NavLinks } from './NavLinks'
+import { NotificationBell } from './NotificationBell'
 import { isOfficerRole } from '@/lib/officer'
 import { fullName } from '@/lib/names'
 
@@ -70,6 +71,7 @@ export async function NavBar() {
         {/* Desktop nav — hidden on mobile via .nav-desktop-links */}
         <div className="nav-desktop-links">
           <NavLinks isLoggedIn={!!user} isOfficer={isOfficer} />
+          {user && <NotificationBell />}
           {user && (
             <NavUserMenu
               displayName={displayName ?? ''}
