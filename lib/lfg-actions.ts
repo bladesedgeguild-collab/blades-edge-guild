@@ -61,6 +61,17 @@ export async function loadClaimedCharacter(admin: Admin, userId: string, charact
   return { ...fallback.data, roles: null } as ClaimedCharacter;
 }
 
+export async function hasAccepted(admin: Admin, lfgId: string, userId: string): Promise<boolean> {
+  const { data } = await admin
+    .from('dungeon_lfg_responses')
+    .select('id')
+    .eq('lfg_id', lfgId)
+    .eq('user_id', userId)
+    .eq('response', 'accepted')
+    .maybeSingle();
+  return !!data;
+}
+
 export function characterCanPlay(character: ClaimedCharacter, role: LfgRole): boolean {
   return effectiveRoles(character.class, character.roles).includes(role);
 }

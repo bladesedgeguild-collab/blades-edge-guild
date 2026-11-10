@@ -3,11 +3,13 @@ import { getDungeon } from '@/data/dungeons/index'
 import {
   characterCanPlay,
   groupIsFull,
+  hasAccepted,
   loadClaimedCharacter,
   notifyJoin,
   placeInGroup,
   toMember,
 } from '@/lib/lfg-actions'
+import { levelFit } from '@/lib/level-fit'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { createClient } from '@/lib/supabase/server'
 import { roleLabel, type RoleKey } from '@/lib/roles'
@@ -42,6 +44,14 @@ export async function PATCH(
     .maybeSingle()
   if (!post) return NextResponse.json({ error: 'Post not found or expired' }, { status: 404 })
   if (post.user_id === user.id) return NextResponse.json({ error: 'You are already in this call.' }, { status: 400 })
+  if (await hasAccepted(admin, id, user.id)) {
+    return NextResponse.json({ error: 'You already joined this group.' }, { status: 409 })
+  }
+  const target = getDungeon(post.dungeon_slug)
+  if (!target) return NextResponse.json({ error: 'Unknown dungeon.' }, { status: 400 })
+  if (levelFit(target, character.level) !== 'active') {
+    return NextResponse.json({ error: 'That character is outside the level range for this call.' }, { status: 400 })
+  }
 
   const member = toMember(character)
   const placed = await placeInGroup(admin, post, role, member)

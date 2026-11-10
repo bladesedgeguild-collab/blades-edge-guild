@@ -3,6 +3,7 @@ import { getDungeon } from '@/data/dungeons/index'
 import {
   characterCanPlay,
   groupIsFull,
+  hasAccepted,
   loadClaimedCharacter,
   notifyJoin,
   placeInGroup,
@@ -48,6 +49,10 @@ export async function POST(req: Request) {
     )
     if (saved.error) return NextResponse.json({ error: 'Failed to record response' }, { status: 500 })
     return NextResponse.json({ ok: true })
+  }
+
+  if (await hasAccepted(admin, body.lfgId, user.id)) {
+    return NextResponse.json({ error: 'You already joined this group.' }, { status: 409 })
   }
 
   if (!body.characterId || !body.role) {
