@@ -153,10 +153,21 @@
   border-color: rgba(201, 150, 26, 0.5);
 }
 
+.df-card--active {
+  border-color: rgba(26, 255, 110, 0.55);
+  box-shadow: inset 0 0 0 1px rgba(26, 255, 110, 0.15);
+}
+
 .df-card--outleveled,
 .df-card--locked {
   opacity: 0.42;
   filter: grayscale(0.65);
+}
+
+.df-card--no-xp,
+.df-card--underleveled {
+  opacity: 1;
+  filter: none;
 }
 
 .df-card--outleveled:hover,
@@ -258,6 +269,38 @@
   padding: 0.3rem 0.85rem;
   border-radius: 999px;
   margin-top: 0.5rem;
+}
+
+.df-requires-pill--open {
+  background: transparent;
+  color: var(--be-ink, #f0e6c8);
+  border: 1px solid rgba(201, 150, 26, 0.7);
+}
+
+.dd-requirement,
+.lfg-xp-warning,
+.lfg-server-hint {
+  font-family: 'Spectral', serif;
+  line-height: 1.45;
+}
+
+.dd-requirement {
+  margin-top: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid rgba(201, 150, 26, 0.45);
+  border-radius: 8px;
+  color: var(--be-ink, #f0e6c8);
+}
+
+.lfg-xp-warning {
+  color: #e2b657;
+  margin: 0.6rem 0;
+}
+
+.lfg-server-hint {
+  display: block;
+  color: var(--be-muted, #8a7a5a);
+  font-size: 0.85rem;
 }
 
 /* ── Dungeon Detail Page ── */

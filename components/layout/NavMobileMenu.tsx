@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
+import { NotificationBell } from './NotificationBell'
 
 interface NavMobileMenuProps {
   isLoggedIn: boolean
@@ -38,7 +39,8 @@ export function NavMobileMenu({ isLoggedIn, isOfficer, displayName, charColor, a
   }
 
   return (
-    <div ref={ref} className="nav-mobile-wrapper">
+    <div ref={ref} className="nav-mobile-wrapper" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      {isLoggedIn && <NotificationBell />}
       <button
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? 'Close menu' : 'Open menu'}

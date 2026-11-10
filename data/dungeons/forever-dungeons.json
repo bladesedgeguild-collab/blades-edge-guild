@@ -1,0 +1,1956 @@
+{
+  "generatedAt": "2026-11-09",
+  "game": "World of Warcraft: Forever",
+  "levelCap": 60,
+  "clientBuild": "1.60.1.70862 (per Endgame Tools / WowForeverTalents)",
+  "notes": [
+    "recommendedLevelMin/Max = Blizzard's official range for the 9 new dungeons and the client Group Finder range (via Endgame Tools) for original dungeons.",
+    "minLevel = the door's entry level read from the client by WowForeverTalents; for the 9 new dungeons the door level is not readable so it equals the Blizzard minimum.",
+    "Raids are listed with availableNow=false until Dec 9, 2026.",
+    "Not included: Demon Fall Canyon, Karazhan Crypts, Manor Mistmantle and the old 40/20-player raids (Molten Core, BWL, ZG, AQ, Naxx). They exist in client data but Blizzard has not opened or announced them."
+  ],
+  "sources": {
+    "bz_dungeons": "https://news.blizzard.com/en-us/article/24301455/explore-the-new-dungeons-of-world-of-warcraft-forever",
+    "bz_new": "https://news.blizzard.com/en-us/article/24315821/wow-foreverwhats-new-and-what-feels-familiar",
+    "bz_raids": "https://news.blizzard.com/en-us/article/24303009/world-of-warcraft-forever-raid-overviewlocations-raid-sizes-and-attunement",
+    "bz_xp": "https://eu.forums.blizzard.com/en/wow/t/dungeon-enemy-xp-increased-8-november/640598",
+    "wh": "https://www.wowhead.com/forever/guide/dungeons-overview-locations-details",
+    "egt": "https://endgametools.com/en/wow-forever/dungeons",
+    "egt_news": "https://endgametools.com/en/wow-forever/news/wow-forever-new-dungeons-raids",
+    "wft": "https://wowforevertalents.com/dungeons/",
+    "wt": "https://www.warcrafttavern.com/forever/guides/dungeons/",
+    "bof": "https://bindonforever.com/articles/dungeon-levels-group-finder-vs-blizzard"
+  },
+  "dungeons": [
+    {
+      "factionFocus": "Alliance",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": true,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Door entry level not readable from client; set to 13 (Group Finder minimum).",
+        "Wowhead names boss 2 'Magmatus'; the client and Endgame Tools say 'Infurnus'."
+      ],
+      "id": "hall-of-thanes",
+      "name": "The Hall of Thanes",
+      "shortName": "HoT",
+      "continent": "Eastern Kingdoms",
+      "zone": "Ironforge (beneath, Dun Morogh)",
+      "hub": "Ironforge",
+      "minLevel": 13,
+      "recommendedLevelMin": 13,
+      "recommendedLevelMax": 18,
+      "groupFinderRange": [
+        13,
+        20
+      ],
+      "estimatedTimeMinutes": null,
+      "summary": "Brand-new Forever dungeon under Ironforge, where the dwarven kings are buried. Dark Iron intruders have broken in and the dead are restless.",
+      "specialMechanic": "Entrance is inside Ironforge itself (about 27.8, 47.9), so Alliance groups can walk in from the capital.",
+      "bosses": [
+        "Faldrim Anvilmar",
+        "Infurnus",
+        "Plunder",
+        "Durgen Dirgehammer"
+      ],
+      "tips": [
+        "Our home-turf starter dungeon. Grab the quests in Ironforge first (An Ancient Grudge, Important Heirlooms, The Restless Dead).",
+        "Horde have to trek through Alliance land to get here, so expect mostly Alliance groups."
+      ],
+      "tags": [
+        "forever-new",
+        "alliance",
+        "leveling"
+      ],
+      "sourceStatus": "source-checked",
+      "sources": [
+        "https://news.blizzard.com/en-us/article/24301455/explore-the-new-dungeons-of-world-of-warcraft-forever",
+        "https://www.wowhead.com/forever/guide/dungeons-overview-locations-details",
+        "https://endgametools.com/en/wow-forever/dungeons/hall-of-thanes"
+      ],
+      "existingId": null,
+      "wings": null
+    },
+    {
+      "factionFocus": "Horde",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": true,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Door entry level not readable from client; set to 15 (Group Finder minimum)."
+      ],
+      "id": "ruins-of-lordaeron",
+      "name": "Ruins of Lordaeron",
+      "shortName": "RoL",
+      "continent": "Eastern Kingdoms",
+      "zone": "Tirisfal Glades",
+      "hub": null,
+      "minLevel": 15,
+      "recommendedLevelMin": 15,
+      "recommendedLevelMax": 20,
+      "groupFinderRange": [
+        15,
+        22
+      ],
+      "estimatedTimeMinutes": null,
+      "summary": "New Forever dungeon in the ruined capital above the Undercity. The Forsaken are reclaiming it, the Scourge still haunts it, and a necromancer is gathering power.",
+      "specialMechanic": "Horde-side entrance (about 63.4, 67.4 in Tirisfal). Alliance can enter but must travel deep into Horde territory, and Alliance has fewer quests here.",
+      "bosses": [
+        "Witherfang",
+        "The Butcher",
+        "Viktor the Vile",
+        "The Abandoned",
+        "Bjork",
+        "Rath'mael",
+        "Lordaeron Captain (rare)"
+      ],
+      "tips": [
+        "For us this is a road trip into Horde land on a Roleplaying realm; plan the route together.",
+        "Hall of Thanes covers the same levels much closer to home."
+      ],
+      "tags": [
+        "forever-new",
+        "horde-side",
+        "leveling"
+      ],
+      "sourceStatus": "source-checked",
+      "sources": [
+        "https://news.blizzard.com/en-us/article/24301455/explore-the-new-dungeons-of-world-of-warcraft-forever",
+        "https://www.wowhead.com/forever/guide/dungeons-overview-locations-details",
+        "https://endgametools.com/en/wow-forever/dungeons/ruins-of-lordaeron"
+      ],
+      "existingId": null,
+      "wings": null
+    },
+    {
+      "factionFocus": "Alliance",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": true,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Level range conflict: Blizzard article 24-29 (Oct 20) vs Blizzard beta notes 26-31 vs client Group Finder 26-33. Recommend 26-31 for graying if Aaron prefers the in-game numbers."
+      ],
+      "id": "excavation-site-wetlands",
+      "name": "Excavation Site: Wetlands",
+      "shortName": "ESW",
+      "continent": "Eastern Kingdoms",
+      "zone": "Wetlands",
+      "hub": "Menethil Harbor",
+      "minLevel": 24,
+      "recommendedLevelMin": 24,
+      "recommendedLevelMax": 29,
+      "groupFinderRange": [
+        26,
+        33
+      ],
+      "estimatedTimeMinutes": null,
+      "summary": "New Forever dungeon above Whelgar's Excavation near Thelgen Rock and Dun Algaz. A strange mist, titan constructs and raptors guard a place frozen in time.",
+      "specialMechanic": "New roads lead up to it (entrance about 47.7, 56.2 in Wetlands).",
+      "bosses": [
+        "Saltspine",
+        "Shadetooth",
+        "Highland Horror",
+        "Relic Guardian"
+      ],
+      "tips": [
+        "Alliance quests come from the Wetlands, for example Highland Hides for James Halloran in Menethil Harbor.",
+        "Blizzard's beta notes moved this to 26-31 and the Group Finder lists 26-33; if you are 24-25 expect a tough run."
+      ],
+      "tags": [
+        "forever-new",
+        "leveling"
+      ],
+      "sourceStatus": "source-checked",
+      "sources": [
+        "https://news.blizzard.com/en-us/article/24301455/explore-the-new-dungeons-of-world-of-warcraft-forever",
+        "https://www.wowhead.com/forever/guide/dungeons-overview-locations-details",
+        "https://endgametools.com/en/wow-forever/dungeons/excavation-site-wetlands",
+        "https://bindonforever.com/articles/dungeon-levels-group-finder-vs-blizzard"
+      ],
+      "existingId": null,
+      "wings": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": true,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Boss list differs slightly across sources (Wowhead also lists Arcanic Enigma; Endgame Tools says 9 bosses)."
+      ],
+      "id": "city-of-dalaran",
+      "name": "City of Dalaran",
+      "shortName": "CoD",
+      "continent": "Eastern Kingdoms",
+      "zone": "Alterac Mountains",
+      "hub": "Southshore",
+      "minLevel": 28,
+      "recommendedLevelMin": 28,
+      "recommendedLevelMax": 33,
+      "groupFinderRange": [
+        28,
+        35
+      ],
+      "estimatedTimeMinutes": null,
+      "summary": "New Forever dungeon. The barrier over Dalaran has fallen and the restored city is in arcane chaos: backfiring enchantments and runaway constructs.",
+      "specialMechanic": "Attunement required. Alliance starts with 'An Alarming Request' from Emissary Jacques in Southshore. You enter through the sewers and pick between several paths.",
+      "bosses": [
+        "Atrexis the Grave Knight",
+        "Mana Devourer",
+        "Arcane Anomaly",
+        "Mana Elemental",
+        "Unstable Sentinel",
+        "Fel Ancient",
+        "Shade of the Archmage",
+        "Lyn the Ignored (rare)"
+      ],
+      "tips": [
+        "Do the attunement chain before you post a group, or you will be stuck at the door.",
+        "Multiple routes inside, so agree on the route before the first pull."
+      ],
+      "tags": [
+        "forever-new",
+        "attunement",
+        "multi-path",
+        "leveling"
+      ],
+      "sourceStatus": "source-checked",
+      "sources": [
+        "https://news.blizzard.com/en-us/article/24301455/explore-the-new-dungeons-of-world-of-warcraft-forever",
+        "https://www.wowhead.com/forever/guide/dungeons-overview-locations-details",
+        "https://endgametools.com/en/wow-forever/dungeons/city-of-dalaran"
+      ],
+      "existingId": null,
+      "wings": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": true,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Boss order is from the DungeonJournal addon (player-maintained); client files still encrypted.",
+        "Warcraft Tavern lists the in-game LFG range as 35-42."
+      ],
+      "id": "drowned-city",
+      "name": "The Drowned City",
+      "shortName": "DC",
+      "continent": "Eastern Kingdoms",
+      "zone": "Stranglethorn Vale (off the coast, west of Grom'gol)",
+      "hub": "Booty Bay",
+      "minLevel": 35,
+      "recommendedLevelMin": 35,
+      "recommendedLevelMax": 40,
+      "groupFinderRange": null,
+      "estimatedTimeMinutes": null,
+      "summary": "New Forever dungeon. Ancient troll ruins have risen from the sea; trolls and naga roam the streets next to a wrecked pirate ship.",
+      "specialMechanic": "Dive underwater to find the entrance. It is open-air inside and the weather builds into a full storm before the last boss.",
+      "bosses": [
+        "Zul'Alai",
+        "Var'Taka",
+        "Captain Dreadrise",
+        "Deathless Marrow",
+        "Gill",
+        "Min'loth the Serpent"
+      ],
+      "tips": [
+        "Bring water breathing or know your breath bar for the swim in.",
+        "The entrance is near Grom'gol, a Horde camp; watch out on the way."
+      ],
+      "tags": [
+        "forever-new",
+        "leveling",
+        "outdoor"
+      ],
+      "sourceStatus": "draft",
+      "sources": [
+        "https://news.blizzard.com/en-us/article/24301455/explore-the-new-dungeons-of-world-of-warcraft-forever",
+        "https://www.wowhead.com/forever/guide/dungeons-overview-locations-details",
+        "https://endgametools.com/en/wow-forever/dungeons/drowned-city",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "existingId": null,
+      "wings": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": true,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Riverglades location described by Wowhead as the eastern coast of the Eastern Kingdoms; not stated by Blizzard.",
+        "WowForeverTalents lists 10 players; Blizzard says five-player. Using 5.",
+        "Warcraft Tavern lists in-game LFG range 40-47."
+      ],
+      "id": "kroldok-stronghold",
+      "name": "Krol'dok Stronghold",
+      "shortName": "KDS",
+      "continent": "Eastern Kingdoms",
+      "zone": "Riverglades",
+      "hub": "Farholde Keep",
+      "minLevel": 40,
+      "recommendedLevelMin": 40,
+      "recommendedLevelMax": 45,
+      "groupFinderRange": null,
+      "estimatedTimeMinutes": null,
+      "summary": "New Forever dungeon in the new Riverglades zone. Ogre raiders have been kidnapping travelers; follow them into a sprawling fortress of workshops, camps and guarded halls.",
+      "specialMechanic": "Large fortress with interior passages; Twilight's Hammer cultists are mixed in with the ogres.",
+      "bosses": [
+        "Slavecrusher Grox",
+        "Twilight Commander Zarmok",
+        "War Handler Ashka",
+        "Nar'gurk",
+        "Bossman Toof",
+        "Overlord Mugg"
+      ],
+      "tips": [
+        "Alliance quest 'Eye of Mugg' comes from Commander Demar Brant at Farholde Keep in the Riverglades.",
+        "Listen for the chanting after dark; the story quests tie into it."
+      ],
+      "tags": [
+        "forever-new",
+        "leveling"
+      ],
+      "sourceStatus": "draft",
+      "sources": [
+        "https://news.blizzard.com/en-us/article/24301455/explore-the-new-dungeons-of-world-of-warcraft-forever",
+        "https://www.wowhead.com/forever/guide/dungeons-overview-locations-details",
+        "https://endgametools.com/en/wow-forever/dungeons/kroldok-stronghold"
+      ],
+      "existingId": null,
+      "wings": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": true,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Quest giver not confirmed. Warcraft Tavern lists in-game LFG range 48-55."
+      ],
+      "id": "alcaz-prison",
+      "name": "Alcaz Prison",
+      "shortName": "Alcaz",
+      "continent": "Kalimdor",
+      "zone": "Dustwallow Marsh (Alcaz Island)",
+      "hub": "Theramore",
+      "minLevel": 48,
+      "recommendedLevelMin": 48,
+      "recommendedLevelMax": 53,
+      "groupFinderRange": null,
+      "estimatedTimeMinutes": null,
+      "summary": "New Forever dungeon. The long-sealed prison on Alcaz Island is finally open, with the Defias Brotherhood and naga fighting inside, and rumors of King Varian's captivity.",
+      "specialMechanic": "Island off the northeast corner of Dustwallow Marsh, near Theramore.",
+      "bosses": [
+        "Overseer Wrex",
+        "The Questioner",
+        "Tidemistress Ca'zass",
+        "Katerina the Cleaner",
+        "Blazeroar"
+      ],
+      "tips": [
+        "Big story dungeon for Alliance fans; the Varian mystery runs through it.",
+        "Alliance quest 'The Dragon's Journal' reportedly starts in Dalaran."
+      ],
+      "tags": [
+        "forever-new",
+        "alliance-story",
+        "leveling"
+      ],
+      "sourceStatus": "draft",
+      "sources": [
+        "https://news.blizzard.com/en-us/article/24301455/explore-the-new-dungeons-of-world-of-warcraft-forever",
+        "https://www.wowhead.com/forever/guide/dungeons-overview-locations-details",
+        "https://endgametools.com/en/wow-forever/dungeons/alcaz-prison"
+      ],
+      "existingId": null,
+      "wings": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": true,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Boss list from player addon; WowForeverTalents counts 7."
+      ],
+      "id": "blackmaw-hold",
+      "name": "Blackmaw Hold",
+      "shortName": "BMH",
+      "continent": "Kalimdor",
+      "zone": "Azshara (behind the Furbolg Gates, north)",
+      "hub": null,
+      "minLevel": 55,
+      "recommendedLevelMin": 55,
+      "recommendedLevelMax": 60,
+      "groupFinderRange": null,
+      "estimatedTimeMinutes": null,
+      "summary": "New Forever max-level dungeon. A great furbolg city behind a long-sealed gate, fighting a corruption that spreads through its groves and tunnels.",
+      "specialMechanic": "Large, with multiple routes. One entrance to the Barrow Deeps raid (opens Dec 9) is inside Blackmaw Hold.",
+      "bosses": [
+        "Impaan the Imprisoner",
+        "Bonesnout the Unbroken",
+        "Moontouched Wanderer",
+        "Withermaw",
+        "Elder Shaman Bloodmane",
+        "Blackmaw Behemoth",
+        "Unbound Spirit",
+        "Varrox Bleakhoof"
+      ],
+      "tips": [
+        "Alliance druid-flavored quest 'Get to the Roots of It' comes from Mathrengyl Bearwalker in Darnassus.",
+        "Great pre-raid stop for the Dec 9 raids."
+      ],
+      "tags": [
+        "forever-new",
+        "endgame",
+        "pre-raid",
+        "multi-path"
+      ],
+      "sourceStatus": "draft",
+      "sources": [
+        "https://news.blizzard.com/en-us/article/24301455/explore-the-new-dungeons-of-world-of-warcraft-forever",
+        "https://news.blizzard.com/en-us/article/24303009/world-of-warcraft-forever-raid-overviewlocations-raid-sizes-and-attunement",
+        "https://www.wowhead.com/forever/guide/dungeons-overview-locations-details",
+        "https://endgametools.com/en/wow-forever/dungeons/blackmaw-hold"
+      ],
+      "existingId": null,
+      "wings": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": true,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Group Finder level 60 per WowForeverTalents vs Blizzard 58-60."
+      ],
+      "id": "shapers-terrace",
+      "name": "The Shaper's Terrace",
+      "shortName": "Terrace",
+      "continent": "Kalimdor",
+      "zone": "Un'Goro Crater (northern hills)",
+      "hub": "Marshal's Refuge",
+      "minLevel": 58,
+      "recommendedLevelMin": 58,
+      "recommendedLevelMax": 60,
+      "groupFinderRange": null,
+      "estimatedTimeMinutes": null,
+      "summary": "New Forever max-level dungeon. An ancient titan facility above Un'Goro with dinosaurs, tar pits and powerful crystals.",
+      "specialMechanic": "Bring power crystals gathered around Un'Goro; consoles inside the terrace use them.",
+      "bosses": [
+        "Titanosaur",
+        "Venomridge",
+        "Thunderhoof",
+        "Direhorn Matriarch",
+        "Bolt",
+        "Vitrix",
+        "Izha'Rel and Tor'Rel",
+        "Nanaya"
+      ],
+      "tips": [
+        "Farm Un'Goro power crystals before the run so the consoles work.",
+        "Group Finder reportedly only lists it at 60; treat 58-59 as a stretch."
+      ],
+      "tags": [
+        "forever-new",
+        "endgame",
+        "pre-raid"
+      ],
+      "sourceStatus": "draft",
+      "sources": [
+        "https://news.blizzard.com/en-us/article/24301455/explore-the-new-dungeons-of-world-of-warcraft-forever",
+        "https://www.wowhead.com/forever/guide/dungeons-overview-locations-details",
+        "https://endgametools.com/en/wow-forever/dungeons/shapers-terrace",
+        "https://wowforevertalents.com/dungeons/"
+      ],
+      "existingId": null,
+      "wings": null
+    },
+    {
+      "factionFocus": "Horde",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": false,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Recommend hiding from the Alliance list (keep in data).",
+        "Tips are from original Classic; Blizzard says encounters stay authentic but loot and quest XP were refreshed."
+      ],
+      "id": "ragefire-chasm",
+      "name": "Ragefire Chasm",
+      "shortName": "RFC",
+      "continent": "Kalimdor",
+      "zone": "Orgrimmar",
+      "hub": null,
+      "minLevel": 10,
+      "recommendedLevelMin": 13,
+      "recommendedLevelMax": 18,
+      "summary": "Horde starter dungeon beneath Orgrimmar.",
+      "specialMechanic": "The in-game Group Finder lists it for Horde only.",
+      "tips": [
+        "Not practical for Alliance; Hall of Thanes is our 13-18 pick."
+      ],
+      "tags": [
+        "classic",
+        "horde"
+      ],
+      "sourceStatus": "source-checked",
+      "existingId": "ragefire-chasm",
+      "wings": null,
+      "estimatedTimeMinutes": 20,
+      "sources": [
+        "https://endgametools.com/en/wow-forever/dungeons/ragefire-chasm",
+        "https://wowforevertalents.com/dungeons/",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": false,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Tips are from original Classic; Blizzard says encounters stay authentic but loot and quest XP were refreshed."
+      ],
+      "id": "wailing-caverns",
+      "name": "Wailing Caverns",
+      "shortName": "WC",
+      "continent": "Kalimdor",
+      "zone": "The Barrens",
+      "hub": "Ratchet",
+      "minLevel": 10,
+      "recommendedLevelMin": 15,
+      "recommendedLevelMax": 24,
+      "summary": "Winding cave system in The Barrens full of Druids of the Fang and deviate beasts.",
+      "specialMechanic": "Long, maze-like caverns; escort Disciple of Naralex at the end.",
+      "tips": [
+        "Grab Deviate Hides from Nalpak (Blizzard's own Nov 8 shout-out).",
+        "Bring a map addon; it is easy to get lost."
+      ],
+      "tags": [
+        "classic",
+        "leveling"
+      ],
+      "sourceStatus": "source-checked",
+      "existingId": "wailing-caverns",
+      "wings": null,
+      "estimatedTimeMinutes": 60,
+      "sources": [
+        "https://endgametools.com/en/wow-forever/dungeons/wailing-caverns",
+        "https://wowforevertalents.com/dungeons/",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Alliance",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": false,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Ranges disagree: Group Finder level 16 (WowForeverTalents), 17-26 (Endgame Tools), 18-23 (Wowhead).",
+        "Tips are from original Classic; Blizzard says encounters stay authentic but loot and quest XP were refreshed."
+      ],
+      "id": "deadmines",
+      "name": "The Deadmines",
+      "shortName": "DM",
+      "continent": "Eastern Kingdoms",
+      "zone": "Westfall",
+      "hub": "Sentinel Hill",
+      "minLevel": 10,
+      "recommendedLevelMin": 17,
+      "recommendedLevelMax": 26,
+      "summary": "Classic Alliance dungeon in Westfall. Fight through Edwin VanCleef's Defias crew down to their hidden pirate ship.",
+      "specialMechanic": "Entrance is through the Moonbrook mine.",
+      "tips": [
+        "Grab Red Silk Bandanas and the Sentinel Hill quests first.",
+        "Quest XP here is big in Forever; do the chain."
+      ],
+      "tags": [
+        "classic",
+        "alliance",
+        "leveling"
+      ],
+      "sourceStatus": "source-checked",
+      "existingId": "deadmines",
+      "wings": null,
+      "estimatedTimeMinutes": 50,
+      "sources": [
+        "https://endgametools.com/en/wow-forever/dungeons/deadmines",
+        "https://wowforevertalents.com/dungeons/",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": false,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Range: 20-30 Endgame Tools, 22-30 Wowhead/Mobalytics.",
+        "Tips are from original Classic; Blizzard says encounters stay authentic but loot and quest XP were refreshed."
+      ],
+      "id": "shadowfang-keep",
+      "name": "Shadowfang Keep",
+      "shortName": "SFK",
+      "continent": "Eastern Kingdoms",
+      "zone": "Silverpine Forest",
+      "hub": null,
+      "minLevel": 11,
+      "recommendedLevelMin": 20,
+      "recommendedLevelMax": 30,
+      "summary": "Archmage Arugal's haunted keep in Silverpine, full of worgen.",
+      "specialMechanic": "Horde-side zone; Alliance has to travel through Silverpine.",
+      "tips": [
+        "Missing from our old list; add it.",
+        "Watch for Arugal's worgen curse near the end."
+      ],
+      "tags": [
+        "classic",
+        "leveling",
+        "horde-side"
+      ],
+      "sourceStatus": "source-checked",
+      "existingId": null,
+      "wings": null,
+      "estimatedTimeMinutes": 45,
+      "sources": [
+        "https://endgametools.com/en/wow-forever/dungeons/shadowfang-keep",
+        "https://wowforevertalents.com/dungeons/",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": false,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Tips are from original Classic; Blizzard says encounters stay authentic but loot and quest XP were refreshed."
+      ],
+      "id": "blackfathom-deeps",
+      "name": "Blackfathom Deeps",
+      "shortName": "BFD",
+      "continent": "Kalimdor",
+      "zone": "Ashenvale",
+      "hub": "Auberdine",
+      "minLevel": 15,
+      "recommendedLevelMin": 24,
+      "recommendedLevelMax": 32,
+      "summary": "Flooded ruins in Ashenvale with a Twilight's Hammer and Old God twist.",
+      "specialMechanic": "Lots of swimming; light the shrine braziers before Aku'mai.",
+      "tips": [
+        "Quests from Auberdine and Ironforge (Knowledge in the Deeps).",
+        "Watch your breath bar on the underwater sections."
+      ],
+      "tags": [
+        "classic",
+        "leveling"
+      ],
+      "sourceStatus": "source-checked",
+      "existingId": "blackfathom-deeps",
+      "wings": null,
+      "estimatedTimeMinutes": 60,
+      "sources": [
+        "https://endgametools.com/en/wow-forever/dungeons/blackfathom-deeps",
+        "https://wowforevertalents.com/dungeons/",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Alliance",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": false,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Range: 24-32 Endgame Tools vs 25-29 Warcraft Tavern vs 22-30 Wowhead.",
+        "Tips are from original Classic; Blizzard says encounters stay authentic but loot and quest XP were refreshed."
+      ],
+      "id": "stockades",
+      "name": "The Stockade",
+      "shortName": "Stocks",
+      "continent": "Eastern Kingdoms",
+      "zone": "Stormwind City",
+      "hub": "Stormwind City",
+      "minLevel": 15,
+      "recommendedLevelMin": 24,
+      "recommendedLevelMax": 32,
+      "summary": "Short dungeon inside Stormwind's prison during a Defias riot.",
+      "specialMechanic": "Group Finder lists it for Alliance only.",
+      "tips": [
+        "Quick run with bounty quests from Lakeshire and Darkshire.",
+        "Easy to pug since it is right in Stormwind."
+      ],
+      "tags": [
+        "classic",
+        "alliance",
+        "leveling",
+        "short"
+      ],
+      "sourceStatus": "source-checked",
+      "existingId": "stockades",
+      "wings": null,
+      "estimatedTimeMinutes": 25,
+      "sources": [
+        "https://endgametools.com/en/wow-forever/dungeons/stormwind-stockade",
+        "https://wowforevertalents.com/dungeons/",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Alliance",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": false,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Tips are from original Classic; Blizzard says encounters stay authentic but loot and quest XP were refreshed."
+      ],
+      "id": "gnomeregan",
+      "name": "Gnomeregan",
+      "shortName": "Gnomer",
+      "continent": "Eastern Kingdoms",
+      "zone": "Dun Morogh",
+      "hub": "Ironforge",
+      "minLevel": 19,
+      "recommendedLevelMin": 29,
+      "recommendedLevelMax": 38,
+      "summary": "The irradiated gnome capital. Dense trash and many quests.",
+      "specialMechanic": "Lots of quests (20 listed) make it worth the long clear.",
+      "tips": [
+        "Gather the quests in Ironforge and Dun Morogh first.",
+        "Entrance is in western Dun Morogh, a short ride from Ironforge."
+      ],
+      "tags": [
+        "classic",
+        "leveling"
+      ],
+      "sourceStatus": "source-checked",
+      "existingId": "gnomeregan",
+      "wings": null,
+      "estimatedTimeMinutes": 75,
+      "sources": [
+        "https://endgametools.com/en/wow-forever/dungeons/gnomeregan",
+        "https://wowforevertalents.com/dungeons/",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": false,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Client door level 25 is above its Group Finder level 24; treat as uncertain.",
+        "Tips are from original Classic; Blizzard says encounters stay authentic but loot and quest XP were refreshed."
+      ],
+      "id": "razorfen-kraul",
+      "name": "Razorfen Kraul",
+      "shortName": "RFK",
+      "continent": "Kalimdor",
+      "zone": "The Barrens",
+      "hub": null,
+      "minLevel": 25,
+      "recommendedLevelMin": 29,
+      "recommendedLevelMax": 38,
+      "summary": "Quillboar warren of thorns in the southern Barrens.",
+      "specialMechanic": "",
+      "tips": [
+        "Long ride for Alliance; plan a flight to Thousand Needles/Barrens."
+      ],
+      "tags": [
+        "classic",
+        "leveling"
+      ],
+      "sourceStatus": "source-checked",
+      "existingId": "razorfen-kraul",
+      "wings": null,
+      "estimatedTimeMinutes": 45,
+      "sources": [
+        "https://endgametools.com/en/wow-forever/dungeons/razorfen-kraul",
+        "https://wowforevertalents.com/dungeons/",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": false,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Key requirement for Armory/Cathedral is the Classic rule; not confirmed for Forever.",
+        "Tips are from original Classic; Blizzard says encounters stay authentic but loot and quest XP were refreshed."
+      ],
+      "id": "sm-graveyard",
+      "name": "Scarlet Monastery: Graveyard",
+      "shortName": "SM",
+      "continent": "Eastern Kingdoms",
+      "zone": "Tirisfal Glades",
+      "hub": null,
+      "minLevel": 20,
+      "recommendedLevelMin": 30,
+      "recommendedLevelMax": 38,
+      "summary": "One wing of the Scarlet Crusade's monastery in Tirisfal Glades.",
+      "specialMechanic": "Shortest wing; undead and Interrogator Vishas.",
+      "tips": [
+        "Each wing is its own run; chain wings as you level.",
+        "Horde-side zone; travel together."
+      ],
+      "tags": [
+        "classic",
+        "leveling",
+        "wing"
+      ],
+      "sourceStatus": "source-checked",
+      "existingId": "scarlet-monastery",
+      "wings": null,
+      "estimatedTimeMinutes": 35,
+      "sources": [
+        "https://endgametools.com/en/wow-forever/dungeons/scarlet-monastery",
+        "https://wowforevertalents.com/dungeons/",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": false,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Key requirement for Armory/Cathedral is the Classic rule; not confirmed for Forever.",
+        "Tips are from original Classic; Blizzard says encounters stay authentic but loot and quest XP were refreshed."
+      ],
+      "id": "sm-library",
+      "name": "Scarlet Monastery: Library",
+      "shortName": "SM",
+      "continent": "Eastern Kingdoms",
+      "zone": "Tirisfal Glades",
+      "hub": null,
+      "minLevel": 20,
+      "recommendedLevelMin": 33,
+      "recommendedLevelMax": 41,
+      "summary": "One wing of the Scarlet Crusade's monastery in Tirisfal Glades.",
+      "specialMechanic": "Arcanist Doan drops the key that opens Armory and Cathedral (Classic rule).",
+      "tips": [
+        "Each wing is its own run; chain wings as you level.",
+        "Horde-side zone; travel together."
+      ],
+      "tags": [
+        "classic",
+        "leveling",
+        "wing"
+      ],
+      "sourceStatus": "source-checked",
+      "existingId": "scarlet-monastery",
+      "wings": null,
+      "estimatedTimeMinutes": 35,
+      "sources": [
+        "https://endgametools.com/en/wow-forever/dungeons/scarlet-monastery",
+        "https://wowforevertalents.com/dungeons/",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": false,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Key requirement for Armory/Cathedral is the Classic rule; not confirmed for Forever.",
+        "Tips are from original Classic; Blizzard says encounters stay authentic but loot and quest XP were refreshed."
+      ],
+      "id": "sm-armory",
+      "name": "Scarlet Monastery: Armory",
+      "shortName": "SM",
+      "continent": "Eastern Kingdoms",
+      "zone": "Tirisfal Glades",
+      "hub": null,
+      "minLevel": 20,
+      "recommendedLevelMin": 36,
+      "recommendedLevelMax": 44,
+      "summary": "One wing of the Scarlet Crusade's monastery in Tirisfal Glades.",
+      "specialMechanic": "Herod's whirlwind is the classic wipe; spread out.",
+      "tips": [
+        "Each wing is its own run; chain wings as you level.",
+        "Horde-side zone; travel together."
+      ],
+      "tags": [
+        "classic",
+        "leveling",
+        "wing"
+      ],
+      "sourceStatus": "source-checked",
+      "existingId": "scarlet-monastery",
+      "wings": null,
+      "estimatedTimeMinutes": 35,
+      "sources": [
+        "https://endgametools.com/en/wow-forever/dungeons/scarlet-monastery",
+        "https://wowforevertalents.com/dungeons/",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": false,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Key requirement for Armory/Cathedral is the Classic rule; not confirmed for Forever.",
+        "Tips are from original Classic; Blizzard says encounters stay authentic but loot and quest XP were refreshed."
+      ],
+      "id": "sm-cathedral",
+      "name": "Scarlet Monastery: Cathedral",
+      "shortName": "SM",
+      "continent": "Eastern Kingdoms",
+      "zone": "Tirisfal Glades",
+      "hub": null,
+      "minLevel": 20,
+      "recommendedLevelMin": 38,
+      "recommendedLevelMax": 46,
+      "summary": "One wing of the Scarlet Crusade's monastery in Tirisfal Glades.",
+      "specialMechanic": "Mograine and Whitemane are fought together at the end.",
+      "tips": [
+        "Each wing is its own run; chain wings as you level.",
+        "Horde-side zone; travel together."
+      ],
+      "tags": [
+        "classic",
+        "leveling",
+        "wing"
+      ],
+      "sourceStatus": "source-checked",
+      "existingId": "scarlet-monastery",
+      "wings": null,
+      "estimatedTimeMinutes": 35,
+      "sources": [
+        "https://endgametools.com/en/wow-forever/dungeons/scarlet-monastery",
+        "https://wowforevertalents.com/dungeons/",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": false,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Blizzard beta notes opened it 'from level 25'; client door says 35. Uncertain.",
+        "Tips are from original Classic; Blizzard says encounters stay authentic but loot and quest XP were refreshed."
+      ],
+      "id": "razorfen-downs",
+      "name": "Razorfen Downs",
+      "shortName": "RFD",
+      "continent": "Kalimdor",
+      "zone": "The Barrens",
+      "hub": null,
+      "minLevel": 35,
+      "recommendedLevelMin": 37,
+      "recommendedLevelMax": 46,
+      "summary": "Quillboar necropolis taken over by the Scourge.",
+      "specialMechanic": "Gong event summons Tuten'kash.",
+      "tips": [
+        "Shen'dralas content in Forever gives new reasons to visit."
+      ],
+      "tags": [
+        "classic",
+        "leveling"
+      ],
+      "sourceStatus": "source-checked",
+      "existingId": "razorfen-downs",
+      "wings": null,
+      "estimatedTimeMinutes": 50,
+      "sources": [
+        "https://endgametools.com/en/wow-forever/dungeons/razorfen-downs",
+        "https://wowforevertalents.com/dungeons/",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": false,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Range: 41-51 Endgame Tools/Mobalytics vs 36-45 Warcraft Tavern earlier, 42-52 Wowhead.",
+        "Tips are from original Classic; Blizzard says encounters stay authentic but loot and quest XP were refreshed."
+      ],
+      "id": "uldaman",
+      "name": "Uldaman",
+      "shortName": "Ulda",
+      "continent": "Eastern Kingdoms",
+      "zone": "Badlands",
+      "hub": null,
+      "minLevel": 30,
+      "recommendedLevelMin": 41,
+      "recommendedLevelMax": 51,
+      "summary": "Ancient titan vault in the Badlands.",
+      "specialMechanic": "Long dungeon; Archaedas awakens his guardians in the final room.",
+      "tips": [
+        "Start the Lost Dwarves quests from Ironforge and Loch Modan first."
+      ],
+      "tags": [
+        "classic",
+        "leveling"
+      ],
+      "sourceStatus": "source-checked",
+      "existingId": "uldaman",
+      "wings": null,
+      "estimatedTimeMinutes": 75,
+      "sources": [
+        "https://endgametools.com/en/wow-forever/dungeons/uldaman",
+        "https://wowforevertalents.com/dungeons/",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": false,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Tips are from original Classic; Blizzard says encounters stay authentic but loot and quest XP were refreshed."
+      ],
+      "id": "zulfarrak",
+      "name": "Zul'Farrak",
+      "shortName": "ZF",
+      "continent": "Kalimdor",
+      "zone": "Tanaris",
+      "hub": "Gadgetzan",
+      "minLevel": 39,
+      "recommendedLevelMin": 44,
+      "recommendedLevelMax": 54,
+      "summary": "Sandfury troll city in Tanaris.",
+      "specialMechanic": "Stairs event: free the prisoners and hold the steps against waves of trolls.",
+      "tips": [
+        "Have the tank ready for the stairs pull; it is the big one."
+      ],
+      "tags": [
+        "classic",
+        "leveling"
+      ],
+      "sourceStatus": "source-checked",
+      "existingId": "zulfarrak",
+      "wings": null,
+      "estimatedTimeMinutes": 60,
+      "sources": [
+        "https://endgametools.com/en/wow-forever/dungeons/zulfarrak",
+        "https://wowforevertalents.com/dungeons/",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": false,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Wing ranges from Wowhead only; client lists Maraudon as one 46-55 instance.",
+        "Tips are from original Classic; Blizzard says encounters stay authentic but loot and quest XP were refreshed."
+      ],
+      "id": "maraudon",
+      "name": "Maraudon",
+      "shortName": "Mara",
+      "continent": "Kalimdor",
+      "zone": "Desolace",
+      "hub": null,
+      "minLevel": 25,
+      "recommendedLevelMin": 46,
+      "recommendedLevelMax": 55,
+      "summary": "Centaur holy site with three sections: Wicked Grotto (purple), Foulspore Cavern (orange) and Earth Song Falls.",
+      "specialMechanic": "Sections can be entered separately; Princess Theradras is at the end.",
+      "tips": [
+        "Shen'dralas content in Forever adds reasons to come back."
+      ],
+      "tags": [
+        "classic",
+        "leveling",
+        "multi-section"
+      ],
+      "sourceStatus": "source-checked",
+      "existingId": "maraudon",
+      "wings": [
+        {
+          "name": "Wicked Grotto",
+          "range": [
+            45,
+            53
+          ]
+        },
+        {
+          "name": "Foulspore Cavern",
+          "range": [
+            45,
+            53
+          ]
+        },
+        {
+          "name": "Earth Song Falls",
+          "range": [
+            48,
+            57
+          ]
+        }
+      ],
+      "estimatedTimeMinutes": 90,
+      "sources": [
+        "https://endgametools.com/en/wow-forever/dungeons/maraudon",
+        "https://wowforevertalents.com/dungeons/",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": false,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Tips are from original Classic; Blizzard says encounters stay authentic but loot and quest XP were refreshed."
+      ],
+      "id": "sunken-temple",
+      "name": "Temple of Atal'Hakkar",
+      "shortName": "ST",
+      "continent": "Eastern Kingdoms",
+      "zone": "Swamp of Sorrows",
+      "hub": null,
+      "minLevel": 45,
+      "recommendedLevelMin": 50,
+      "recommendedLevelMax": 60,
+      "summary": "Sunken troll temple in the Swamp of Sorrows.",
+      "specialMechanic": "Multi-level layout with a statue-order puzzle.",
+      "tips": [
+        "Fix: our old data put this in Kalimdor. It is in the Eastern Kingdoms."
+      ],
+      "tags": [
+        "classic",
+        "leveling"
+      ],
+      "sourceStatus": "source-checked",
+      "existingId": "sunken-temple",
+      "wings": null,
+      "estimatedTimeMinutes": 90,
+      "sources": [
+        "https://endgametools.com/en/wow-forever/dungeons/sunken-temple",
+        "https://wowforevertalents.com/dungeons/",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": false,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Tips are from original Classic; Blizzard says encounters stay authentic but loot and quest XP were refreshed."
+      ],
+      "id": "blackrock-depths",
+      "name": "Blackrock Depths",
+      "shortName": "BRD",
+      "continent": "Eastern Kingdoms",
+      "zone": "Searing Gorge / Burning Steppes (Blackrock Mountain)",
+      "hub": "Thorium Point",
+      "minLevel": 42,
+      "recommendedLevelMin": 52,
+      "recommendedLevelMax": 60,
+      "summary": "Huge Dark Iron city inside Blackrock Mountain, up to Emperor Thaurissan.",
+      "specialMechanic": "Many sections; most groups run targeted routes.",
+      "tips": [
+        "Part of the Alliance Onyxia attunement (Marshal Windsor chain).",
+        "Agree on the route before you go; a full clear is 2+ hours."
+      ],
+      "tags": [
+        "classic",
+        "pre-raid",
+        "attunement",
+        "long"
+      ],
+      "sourceStatus": "source-checked",
+      "existingId": "blackrock-depths",
+      "wings": null,
+      "estimatedTimeMinutes": 120,
+      "sources": [
+        "https://endgametools.com/en/wow-forever/dungeons/blackrock-depths",
+        "https://wowforevertalents.com/dungeons/",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": false,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Key rule is from Classic.",
+        "Tips are from original Classic; Blizzard says encounters stay authentic but loot and quest XP were refreshed."
+      ],
+      "id": "dire-maul-east",
+      "name": "Dire Maul: East",
+      "shortName": "DM",
+      "continent": "Kalimdor",
+      "zone": "Feralas",
+      "hub": "Feathermoon Stronghold",
+      "minLevel": 31,
+      "recommendedLevelMin": 54,
+      "recommendedLevelMax": 60,
+      "summary": "One wing of the ruined night elf city of Eldre'Thalas in Feralas.",
+      "specialMechanic": "Pusillin chase; he drops the Crescent Key for the other wings (Classic rule).",
+      "tips": [
+        "Feathermoon Stronghold has the Alliance quests."
+      ],
+      "tags": [
+        "classic",
+        "pre-raid",
+        "wing"
+      ],
+      "sourceStatus": "source-checked",
+      "existingId": "dire-maul",
+      "wings": null,
+      "estimatedTimeMinutes": 60,
+      "sources": [
+        "https://endgametools.com/en/wow-forever/dungeons/dire-maul",
+        "https://wowforevertalents.com/dungeons/",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": false,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Key rule is from Classic.",
+        "Tips are from original Classic; Blizzard says encounters stay authentic but loot and quest XP were refreshed."
+      ],
+      "id": "dire-maul-west",
+      "name": "Dire Maul: West",
+      "shortName": "DM",
+      "continent": "Kalimdor",
+      "zone": "Feralas",
+      "hub": "Feathermoon Stronghold",
+      "minLevel": 31,
+      "recommendedLevelMin": 56,
+      "recommendedLevelMax": 60,
+      "summary": "One wing of the ruined night elf city of Eldre'Thalas in Feralas.",
+      "specialMechanic": "Pylons around Immol'thar must be shut down first.",
+      "tips": [
+        "Feathermoon Stronghold has the Alliance quests."
+      ],
+      "tags": [
+        "classic",
+        "pre-raid",
+        "wing"
+      ],
+      "sourceStatus": "source-checked",
+      "existingId": "dire-maul",
+      "wings": null,
+      "estimatedTimeMinutes": 60,
+      "sources": [
+        "https://endgametools.com/en/wow-forever/dungeons/dire-maul",
+        "https://wowforevertalents.com/dungeons/",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": false,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Key rule is from Classic.",
+        "Tips are from original Classic; Blizzard says encounters stay authentic but loot and quest XP were refreshed."
+      ],
+      "id": "dire-maul-north",
+      "name": "Dire Maul: North",
+      "shortName": "DM",
+      "continent": "Kalimdor",
+      "zone": "Feralas",
+      "hub": "Feathermoon Stronghold",
+      "minLevel": 31,
+      "recommendedLevelMin": 56,
+      "recommendedLevelMax": 60,
+      "summary": "One wing of the ruined night elf city of Eldre'Thalas in Feralas.",
+      "specialMechanic": "Tribute run: leave the guards alive for a bonus chest from King Gordok.",
+      "tips": [
+        "Feathermoon Stronghold has the Alliance quests."
+      ],
+      "tags": [
+        "classic",
+        "pre-raid",
+        "wing"
+      ],
+      "sourceStatus": "source-checked",
+      "existingId": "dire-maul",
+      "wings": null,
+      "estimatedTimeMinutes": 60,
+      "sources": [
+        "https://endgametools.com/en/wow-forever/dungeons/dire-maul",
+        "https://wowforevertalents.com/dungeons/",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": false,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Tips are from original Classic; Blizzard says encounters stay authentic but loot and quest XP were refreshed."
+      ],
+      "id": "lower-blackrock-spire",
+      "name": "Lower Blackrock Spire",
+      "shortName": "LBRS",
+      "continent": "Eastern Kingdoms",
+      "zone": "Burning Steppes (Blackrock Mountain)",
+      "hub": "Morgan's Vigil",
+      "minLevel": 48,
+      "recommendedLevelMin": 55,
+      "recommendedLevelMax": 60,
+      "summary": "Lower half of Blackrock Spire, full of orcs and ogres.",
+      "specialMechanic": "",
+      "tips": [
+        "Pre-raid gear and the UBRS key chain in Classic."
+      ],
+      "tags": [
+        "classic",
+        "pre-raid"
+      ],
+      "sourceStatus": "source-checked",
+      "existingId": "lower-blackrock-spire",
+      "wings": null,
+      "estimatedTimeMinutes": 75,
+      "sources": [
+        "https://endgametools.com/en/wow-forever/dungeons/blackrock-spire",
+        "https://wowforevertalents.com/dungeons/",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 10,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": false,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Key requirement (Seal of Ascension) is the Classic rule, not confirmed.",
+        "Tips are from original Classic; Blizzard says encounters stay authentic but loot and quest XP were refreshed."
+      ],
+      "id": "upper-blackrock-spire",
+      "name": "Upper Blackrock Spire",
+      "shortName": "UBRS",
+      "continent": "Eastern Kingdoms",
+      "zone": "Burning Steppes (Blackrock Mountain)",
+      "hub": "Morgan's Vigil",
+      "minLevel": 48,
+      "recommendedLevelMin": 59,
+      "recommendedLevelMax": 60,
+      "summary": "Top of Blackrock Spire. General Drakkisath is here.",
+      "specialMechanic": "10-player wing (the client lists it at 10).",
+      "tips": [
+        "Everyone needs Drakkisath's blood for the Onyxia attunement before Dec 9.",
+        "Build a 10-person group; the guild matching should look for 2 tanks, 3 healers, 5 DPS."
+      ],
+      "tags": [
+        "classic",
+        "pre-raid",
+        "attunement",
+        "10-player"
+      ],
+      "sourceStatus": "source-checked",
+      "existingId": "upper-blackrock-spire",
+      "wings": null,
+      "estimatedTimeMinutes": 90,
+      "sources": [
+        "https://endgametools.com/en/wow-forever/dungeons/blackrock-spire",
+        "https://wowforevertalents.com/dungeons/",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": false,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Key rule from Classic.",
+        "Tips are from original Classic; Blizzard says encounters stay authentic but loot and quest XP were refreshed."
+      ],
+      "id": "scholomance",
+      "name": "Scholomance",
+      "shortName": "Scholo",
+      "continent": "Eastern Kingdoms",
+      "zone": "Western Plaguelands",
+      "hub": "Chillwind Camp",
+      "minLevel": 33,
+      "recommendedLevelMin": 58,
+      "recommendedLevelMax": 60,
+      "summary": "Necromancer school under Caer Darrow.",
+      "specialMechanic": "",
+      "tips": [
+        "Classic needed a Skeleton Key to enter; check before you go."
+      ],
+      "tags": [
+        "classic",
+        "pre-raid",
+        "long"
+      ],
+      "sourceStatus": "source-checked",
+      "existingId": "scholomance",
+      "wings": null,
+      "estimatedTimeMinutes": 90,
+      "sources": [
+        "https://endgametools.com/en/wow-forever/dungeons/scholomance",
+        "https://wowforevertalents.com/dungeons/",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": false,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Tips are from original Classic; Blizzard says encounters stay authentic but loot and quest XP were refreshed."
+      ],
+      "id": "stratholme-live",
+      "name": "Stratholme: Main Gate",
+      "shortName": "Strat Live",
+      "continent": "Eastern Kingdoms",
+      "zone": "Eastern Plaguelands",
+      "hub": "Light's Hope Chapel",
+      "minLevel": 37,
+      "recommendedLevelMin": 58,
+      "recommendedLevelMax": 60,
+      "summary": "Scarlet half of the burning city, up to Balnazzar.",
+      "specialMechanic": "",
+      "tips": [
+        "Run both gates for the full loot table."
+      ],
+      "tags": [
+        "classic",
+        "pre-raid",
+        "wing"
+      ],
+      "sourceStatus": "source-checked",
+      "existingId": "stratholme",
+      "wings": null,
+      "estimatedTimeMinutes": 75,
+      "sources": [
+        "https://endgametools.com/en/wow-forever/dungeons/stratholme",
+        "https://wowforevertalents.com/dungeons/",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 5,
+      "instanceType": "dungeon",
+      "groupComp": {
+        "tank": 1,
+        "healer": 1,
+        "dps": 3
+      },
+      "isNewInForever": false,
+      "availableNow": true,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Tips are from original Classic; Blizzard says encounters stay authentic but loot and quest XP were refreshed."
+      ],
+      "id": "stratholme-undead",
+      "name": "Stratholme: Service Gate",
+      "shortName": "Strat UD",
+      "continent": "Eastern Kingdoms",
+      "zone": "Eastern Plaguelands",
+      "hub": "Light's Hope Chapel",
+      "minLevel": 37,
+      "recommendedLevelMin": 58,
+      "recommendedLevelMax": 60,
+      "summary": "Undead half of Stratholme, up to Baron Rivendare.",
+      "specialMechanic": "Ziggurats must be cleared to open the Baron's gate.",
+      "tips": [
+        "Baron Rivendare's mount is the famous rare drop (Classic)."
+      ],
+      "tags": [
+        "classic",
+        "pre-raid",
+        "wing"
+      ],
+      "sourceStatus": "source-checked",
+      "existingId": "stratholme",
+      "wings": null,
+      "estimatedTimeMinutes": 75,
+      "sources": [
+        "https://endgametools.com/en/wow-forever/dungeons/stratholme",
+        "https://wowforevertalents.com/dungeons/",
+        "https://www.warcrafttavern.com/forever/guides/dungeons/"
+      ],
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 10,
+      "instanceType": "raid",
+      "groupComp": {
+        "tank": 2,
+        "healer": 2,
+        "dps": 6
+      },
+      "isNewInForever": true,
+      "availableNow": false,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Group composition numbers are a suggested default, not from Blizzard."
+      ],
+      "id": "barrow-deeps",
+      "name": "The Barrow Deeps",
+      "shortName": "The Barrow Deeps",
+      "continent": "Kalimdor",
+      "zone": "Mount Hyjal (entrances via Mount Hyjal, Winterspring and Blackmaw Hold)",
+      "hub": null,
+      "minLevel": 60,
+      "recommendedLevelMin": 60,
+      "recommendedLevelMax": 60,
+      "availableFrom": "2026-12-09",
+      "summary": "New 10-player raid: the prison that held Illidan for 10,000 years. 8 bosses.",
+      "specialMechanic": "No attunement. Brooch of the Wardens unlocks the Vord'anaar Prison section (per stillsixty, unverified).",
+      "tips": [
+        "Weekly reset. Opens Dec 9, 2026 (Blizzard has not given the hour)."
+      ],
+      "tags": [
+        "raid",
+        "endgame"
+      ],
+      "sourceStatus": "source-checked",
+      "estimatedTimeMinutes": null,
+      "sources": [
+        "https://news.blizzard.com/en-us/article/24303009/world-of-warcraft-forever-raid-overviewlocations-raid-sizes-and-attunement",
+        "https://endgametools.com/en/wow-forever/news/wow-forever-new-dungeons-raids"
+      ],
+      "existingId": null,
+      "wings": null,
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 20,
+      "instanceType": "raid",
+      "groupComp": {
+        "tank": 2,
+        "healer": 5,
+        "dps": 13
+      },
+      "isNewInForever": true,
+      "availableNow": false,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Group composition numbers are a suggested default, not from Blizzard."
+      ],
+      "id": "hyjal-summit",
+      "name": "Hyjal Summit",
+      "shortName": "Hyjal Summit",
+      "continent": "Kalimdor",
+      "zone": "Mount Hyjal, near Nordrassil",
+      "hub": null,
+      "minLevel": 60,
+      "recommendedLevelMin": 60,
+      "recommendedLevelMax": 60,
+      "availableFrom": "2026-12-09",
+      "summary": "New 20-player raid at the summit of Mount Hyjal. 13 bosses, opens with an ancient guardian, then branching paths.",
+      "specialMechanic": "No attunement.",
+      "tips": [
+        "Weekly reset. Opens Dec 9, 2026 (Blizzard has not given the hour)."
+      ],
+      "tags": [
+        "raid",
+        "endgame"
+      ],
+      "sourceStatus": "source-checked",
+      "estimatedTimeMinutes": null,
+      "sources": [
+        "https://news.blizzard.com/en-us/article/24303009/world-of-warcraft-forever-raid-overviewlocations-raid-sizes-and-attunement",
+        "https://endgametools.com/en/wow-forever/news/wow-forever-new-dungeons-raids"
+      ],
+      "existingId": null,
+      "wings": null,
+      "groupFinderRange": null
+    },
+    {
+      "factionFocus": "Both",
+      "difficulty": "normal",
+      "maxPlayers": 40,
+      "instanceType": "raid",
+      "groupComp": {
+        "tank": 3,
+        "healer": 10,
+        "dps": 27
+      },
+      "isNewInForever": false,
+      "availableNow": false,
+      "quests": [],
+      "loot": [],
+      "uncertain": [
+        "Group composition numbers are a suggested default, not from Blizzard."
+      ],
+      "id": "onyxias-lair",
+      "name": "Onyxia's Lair",
+      "shortName": "Onyxia's Lair",
+      "continent": "Kalimdor",
+      "zone": "Dustwallow Marsh",
+      "hub": null,
+      "minLevel": 60,
+      "recommendedLevelMin": 60,
+      "recommendedLevelMax": 60,
+      "availableFrom": "2026-12-09",
+      "summary": "Original 40-player raid, one boss in three phases.",
+      "specialMechanic": "Everyone needs the Drakefire Amulet in their bags (Alliance chain: Helendis Riverhorn, Burning Steppes; runs through BRD and UBRS). Bring fire resistance.",
+      "tips": [
+        "Weekly reset. Opens Dec 9, 2026 (Blizzard has not given the hour)."
+      ],
+      "tags": [
+        "raid",
+        "endgame"
+      ],
+      "sourceStatus": "source-checked",
+      "estimatedTimeMinutes": null,
+      "sources": [
+        "https://news.blizzard.com/en-us/article/24303009/world-of-warcraft-forever-raid-overviewlocations-raid-sizes-and-attunement",
+        "https://endgametools.com/en/wow-forever/news/wow-forever-new-dungeons-raids"
+      ],
+      "existingId": null,
+      "wings": null,
+      "groupFinderRange": null
+    }
+  ]
+}

@@ -1,316 +1,128 @@
-import { Dungeon } from './types';
+import type { Dungeon, DungeonBoss, DungeonContinent, DungeonDifficulty, InstanceType, SourceStatus } from './types';
+import catalog from './forever-dungeons.json' with { type: 'json' };
 
-const placeholder = (overrides: Partial<Dungeon> & Pick<Dungeon, 'id' | 'name' | 'shortName' | 'continent' | 'zone' | 'minLevel' | 'recommendedLevelMin' | 'recommendedLevelMax'>): Dungeon => ({
-  factionFocus: 'Both',
-  difficulty: 'both',
-  maxPlayers: 5,
-  estimatedTimeMinutes: 45,
-  summary: 'Full guide coming soon. Content is being sourced and verified.',
-  groupComp: { tank: 1, healer: 1, dps: 3 },
-  quests: [],
-  bosses: [],
-  loot: [],
-  tags: [],
-  sourceStatus: 'placeholder',
-  ...overrides,
-});
+type RawDungeon = {
+  id: string;
+  name: string;
+  shortName: string;
+  continent: DungeonContinent;
+  zone: string;
+  hub?: string | null;
+  factionFocus: Dungeon['factionFocus'];
+  minLevel: number;
+  recommendedLevelMin: number;
+  recommendedLevelMax: number;
+  groupFinderRange?: [number, number] | null;
+  difficulty: string;
+  maxPlayers: 5 | 10 | 20 | 40;
+  instanceType: InstanceType;
+  isNewInForever: boolean;
+  availableNow: boolean;
+  availableFrom?: string;
+  estimatedTimeMinutes: number | null;
+  summary: string;
+  specialMechanic?: string | null;
+  tips?: string[];
+  bosses?: string[];
+  uncertain?: string[];
+  sources?: string[];
+  tags?: string[];
+  groupComp: { tank: number; healer: number; dps: number; notes?: string };
+  quests?: Dungeon['quests'];
+  loot?: Dungeon['loot'];
+  sourceStatus?: SourceStatus;
+};
 
-export const DUNGEONS: Dungeon[] = [
-  // ── Eastern Kingdoms ───────────────────────────────────────────────────────
-  placeholder({
-    id: 'deadmines',
-    name: 'The Deadmines',
-    shortName: 'DM',
-    continent: 'Eastern Kingdoms',
-    zone: 'Westfall',
-    hub: 'Sentinel Hill',
-    factionFocus: 'Alliance',
-    minLevel: 10,
-    recommendedLevelMin: 15,
-    recommendedLevelMax: 21,
-    difficulty: 'normal',
-    estimatedTimeMinutes: 50,
-    summary: 'Classic Alliance dungeon in Westfall. Fight through Edwin VanCleef\'s pirate crew in the bowels of an old mine.',
-    tags: ['classic', 'alliance', 'leveling'],
-  }),
-  placeholder({
-    id: 'stockades',
-    name: 'The Stockade',
-    shortName: 'Stocks',
-    continent: 'Eastern Kingdoms',
-    zone: 'Stormwind City',
-    hub: 'Stormwind City',
-    factionFocus: 'Alliance',
-    minLevel: 15,
-    recommendedLevelMin: 24,
-    recommendedLevelMax: 32,
-    difficulty: 'normal',
-    estimatedTimeMinutes: 25,
-    summary: 'Short dungeon inside Stormwind\'s prison. Quick runs and easy bosses make this a popular leveling stop.',
-    tags: ['classic', 'alliance', 'leveling', 'short'],
-  }),
-  placeholder({
-    id: 'gnomeregan',
-    name: 'Gnomeregan',
-    shortName: 'Gnomer',
-    continent: 'Eastern Kingdoms',
-    zone: 'Dun Morogh',
-    hub: 'Ironforge',
-    minLevel: 19,
-    recommendedLevelMin: 24,
-    recommendedLevelMax: 33,
-    difficulty: 'normal',
-    estimatedTimeMinutes: 60,
-    summary: 'The irradiated gnome city. Dense with mobs and multiple bosses — worth it for the XP and gear.',
-    tags: ['classic', 'leveling'],
-  }),
-  placeholder({
-    id: 'scarlet-monastery',
-    name: 'Scarlet Monastery',
-    shortName: 'SM',
-    continent: 'Eastern Kingdoms',
-    zone: 'Tirisfal Glades',
-    minLevel: 21,
-    recommendedLevelMin: 28,
-    recommendedLevelMax: 45,
-    difficulty: 'normal',
-    estimatedTimeMinutes: 40,
-    summary: 'Four wings: Library, Graveyard, Armory, and Cathedral. Great gear and XP across a wide level range.',
-    specialMechanic: 'Four separate wings — can run each independently.',
-    tags: ['classic', 'leveling', 'multi-wing'],
-  }),
-  placeholder({
-    id: 'uldaman',
-    name: 'Uldaman',
-    shortName: 'Ulda',
-    continent: 'Eastern Kingdoms',
-    zone: 'Badlands',
-    minLevel: 30,
-    recommendedLevelMin: 35,
-    recommendedLevelMax: 45,
-    difficulty: 'normal',
-    estimatedTimeMinutes: 75,
-    summary: 'Ancient titan vault in the Badlands. Long dungeon with great quest rewards and pre-raid gear.',
-    tags: ['classic', 'leveling'],
-  }),
-  placeholder({
-    id: 'scholomance',
-    name: 'Scholomance',
-    shortName: 'Scholo',
-    continent: 'Eastern Kingdoms',
-    zone: 'Western Plaguelands',
-    minLevel: 48,
-    recommendedLevelMin: 55,
-    recommendedLevelMax: 60,
-    difficulty: 'normal',
-    estimatedTimeMinutes: 90,
-    summary: 'Necromancer school in the Plaguelands. Dense and challenging — great pre-raid loot.',
-    tags: ['classic', 'pre-raid', 'long'],
-  }),
-  placeholder({
-    id: 'stratholme',
-    name: 'Stratholme',
-    shortName: 'Strat',
-    continent: 'Eastern Kingdoms',
-    zone: 'Eastern Plaguelands',
-    minLevel: 48,
-    recommendedLevelMin: 55,
-    recommendedLevelMax: 60,
-    difficulty: 'normal',
-    estimatedTimeMinutes: 90,
-    summary: 'Plagued city with two sides: Live (Scarlet) and Undead (Baron). Run both for full loot tables.',
-    specialMechanic: 'Two sides: Scarlet and Undead. Baron Rivendare drop for mount rare.',
-    tags: ['classic', 'pre-raid', 'two-sides'],
-  }),
-  placeholder({
-    id: 'blackrock-depths',
-    name: 'Blackrock Depths',
-    shortName: 'BRD',
-    continent: 'Eastern Kingdoms',
-    zone: 'Searing Gorge',
-    hub: 'Thorium Point',
-    minLevel: 42,
-    recommendedLevelMin: 47,
-    recommendedLevelMax: 60,
-    difficulty: 'normal',
-    estimatedTimeMinutes: 120,
-    summary: 'Massive dungeon with many sections. Home to the Emperor and many attunement quests. Can take 2+ hours for a full clear.',
-    specialMechanic: 'Multiple sections — most groups run targeted routes, not full clears.',
-    tags: ['classic', 'pre-raid', 'attunement', 'long'],
-  }),
-  placeholder({
-    id: 'lower-blackrock-spire',
-    name: 'Lower Blackrock Spire',
-    shortName: 'LBRS',
-    continent: 'Eastern Kingdoms',
-    zone: 'Searing Gorge',
-    hub: 'Thorium Point',
-    minLevel: 48,
-    recommendedLevelMin: 55,
-    recommendedLevelMax: 60,
-    difficulty: 'normal',
-    estimatedTimeMinutes: 75,
-    summary: 'Lower half of Blackrock Spire. Important for UBRS key quest chain and strong pre-raid gear.',
-    tags: ['classic', 'pre-raid'],
-  }),
-  placeholder({
-    id: 'upper-blackrock-spire',
-    name: 'Upper Blackrock Spire',
-    shortName: 'UBRS',
-    continent: 'Eastern Kingdoms',
-    zone: 'Searing Gorge',
-    hub: 'Thorium Point',
-    minLevel: 55,
-    recommendedLevelMin: 58,
-    recommendedLevelMax: 60,
-    difficulty: 'normal',
-    maxPlayers: 10,
-    estimatedTimeMinutes: 90,
-    summary: '10-player legacy dungeon. Top of Blackrock Spire — great pre-raid gear and classic boss encounters.',
-    tags: ['classic', 'pre-raid', '10-player'],
-  }),
+function sourcedRequirement(raw: RawDungeon): string | undefined {
+  const text = raw.specialMechanic ?? '';
+  if (/drakefire amulet/i.test(text)) return text;
+  if (/attunement required/i.test(text)) return text;
+  return undefined;
+}
 
-  // ── Kalimdor ───────────────────────────────────────────────────────────────
-  placeholder({
-    id: 'ragefire-chasm',
-    name: 'Ragefire Chasm',
-    shortName: 'RFC',
-    continent: 'Kalimdor',
-    zone: 'Orgrimmar',
-    factionFocus: 'Horde',
-    minLevel: 8,
-    recommendedLevelMin: 13,
-    recommendedLevelMax: 18,
-    difficulty: 'normal',
-    estimatedTimeMinutes: 20,
-    summary: 'Horde starter dungeon beneath Orgrimmar. Quick and easy — mostly for Horde players.',
-    tags: ['classic', 'horde', 'leveling', 'short'],
-  }),
-  placeholder({
-    id: 'wailing-caverns',
-    name: 'Wailing Caverns',
-    shortName: 'WC',
-    continent: 'Kalimdor',
-    zone: 'The Barrens',
-    minLevel: 10,
-    recommendedLevelMin: 17,
-    recommendedLevelMax: 24,
-    difficulty: 'normal',
-    estimatedTimeMinutes: 60,
-    summary: 'Winding cave system in The Barrens. Multiple bosses and good gear for early leveling.',
-    tags: ['classic', 'leveling'],
-  }),
-  placeholder({
-    id: 'blackfathom-deeps',
-    name: 'Blackfathom Deeps',
-    shortName: 'BFD',
-    continent: 'Kalimdor',
-    zone: 'Ashenvale',
-    minLevel: 15,
-    recommendedLevelMin: 20,
-    recommendedLevelMax: 27,
-    difficulty: 'normal',
-    estimatedTimeMinutes: 60,
-    summary: 'Underwater ruins in Ashenvale with an Old God twist. Good XP and quests.',
-    tags: ['classic', 'leveling'],
-  }),
-  placeholder({
-    id: 'razorfen-kraul',
-    name: 'Razorfen Kraul',
-    shortName: 'RFK',
-    continent: 'Kalimdor',
-    zone: 'The Barrens',
-    minLevel: 20,
-    recommendedLevelMin: 25,
-    recommendedLevelMax: 34,
-    difficulty: 'normal',
-    estimatedTimeMinutes: 45,
-    summary: 'Quillboar stronghold in the Barrens. Good mid-level dungeon with decent quest rewards.',
-    tags: ['classic', 'leveling'],
-  }),
-  placeholder({
-    id: 'razorfen-downs',
-    name: 'Razorfen Downs',
-    shortName: 'RFD',
-    continent: 'Kalimdor',
-    zone: 'The Barrens',
-    minLevel: 30,
-    recommendedLevelMin: 37,
-    recommendedLevelMax: 46,
-    difficulty: 'normal',
-    estimatedTimeMinutes: 50,
-    summary: 'Quillboar necropolis with undead mobs and a Halloween feel. Mid-tier leveling dungeon.',
-    tags: ['classic', 'leveling'],
-  }),
-  placeholder({
-    id: 'zulfarrak',
-    name: "Zul'Farrak",
-    shortName: 'ZF',
-    continent: 'Kalimdor',
-    zone: 'Tanaris',
-    hub: 'Gadgetzan',
-    minLevel: 39,
-    recommendedLevelMin: 44,
-    recommendedLevelMax: 54,
-    difficulty: 'normal',
-    estimatedTimeMinutes: 60,
-    summary: 'Troll city in Tanaris with the famous prisoner rescue event. Great gear and fun fights.',
-    specialMechanic: 'Prisoner rescue event — kill trolls attacking freed prisoners on steps.',
-    tags: ['classic', 'leveling'],
-  }),
-  placeholder({
-    id: 'maraudon',
-    name: 'Maraudon',
-    shortName: 'Mara',
-    continent: 'Kalimdor',
-    zone: 'Desolace',
-    minLevel: 30,
-    recommendedLevelMin: 46,
-    recommendedLevelMax: 55,
-    difficulty: 'normal',
-    estimatedTimeMinutes: 90,
-    summary: 'Centaur holy site with three sections. Princess Theradras and Noxxion are notable bosses.',
-    specialMechanic: 'Three sections: Orange, Purple, and Earth Song Falls. Can enter each separately.',
-    tags: ['classic', 'leveling', 'multi-section'],
-  }),
-  placeholder({
-    id: 'sunken-temple',
-    name: "Temple of Atal'Hakkar",
-    shortName: 'ST',
-    continent: 'Kalimdor',
-    zone: 'Swamp of Sorrows',
-    minLevel: 45,
-    recommendedLevelMin: 50,
-    recommendedLevelMax: 56,
-    difficulty: 'normal',
-    estimatedTimeMinutes: 90,
-    summary: 'Troll temple sunk in the Swamp of Sorrows. Complex layout with many bosses and quest chains.',
-    tags: ['classic', 'leveling'],
-  }),
-  placeholder({
-    id: 'dire-maul',
-    name: 'Dire Maul',
-    shortName: 'DM',
-    continent: 'Kalimdor',
-    zone: 'Feralas',
-    minLevel: 36,
-    recommendedLevelMin: 48,
-    recommendedLevelMax: 60,
-    difficulty: 'normal',
-    estimatedTimeMinutes: 75,
-    summary: 'Three-wing dungeon in Feralas: East, West, and North. Great pre-raid gear across all wings.',
-    specialMechanic: 'Rogue lockpicking useful for chests. Tribute run in North skips bosses for extra loot.',
-    tags: ['classic', 'pre-raid', 'three-wings'],
-  }),
+function mapBosses(raw: RawDungeon): DungeonBoss[] {
+  const names = raw.bosses ?? [];
+  if (names.length === 0) return [];
+  const unconfirmed = (raw.uncertain ?? []).some(note => /boss/i.test(note));
+  return names.map((name, index) => ({
+    name,
+    order: index + 1,
+    quickTips: [],
+    unconfirmed,
+  }));
+}
 
-  // WoW: Forever dungeon list is Classic-era, level cap 60.
-];
+function mapOne(raw: RawDungeon): Dungeon {
+  const groupComp = raw.id === 'upper-blackrock-spire'
+    ? {
+        tank: 2,
+        healer: 3,
+        dps: 5,
+        notes: 'Suggested 10-player group. The client lists this wing at 10 players.',
+      }
+    : { ...raw.groupComp };
+
+  const difficulty: DungeonDifficulty = raw.difficulty === 'both' ? 'both' : 'normal';
+
+  return {
+    id: raw.id,
+    name: raw.name,
+    shortName: raw.shortName,
+    continent: raw.continent,
+    zone: raw.zone,
+    hub: raw.hub ?? undefined,
+    factionFocus: raw.factionFocus,
+    minLevel: raw.minLevel,
+    recommendedLevelMin: raw.recommendedLevelMin,
+    recommendedLevelMax: raw.recommendedLevelMax,
+    groupFinderRange: raw.groupFinderRange ?? null,
+    difficulty,
+    maxPlayers: raw.maxPlayers,
+    instanceType: raw.instanceType,
+    isNewInForever: raw.isNewInForever,
+    availableNow: raw.availableNow,
+    availableFrom: raw.availableFrom,
+    estimatedTimeMinutes: raw.estimatedTimeMinutes,
+    summary: raw.summary,
+    specialMechanic: raw.specialMechanic ?? undefined,
+    requirement: sourcedRequirement(raw),
+    tips: raw.tips ?? [],
+    uncertain: raw.uncertain ?? [],
+    sources: raw.sources ?? [],
+    hiddenForAlliance: raw.id === 'ragefire-chasm',
+    groupComp,
+    quests: raw.quests ?? [],
+    bosses: mapBosses(raw),
+    loot: raw.loot ?? [],
+    tags: raw.tags ?? [],
+    sourceStatus: raw.sourceStatus ?? 'source-checked',
+  };
+}
+
+/** Every Forever instance, including Horde-only Ragefire Chasm. */
+export const ALL_DUNGEONS: Dungeon[] = (catalog.dungeons as RawDungeon[]).map(mapOne);
+
+/** Alliance finder list. Ragefire Chasm stays in ALL_DUNGEONS and is omitted here. */
+export const DUNGEONS: Dungeon[] = ALL_DUNGEONS.filter(dungeon => !dungeon.hiddenForAlliance);
 
 export function getDungeon(id: string): Dungeon | undefined {
-  return DUNGEONS.find(d => d.id === id);
+  return ALL_DUNGEONS.find(dungeon => dungeon.id === id);
 }
 
 export function getDungeonsByContinent(continent: string): Dungeon[] {
   if (continent === 'All') return DUNGEONS;
-  return DUNGEONS.filter(d => d.continent === continent);
+  return DUNGEONS.filter(dungeon => dungeon.continent === continent);
+}
+
+export function opensOnLabel(dungeon: Pick<Dungeon, 'availableNow' | 'availableFrom'>): string | null {
+  if (dungeon.availableNow || !dungeon.availableFrom) return null;
+  const [year, month, day] = dungeon.availableFrom.split('-').map(Number);
+  if (!year || !month || !day) return null;
+  const label = new Date(Date.UTC(year, month - 1, day)).toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+  return `Opens ${label}`;
 }

@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { createClient as createAdminClient } from '@supabase/supabase-js'
 import { redirect } from 'next/navigation'
 import { SettingsClient } from './SettingsClient'
+import type { AlertCharacter } from '@/components/settings/AlertSettings'
 
 type UserProfile = {
   id: string
@@ -83,6 +84,38 @@ export default async function SettingsPage() {
 
   const classColors = CLASS_COLORS
 
+  const withRoles = await admin
+    .from('characters')
+    .select('id, name, last_name, class, level, is_main, roles')
+    .eq('claimed_by', user.id)
+  const withoutRoles = withRoles.error
+    ? await admin.from('characters').select('id, name, last_name, class, level, is_main').eq('claimed_by', user.id)
+    : null
+  const alertRows = (withRoles.data ?? withoutRoles?.data ?? []) as Array<{
+    id: string
+    name: string
+    last_name: string | null
+    class: string
+    level: number
+    is_main: boolean
+    roles?: string[] | null
+  }>
+  const alertCharacters: AlertCharacter[] = alertRows.map(character => ({
+    id: character.id,
+    name: character.name,
+    last_name: character.last_name,
+    class: character.class,
+    level: character.level,
+    isMain: character.is_main,
+    roles: character.roles ?? null,
+  }))
+
+  const prefs = await admin
+    .from('notification_prefs')
+    .select('site_banner, discord_mentions, match_character_ids')
+    .eq('user_id', user.id)
+    .maybeSingle()
+
   return (
     <SettingsClient
       userId={user.id}
@@ -94,6 +127,11 @@ export default async function SettingsPage() {
       mainChar={mainChar}
       alts={alts}
       classColors={classColors}
+      alertCharacters={alertCharacters}
+      discordLinked={!!profile?.discord_id}
+      alertBanner={prefs.data?.site_banner ?? true}
+      alertDiscord={prefs.data?.discord_mentions ?? false}
+      alertMatchIds={(prefs.data?.match_character_ids as string[] | null) ?? null}
     />
   )
 }

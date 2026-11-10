@@ -4,7 +4,10 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
-import { DUNGEONS } from '@/data/dungeons/index'
+import { DUNGEONS, getDungeon } from '@/data/dungeons/index'
+import { memberName, needsSummary, normalizeGroup as sharedGroup, resolveNeeds } from '@/lib/lfg-group'
+import { formatRange, localFieldsFromInstant, SERVER_TIME_ZONE } from '@/lib/lfg-time'
+import { ScheduleFields } from '@/components/lfg/ScheduleFields'
 
 const DAY_MAP: Record<string, number> = {
   Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6,
@@ -55,10 +58,26 @@ function getNextOccurrence(
   return { label, countdown }
 }
 
-function CalendarBadge({ daysAvailable, timeStart }: {
+function CalendarBadge({ daysAvailable, timeStart, startsAt }: {
   daysAvailable: string[] | null
   timeStart: string | null
+  startsAt?: string | null
 }) {
+  if (startsAt) {
+    const when = new Date(startsAt)
+    const label = when.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }).toUpperCase()
+    const diff = when.getTime() - new Date().getTime()
+    const totalHours = Math.max(0, Math.floor(diff / (1000 * 60 * 60)))
+    const days = Math.floor(totalHours / 24)
+    const hrs = totalHours % 24
+    const countdown = diff <= 0 ? 'Starting soon' : days > 0 ? `in ${days}d ${hrs}h` : hrs > 0 ? `in ${hrs}h` : 'Starting soon'
+    return (
+      <div className="lfg-cal-badge">
+        <div className="lfg-cal-day">{label}</div>
+        <div className="lfg-cal-countdown">{countdown}</div>
+      </div>
+    )
+  }
   const { label, countdown } = getNextOccurrence(daysAvailable, timeStart)
   const isMultiDay = (daysAvailable?.length ?? 0) > 1 && !daysAvailable?.includes('Any')
 
@@ -106,21 +125,12 @@ const DPSIcon = ({ size = 24 }: { size?: number }) => (
   </svg>
 )
 
-const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
-  const h = Math.floor(i / 2)
-  const m = i % 2 === 0 ? '00' : '30'
-  const ampm = h < 12 ? 'AM' : 'PM'
-  const h12 = h === 0 ? 12 : h > 12 ? h - 12 : h
-  return `${h12}:${m} ${ampm}`
-})
-
 type NameGroup = { tank: string[]; healer: string[]; dps: string[] }
 type NumberGroup = { tank: number; healer: number; dps: number }
 
 export type LFGPost = {
   id: string
-  user_id?: string
+  is_owner?: boolean
   dungeon_slug: string
   character_name: string
   role: string
@@ -129,33 +139,38 @@ export type LFGPost = {
   time_start: string | null
   time_end: string | null
   notes: string | null
+  starts_at?: string | null
+  ends_at?: string | null
+  needs?: { tank: number; healer: number; dps: number } | null
   current_group: NameGroup | NumberGroup | null
 }
 
 function normalizeGroup(group: LFGPost['current_group']): NameGroup {
-  if (!group) return { tank: [], healer: [], dps: [] }
+  const shared = sharedGroup(group)
   return {
-    tank: Array.isArray(group.tank) ? group.tank : [],
-    healer: Array.isArray(group.healer) ? group.healer : [],
-    dps: Array.isArray(group.dps) ? group.dps : [],
+    tank: shared.tank.map(member => memberName(member)),
+    healer: shared.healer.map(member => memberName(member)),
+    dps: shared.dps.map(member => memberName(member)),
   }
 }
 
-function getNeedsText(group: NameGroup): string {
-  const needsTank = !group.tank || group.tank.length === 0
-  const needsHealer = !group.healer || group.healer.length === 0
-  const needsDPS = !group.dps || group.dps.length < 3
-  if (!needsTank && !needsHealer && !needsDPS) return 'Group is Full!'
-  const needs: string[] = []
-  if (needsTank) needs.push('Tank')
-  if (needsHealer) needs.push('Heals')
-  if (needsDPS) needs.push('DPS')
-  if (needs.length === 3) return 'Needs All.'
-  if (needs.length === 1) return `Need ${needs[0]} then GTG!`
-  return `Needs ${needs[0]} and ${needs[1]}.`
+function postNeeds(post: LFGPost) {
+  const dungeon = getDungeon(post.dungeon_slug) ?? DUNGEONS.find(item => item.id === post.dungeon_slug)
+  const fallback = dungeon
+    ? { tank: dungeon.groupComp.tank, healer: dungeon.groupComp.healer, dps: dungeon.groupComp.dps }
+    : { tank: 1, healer: 1, dps: 3 }
+  return resolveNeeds(post.needs, fallback)
+}
+
+function getNeedsText(post: LFGPost): string {
+  return needsSummary(postNeeds(post), sharedGroup(post.current_group))
 }
 
 function formatWindow(post: LFGPost): string {
+  if (post.starts_at && typeof window !== 'undefined') {
+    const zone = Intl.DateTimeFormat().resolvedOptions().timeZone
+    return `${formatRange(post.starts_at, post.ends_at, zone)} · Server ${formatRange(post.starts_at, post.ends_at, SERVER_TIME_ZONE)}`
+  }
   const days = post.days_available?.length
     ? post.days_available.join(', ')
     : post.days_available !== null && post.days_available !== undefined
@@ -164,17 +179,6 @@ function formatWindow(post: LFGPost): string {
     return `${days || 'Any day'}, ${post.time_start}–${post.time_end} Server Time`
   if (days) return days
   return post.available_window ?? ''
-}
-
-function buildWindowSummary(
-  days: string[] | null,
-  start: string | null,
-  end: string | null
-): string | null {
-  const dayStr = !days || days.length === 0 ? 'Any day' : days.join(', ')
-  if (start && end) return `${dayStr}, ${start}–${end} Server Time`
-  if (days && days.length > 0) return dayStr
-  return null
 }
 
 function formatDungeonName(slug: string): string {
@@ -188,43 +192,35 @@ interface EditFormProps {
 }
 
 function LFGEditForm({ post, onSave, onCancel }: EditFormProps) {
-  const [days, setDays] = useState<string[]>(post.days_available ?? [])
-  const [timeStart, setTimeStart] = useState(post.time_start ?? '')
-  const [timeEnd, setTimeEnd] = useState(post.time_end ?? '')
+  const zone = typeof window !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : 'America/Denver'
+  const initial = post.starts_at ? localFieldsFromInstant(post.starts_at, zone) : { date: '', time: '' }
+  const initialEnd = post.ends_at ? localFieldsFromInstant(post.ends_at, zone).time : ''
+  const [date, setDate] = useState(initial.date)
+  const [timeStart, setTimeStart] = useState(initial.time)
+  const [timeEnd, setTimeEnd] = useState(initialEnd)
   const [notes, setNotes] = useState(post.notes ?? '')
-
-  function toggleDay(day: string) {
-    setDays(prev => prev.includes(day) ? prev.filter(d => d !== day) : [...prev, day])
-  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     e.stopPropagation()
-    const available_window = buildWindowSummary(days, timeStart || null, timeEnd || null)
-    onSave({ days_available: days, time_start: timeStart || null, time_end: timeEnd || null, notes: notes || null, available_window })
+    onSave({
+      notes: notes || null,
+      available_window: null,
+      date,
+      start: timeStart,
+      end: timeEnd || null,
+      timeZone: zone,
+    } as Partial<LFGPost> & { available_window: string | null })
   }
 
   return (
     <form className="lfg-edit-form" onSubmit={handleSubmit} onClick={e => e.stopPropagation()}>
-      <div className="lfg-edit-days">
-        {DAYS.map(day => (
-          <label key={day} className={`lfg-day-chip${days.includes(day) ? ' lfg-day-chip--on' : ''}`}>
-            <input type="checkbox" checked={days.includes(day)} onChange={() => toggleDay(day)} />
-            {day}
-          </label>
-        ))}
-      </div>
-      <div className="lfg-edit-times">
-        <select className="lfg-time-select" value={timeStart} onChange={e => setTimeStart(e.target.value)}>
-          <option value="">Start time...</option>
-          {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-        </select>
-        <span className="lfg-edit-to">to</span>
-        <select className="lfg-time-select" value={timeEnd} onChange={e => setTimeEnd(e.target.value)}>
-          <option value="">End time...</option>
-          {TIME_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-        </select>
-      </div>
+      <ScheduleFields
+        date={date}
+        start={timeStart}
+        end={timeEnd}
+        onChange={next => { setDate(next.date); setTimeStart(next.start); setTimeEnd(next.end) }}
+      />
       <textarea className="lfg-edit-notes" value={notes} onChange={e => setNotes(e.target.value)} placeholder="Notes..." rows={2} />
       <div className="lfg-edit-actions">
         <button type="submit" className="lfg-edit-save-btn">Save</button>
@@ -237,7 +233,6 @@ function LFGEditForm({ post, onSave, onCancel }: EditFormProps) {
 export default function ActiveLFGCalls() {
   const router = useRouter()
   const [posts, setPosts] = useState<LFGPost[]>([])
-  const [userId, setUserId] = useState<string | undefined>()
   const [userRole, setUserRole] = useState<string | undefined>()
   const [editingId, setEditingId] = useState<string | null>(null)
 
@@ -255,7 +250,6 @@ export default function ActiveLFGCalls() {
     )
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        setUserId(session.user.id)
         supabase.from('users').select('role').eq('id', session.user.id).single()
           .then(({ data }) => { if (data?.role) setUserRole(data.role) })
       }
@@ -300,9 +294,10 @@ export default function ActiveLFGCalls() {
         <div className="active-lfg-grid">
           {posts.map(post => {
             const group = normalizeGroup(post.current_group)
-            const needsText = getNeedsText(group)
+            const needsText = getNeedsText(post)
             const win = formatWindow(post)
-            const isOwner = !!userId && post.user_id === userId
+            const isOwner = !!post.is_owner
+            const caps = postNeeds(post)
 
             return (
               <div
@@ -312,7 +307,7 @@ export default function ActiveLFGCalls() {
                 style={{ cursor: 'pointer' }}
                 onClick={() => router.push(`/dungeons/${post.dungeon_slug}?lfg=${post.id}`)}
               >
-                <CalendarBadge daysAvailable={post.days_available} timeStart={post.time_start} />
+                <CalendarBadge daysAvailable={post.days_available} timeStart={post.time_start} startsAt={post.starts_at} />
                 <Link
                   href={`/dungeons/${post.dungeon_slug}`}
                   className="lfg-card-dungeon-link"
@@ -360,13 +355,14 @@ export default function ActiveLFGCalls() {
                       <span className="lfg-role-icon lfg-role-icon--dps"><DPSIcon size={28} /></span>
                       <span className="lfg-role-label">DPS</span>
                     </div>
-                    {[0, 1, 2].map(i => (
+                    {(caps.dps > 5 ? [0] : Array.from({ length: Math.max(caps.dps, 1) }, (_, i) => i)).map(i => (
                       <div key={i} className="lfg-role-slot">
-                        <span className="lfg-dps-label">DPS {i + 1}:</span>
-                        {group.dps[i]
-                          ? <span className="lfg-slot-name">{group.dps[i]}</span>
-                          : <span className="lfg-slot-need">NEED</span>
-                        }
+                        <span className="lfg-dps-label">{caps.dps > 5 ? `DPS ${group.dps.length}/${caps.dps}` : `DPS ${i + 1}:`}</span>
+                        {caps.dps > 5
+                          ? <span className="lfg-slot-name">{group.dps.join(', ') || 'NEED'}</span>
+                          : group.dps[i]
+                            ? <span className="lfg-slot-name">{group.dps[i]}</span>
+                            : <span className="lfg-slot-need">NEED</span>}
                       </div>
                     ))}
                   </div>

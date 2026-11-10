@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { displayRace } from '@/lib/guild-config'
+import { AlertSettings, type AlertCharacter } from '@/components/settings/AlertSettings'
 
 type MainChar = {
   id: string
@@ -33,6 +34,11 @@ interface SettingsClientProps {
   mainChar: MainChar | null
   alts: AltChar[]
   classColors: Record<string, string>
+  alertCharacters: AlertCharacter[]
+  discordLinked: boolean
+  alertBanner: boolean
+  alertDiscord: boolean
+  alertMatchIds: string[] | null
 }
 
 function maskEmail(email: string): string {
@@ -51,6 +57,11 @@ export function SettingsClient({
   mainChar,
   alts: initialAlts,
   classColors,
+  alertCharacters,
+  discordLinked,
+  alertBanner,
+  alertDiscord,
+  alertMatchIds,
 }: SettingsClientProps) {
   const supabase = createClient()
   const [toast, setToast] = useState<string | null>(null)
@@ -201,7 +212,7 @@ export function SettingsClient({
               )}
               <div>
                 <span className="settings-value">Connected as {discordUsername}</span>
-                <span className="settings-hint">Discord notifications enabled</span>
+                <span className="settings-hint">Discord account linked. Mentions are opt-in below.</span>
               </div>
             </div>
           ) : (
@@ -349,6 +360,14 @@ export function SettingsClient({
             </div>
           )}
         </section>
+
+        <AlertSettings
+          characters={alertCharacters}
+          discordLinked={discordLinked}
+          initialBanner={alertBanner}
+          initialDiscord={alertDiscord}
+          initialMatchIds={alertMatchIds}
+        />
 
         {/* ── Section 5: Danger Zone ── */}
         <section className="settings-section settings-danger">
