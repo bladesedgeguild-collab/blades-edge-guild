@@ -4,6 +4,8 @@
 -- 004_dungeons_table.sql does NOT need to be applied. The finder reads
 -- data/dungeons, and public.dungeons is not used.
 
+-- Policies are skipped when production already has the equivalent older one,
+-- so the tables do not end up with duplicate permissive policies.
 -- The live dungeon_lfg table was created outside this repo. Create it only
 -- when a fresh database does not have it yet.
 create table if not exists public.dungeon_lfg (
@@ -62,7 +64,7 @@ begin
 
   if not exists (
     select 1 from pg_policies
-    where schemaname = 'public' and tablename = 'dungeon_lfg' and policyname = 'Users insert own LFG posts'
+    where schemaname = 'public' and tablename = 'dungeon_lfg' and policyname in ('Users insert own LFG posts', 'Users can create own LFG posts')
   ) then
     create policy "Users insert own LFG posts"
       on public.dungeon_lfg for insert
@@ -72,7 +74,7 @@ begin
 
   if not exists (
     select 1 from pg_policies
-    where schemaname = 'public' and tablename = 'dungeon_lfg' and policyname = 'Users update own LFG posts'
+    where schemaname = 'public' and tablename = 'dungeon_lfg' and policyname in ('Users update own LFG posts', 'Users can update own LFG posts')
   ) then
     create policy "Users update own LFG posts"
       on public.dungeon_lfg for update
@@ -83,7 +85,7 @@ begin
 
   if not exists (
     select 1 from pg_policies
-    where schemaname = 'public' and tablename = 'dungeon_lfg_responses' and policyname = 'Users read own LFG responses'
+    where schemaname = 'public' and tablename = 'dungeon_lfg_responses' and policyname in ('Users read own LFG responses', 'Users can view own responses')
   ) then
     create policy "Users read own LFG responses"
       on public.dungeon_lfg_responses for select
@@ -93,7 +95,7 @@ begin
 
   if not exists (
     select 1 from pg_policies
-    where schemaname = 'public' and tablename = 'dungeon_lfg_responses' and policyname = 'Users insert own LFG responses'
+    where schemaname = 'public' and tablename = 'dungeon_lfg_responses' and policyname in ('Users insert own LFG responses', 'Users can insert own responses')
   ) then
     create policy "Users insert own LFG responses"
       on public.dungeon_lfg_responses for insert
