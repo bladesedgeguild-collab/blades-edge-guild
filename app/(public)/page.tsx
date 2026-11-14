@@ -37,6 +37,7 @@ export default async function LandingPage() {
       .from('characters')
       .select('name, last_name, class, race, level, rank_name, rank_index, professions(name, skill_level, is_primary)')
       .eq('hide_from_roster', false)
+      .is('left_guild_at', null)
       .order('rank_index', { ascending: true, nullsFirst: false })
       .order('level', { ascending: false })
       .limit(60),

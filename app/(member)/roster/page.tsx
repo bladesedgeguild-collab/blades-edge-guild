@@ -9,6 +9,7 @@ export default async function RosterPage() {
     .from('characters')
     .select('id, name, last_name, class, level, rank_name')
     .eq('hide_from_roster', false)
+    .is('left_guild_at', null)
     .order('rank_index', { ascending: true })
     .order('name', { ascending: true })
 

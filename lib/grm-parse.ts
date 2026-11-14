@@ -182,6 +182,7 @@ function toMember(t: LuaTable, keyName: string | undefined): UploadedChar | null
   // Public note and current zone are private and are not copied out of the file.
   return {
     name,
+    guid: str(get(t, 'GUID', 'guid', 'playerGUID')) ?? null,
     class: cls,
     race: str(get(t, 'race')),
     sex: get(t, 'sex') ?? undefined,

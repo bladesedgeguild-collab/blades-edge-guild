@@ -116,7 +116,16 @@ Officers upload the Guild Roster Manager SavedVariables file
 /reload or logout) on /officers. lib/grm-parse.ts parses the Lua in the
 browser (roster JSON still accepted). roster-diff previews; roster-apply
 inserts new members (imported_from_grm, status 'new', unclaimed) and updates
-level/rank/etc. Matching is first+last name (fallback: unique first name).
+level/rank/etc. Both routes share `planRosterSync` in lib/roster-sync.ts.
+Matching is GUID first (`characters.guid`, migration 007), then exact full
+name (NFC + case fold, accents kept), then a unique first name for legacy rows
+with no last name. A same-name row with a different GUID is a conflict, not a
+match. Rank is written only as the exact uploaded rank_index + rank_name pair.
+is_main, realm (on updates) and hide_from_roster are never written; new rows
+get the site's fixed realm placeholder, never one derived from a GUID.
+GRM rows missing from a full upload get `left_guild_at` (hidden from roster
+lists, row and claim kept); member-made rows are never flagged; a partial
+upload (< half the active GRM rows) flags nobody. Coming back clears the flag.
 Nothing is ever deleted; claims are never touched. GRM public notes and
 `last_zone` are not written. Sex uses WoW UnitSex: 2 = male, 3 = female.
 
