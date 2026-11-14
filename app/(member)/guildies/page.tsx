@@ -10,6 +10,7 @@ export default async function GuildiesPage() {
     .from('characters')
     .select('id, name, last_name, class, race, level, rank_name, rank_index, claimed_by, professions(name, skill_level, is_primary)')
     .eq('hide_from_roster', false)
+    .is('left_guild_at', null)
 
   const activeAll       = (activeRaw ?? []) as unknown as DbRosterChar[]
   const claimed         = activeAll.filter(c => c.claimed_by !== null) as unknown as RosterChar[]

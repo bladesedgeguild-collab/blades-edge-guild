@@ -4,16 +4,21 @@ import { cookies } from 'next/headers'
 import { NextRequest, NextResponse } from 'next/server'
 import { isOfficerUser } from '@/lib/officer'
 import { GUILD } from '@/lib/guild-config'
-import { buildMatcher, displayUploaded, normalizeUploaded, rosterWritePlan, type UploadedChar } from '@/lib/roster-sync'
+import {
+  normalizeUploaded,
+  planRosterSync,
+  ROSTER_SYNC_COLUMNS,
+  type SyncDbRow,
+  type UploadedChar,
+} from '@/lib/roster-sync'
 
-type DbChar = {
-  id: string
-  name: string
-  last_name: string | null
-  claimed_by: string | null
-  status: string
-}
-
+/**
+ * Apply a GRM roster upload. Same planner as the preview.
+ * - Matches by GUID first, then by exact (NFC, case-folded) full name.
+ * - Never deletes a character. Departed GRM rows get left_guild_at instead.
+ * - Never writes note, last_zone, claimed_by, claimed_at, user_id, is_main,
+ *   realm (on updates) or hide_from_roster. Rank grants no site privileges.
+ */
 export async function POST(request: NextRequest) {
   const cookieStore = await cookies()
   const supabase = createServerClient(
@@ -41,63 +46,59 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json()
   const uploaded: UploadedChar[] = normalizeUploaded(body.characters ?? (Array.isArray(body) ? body : []))
+  const flagLeft = body?.flagLeft === true
 
   if (uploaded.length === 0) {
     return NextResponse.json({ error: 'No characters in payload' }, { status: 400 })
   }
 
-  const REALM = GUILD.ruleset
+  const { data, error: readErr } = await admin.from('characters').select(ROSTER_SYNC_COLUMNS)
+  if (readErr) return NextResponse.json({ error: `Could not read the roster: ${readErr.message}` }, { status: 500 })
 
-  const { data: existingRaw } = await admin
-    .from('characters')
-    .select('id, name, last_name, claimed_by, status')
+  const plan = planRosterSync(uploaded, (data ?? []) as unknown as SyncDbRow[], GUILD.ruleset)
 
-  const dbChars: DbChar[] = existingRaw ?? []
-  const findMatch = buildMatcher(dbChars)
-
-  const errors: string[] = []
+  const errors: string[] = plan.conflicts.map((c) => `${c.name}: skipped, ${c.reason}`)
   const warnings: string[] = []
   const upsertedIds = new Map<UploadedChar, string>()
   let added = 0
   let updated = 0
+  let flaggedLeft = 0
 
-  // Never deletes anything: characters missing from the upload are left alone.
-  // Rows outside the Alliance matrix are still written; they are only noted.
-  for (const uc of uploaded) {
-    const match = findMatch(uc)
-    const plan = rosterWritePlan(uc, REALM, match ? { last_name: match.last_name } : null)
-    if (plan.warning) warnings.push(`${displayUploaded(uc)}: ${plan.warning}`)
-    try {
-      if (!match) {
-        const { data: inserted, error } = await admin
-          .from('characters')
-          .insert(plan.fields)
-          .select('id')
-          .single()
-        if (error) throw error
-        upsertedIds.set(uc, inserted.id)
-        added++
-      } else {
-        // Update roster facts only. Never touch claimed_by / user_id / is_main / hide_from_roster.
-        const { error } = await admin.from('characters').update(plan.fields).eq('id', match.id)
-        if (error) throw error
-        upsertedIds.set(uc, match.id)
-        updated++
-      }
-    } catch (err) {
-      errors.push(`${displayUploaded(uc)}: ${(err as Error).message ?? String(err)}`)
-    }
+  for (const ins of plan.inserts) {
+    if (ins.warning) warnings.push(`${ins.name}: ${ins.warning}`)
+    const { data: inserted, error } = await admin.from('characters').insert(ins.fields).select('id').single()
+    if (error) { errors.push(`${ins.name}: ${error.message}`); continue }
+    upsertedIds.set(ins.uc, inserted.id)
+    added++
   }
 
-  // Update professions for chars that have them
+  for (const up of plan.updates) {
+    if (up.warning) warnings.push(`${up.name}: ${up.warning}`)
+    const { error } = await admin.from('characters').update(up.fields).eq('id', up.id)
+    if (error) { errors.push(`${up.name}: ${error.message}`); continue }
+    upsertedIds.set(up.uc, up.id)
+    updated++
+  }
+
+  if (flagLeft && !plan.leaveFlagBlocked && plan.leaving.length > 0) {
+    const { data: flagged, error } = await admin
+      .from('characters')
+      .update({ left_guild_at: new Date().toISOString() })
+      .in('id', plan.leaving.map((l) => l.id))
+      .is('left_guild_at', null)
+      .select('id')
+    if (error) errors.push(`Marking departed members: ${error.message}`)
+    else flaggedLeft = flagged?.length ?? 0
+  } else if (plan.leaveFlagBlocked) {
+    warnings.push(plan.leaveFlagBlocked)
+  }
+
+  // Professions: only replaced for characters whose upload actually lists them.
   const profInserts: Record<string, unknown>[] = []
   const charIdsForProfDelete: string[] = []
 
-  for (const uc of uploaded) {
+  for (const [uc, charId] of upsertedIds) {
     if (!uc.professions?.length) continue
-    const charId = upsertedIds.get(uc)
-    if (!charId) continue
-
     charIdsForProfDelete.push(charId)
     uc.professions.forEach((p, idx) => {
       profInserts.push({
@@ -126,16 +127,23 @@ export async function POST(request: NextRequest) {
     if (error) errors.push(`Profession insert: ${error.message}`)
   }
 
-  // Log to grm_imports
+  // Log to grm_imports (counts only)
   try {
     await admin.from('grm_imports').insert({
       imported_by: user.id,
       characters_added: added,
       characters_updated: updated,
-      notes: errors.length > 0 ? errors.slice(0, 5).join('; ') : null,
       imported_at: new Date().toISOString(),
     })
   } catch { /* non-critical */ }
 
-  return NextResponse.json({ added, updated, errors, warnings, total: uploaded.length })
+  return NextResponse.json({
+    added,
+    updated,
+    unchanged: plan.unchanged,
+    flaggedLeft,
+    errors,
+    warnings,
+    total: uploaded.length,
+  })
 }

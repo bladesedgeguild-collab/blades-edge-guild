@@ -6,19 +6,24 @@ import { extractGuildMembers } from '@/lib/grm-parse'
 
 type DiffNew = { status: 'NEW'; name: string; change: string }
 type DiffUpdated = { status: 'UPDATED'; dbName: string; uploadedName: string; change: string; dbId: string }
-type DiffMissing = { name: string; id: string }
+type DiffMissing = { name: string; id: string; claimed?: boolean; willFlag?: boolean }
+type DiffConflict = { name: string; reason: string }
 
 type DiffResult = {
   new: DiffNew[]
   updated: DiffUpdated[]
   unchanged: number
   missing: DiffMissing[]
+  notInGrm?: DiffMissing[]
+  conflicts?: DiffConflict[]
+  leaveFlagBlocked?: string | null
   hasLastOnline: boolean
 }
 
 type ApplyResult = {
   added: number
   updated: number
+  flaggedLeft?: number
   errors: string[]
   warnings?: string[]
   total: number
@@ -138,10 +143,14 @@ export function OfficersClient() {
     setApplyLoading(true)
     setApplyError(null)
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const raw = rawData as any
+      const characters = raw.characters ?? (Array.isArray(raw) ? raw : [])
       const res = await fetch('/api/officers/roster-apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(rawData),
+        // flagLeft marks GRM rows missing from this full export as departed. Nothing is deleted.
+        body: JSON.stringify({ characters, flagLeft: true }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -171,7 +180,7 @@ export function OfficersClient() {
     if (fileRef.current) fileRef.current.value = ''
   }
 
-  const hasChanges = diff && (diff.new.length > 0 || diff.updated.length > 0)
+  const hasChanges = diff && (diff.new.length > 0 || diff.updated.length > 0 || diff.missing.some((m) => m.willFlag))
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5rem' }}>
@@ -327,7 +336,20 @@ export function OfficersClient() {
                           {entry.name}
                         </td>
                         <td style={{ padding: '7px 12px', color: '#8a7a5a', fontFamily: "'Spectral', serif", fontSize: '0.82rem', fontStyle: 'italic' }}>
-                          Not in export, may have left (nothing is deleted)
+                          {entry.willFlag ? 'Not in export, will be marked as left (nothing is deleted)' : 'Not in export, may have left (nothing is deleted)'}
+                        </td>
+                      </tr>
+                    ))}
+                    {(diff.conflicts ?? []).map((entry, i) => (
+                      <tr key={`con-${i}`} style={{ borderTop: '1px solid #3d2e15' }}>
+                        <td style={{ padding: '7px 12px', color: '#f59e0b', fontFamily: "'Cinzel', serif", fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                          ⚠️ SKIPPED
+                        </td>
+                        <td style={{ padding: '7px 12px', color: '#f0e6c8', fontFamily: "'Cinzel', serif", fontSize: '0.8rem' }}>
+                          {entry.name}
+                        </td>
+                        <td style={{ padding: '7px 12px', color: '#8a7a5a', fontFamily: "'Spectral', serif", fontSize: '0.82rem', fontStyle: 'italic' }}>
+                          {entry.reason}
                         </td>
                       </tr>
                     ))}
@@ -388,7 +410,7 @@ export function OfficersClient() {
         {step === 'done' && applyResult && (
           <div style={cardStyle}>
             <p style={{ fontFamily: "'Cinzel', serif", color: '#1aff6e', fontSize: '1rem', marginBottom: '0.75rem' }}>
-              Import complete. {applyResult.added} added, {applyResult.updated} updated.
+              Import complete. {applyResult.added} added, {applyResult.updated} updated{applyResult.flaggedLeft ? `, ${applyResult.flaggedLeft} marked as left` : ''}.
             </p>
             {applyResult.errors.length > 0 && (
               <details style={{ marginBottom: '0.75rem' }}>
